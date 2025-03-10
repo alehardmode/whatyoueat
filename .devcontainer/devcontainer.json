@@ -1,0 +1,11 @@
+{
+    "name": "Proyecto DAW",
+    "image": "node:lts",
+    "forwardPorts": [3000],
+    "postCreateCommand": "npm install",
+    "customizations": {
+        "vscode": {
+            "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode"]
+        }
+    }
+}
