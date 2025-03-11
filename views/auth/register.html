@@ -1,0 +1,121 @@
+<!-- Página de Registro -->
+<div class="row justify-content-center animate-fade-in py-5">
+  <div class="col-lg-6 col-md-8 col-sm-10">
+    <div class="text-center mb-4">
+      <img src="/img/logo.png" alt="WhatYouEat Logo" width="80" class="mb-3">
+      <h1 class="h3 mb-3">Crea tu cuenta</h1>
+      <p class="text-muted mb-4">Comienza a registrar tu alimentación diaria</p>
+    </div>
+    
+    <div class="card border-0 shadow">
+      <div class="card-body p-4 p-lg-5">
+        <form action="/auth/register" method="POST" class="needs-validation" novalidate>
+          <div class="mb-4">
+            <label for="name" class="form-label">Nombre Completo</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-user"></i></span>
+              <input type="text" class="form-control" id="name" name="name" value="<%= typeof name != 'undefined' ? name : '' %>" required placeholder="Tu nombre completo" autofocus>
+            </div>
+          </div>
+          
+          <div class="mb-4">
+            <label for="email" class="form-label">Correo Electrónico</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+              <input type="email" class="form-control" id="email" name="email" value="<%= typeof email != 'undefined' ? email : '' %>" required placeholder="tu@email.com">
+            </div>
+          </div>
+          
+          <div class="mb-4">
+            <label for="role" class="form-label">Rol</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-user-tag"></i></span>
+              <select class="form-select" id="role" name="role" required>
+                <option value="" selected disabled>Selecciona un rol</option>
+                <option value="paciente" <%= typeof role != 'undefined' && role === 'paciente' ? 'selected' : '' %>>Paciente</option>
+                <option value="medico" <%= typeof role != 'undefined' && role === 'medico' ? 'selected' : '' %>>Médico</option>
+              </select>
+            </div>
+            <div class="form-text">
+              <i class="fas fa-info-circle me-1"></i> Los pacientes suben fotos de comidas, los médicos monitorean a pacientes
+            </div>
+          </div>
+          
+          <div class="mb-4">
+            <label for="password" class="form-label">Contraseña</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-lock"></i></span>
+              <input type="password" class="form-control" id="password" name="password" required placeholder="Crea una contraseña segura">
+              <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password', 'toggleIcon1')" tabindex="-1">
+                <i class="fas fa-eye" id="toggleIcon1"></i>
+              </button>
+            </div>
+            <div class="form-text">La contraseña debe tener al menos 6 caracteres</div>
+          </div>
+          
+          <div class="mb-4">
+            <label for="password2" class="form-label">Confirmar Contraseña</label>
+            <div class="input-group">
+              <span class="input-group-text"><i class="fas fa-lock"></i></span>
+              <input type="password" class="form-control" id="password2" name="password2" required placeholder="Repite tu contraseña">
+              <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password2', 'toggleIcon2')" tabindex="-1">
+                <i class="fas fa-eye" id="toggleIcon2"></i>
+              </button>
+            </div>
+          </div>
+          
+          <div class="form-check mb-4">
+            <input class="form-check-input" type="checkbox" id="terms" required>
+            <label class="form-check-label" for="terms">
+              Acepto los <a href="#">Términos de servicio</a> y la <a href="#">Política de privacidad</a>
+            </label>
+          </div>
+          
+          <div class="d-grid gap-2 mb-4">
+            <button type="submit" class="btn btn-primary btn-lg">
+              Crear cuenta
+            </button>
+          </div>
+          
+          <div class="text-center">
+            <p class="mb-0 text-muted">¿Ya tienes cuenta? <a href="/auth/login" class="text-primary fw-bold">Inicia Sesión</a></p>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function togglePassword(inputId, iconId) {
+  const passwordInput = document.getElementById(inputId);
+  const toggleIcon = document.getElementById(iconId);
+  
+  if (passwordInput.type === 'password') {
+    passwordInput.type = 'text';
+    toggleIcon.classList.remove('fa-eye');
+    toggleIcon.classList.add('fa-eye-slash');
+  } else {
+    passwordInput.type = 'password';
+    toggleIcon.classList.remove('fa-eye-slash');
+    toggleIcon.classList.add('fa-eye');
+  }
+}
+
+// Validación del formulario
+(function() {
+  'use strict';
+  window.addEventListener('load', function() {
+    var forms = document.getElementsByClassName('needs-validation');
+    var validation = Array.prototype.filter.call(forms, function(form) {
+      form.addEventListener('submit', function(event) {
+        if (form.checkValidity() === false) {
+          event.preventDefault();
+          event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+      }, false);
+    });
+  }, false);
+})();
+</script> 

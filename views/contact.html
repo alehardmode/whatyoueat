@@ -1,0 +1,181 @@
+<!-- Página de Contacto -->
+<div class="container mt-5">
+  <div class="row">
+    <div class="col-12">
+      <div class="text-center mb-5">
+        <h1>Contáctanos</h1>
+        <p>Estamos aquí para ayudarte con cualquier duda o sugerencia sobre WhatYouEat.</p>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-center">
+            <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+            <li class="breadcrumb-item active">Contacto</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container mb-5">
+  <div class="row">
+    <div class="col-12">
+      <div class="text-center mb-5">
+        <div>
+          <div>
+            <div>
+              <div>
+                <h3>Información de Contacto</h3>
+                <p>No dudes en comunicarte con nosotros por cualquiera de estos medios.</p>
+              </div>
+              
+              <ul>
+                <li>
+                  <div>
+                    <div>
+                      <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <div>
+                      <h5>Dirección</h5>
+                      <p>Calle Principal 123, 28001 Madrid, España</p>
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <div>
+                    <div>
+                      <i class="fas fa-phone"></i>
+                    </div>
+                    <div>
+                      <h5>Teléfono</h5>
+                      <p>+34 912 345 678</p>
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <div>
+                    <div>
+                      <i class="fas fa-envelope"></i>
+                    </div>
+                    <div>
+                      <h5>Email</h5>
+                      <p><a href="mailto:info@whatyoueat.com">info@whatyoueat.com</a></p>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+              
+              <div>
+                <h3>Horario de Atención</h3>
+                <p>Nuestro equipo está disponible para ayudarte:</p>
+                <ul>
+                  <li>Lunes a Viernes: 9:00 - 18:00</li>
+                  <li>Sábados: 10:00 - 14:00</li>
+                  <li>Domingos: Cerrado</li>
+                </ul>
+              </div>
+              
+              <div>
+                <h3>Síguenos</h3>
+                <p>Mantente al día con nuestras novedades en redes sociales</p>
+                <div>
+                  <a href="https://twitter.com/whatyoueat" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+                  <a href="https://facebook.com/whatyoueat" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                  <a href="https://instagram.com/whatyoueat" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+                  <a href="https://linkedin.com/company/whatyoueat" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="col-12">
+      <div class="text-center mb-5">
+        <div>
+          <div>
+            <div>
+              <h3>Envíanos un Mensaje</h3>
+              <p>Completa el formulario y te responderemos a la brevedad.</p>
+              
+              <form action="/contact/send" method="POST">
+                <div>
+                  <div>
+                    <label for="name">Nombre completo</label>
+                    <input type="text" id="name" name="name" required>
+                  </div>
+                  <div>
+                    <label for="email">Correo electrónico</label>
+                    <input type="email" id="email" name="email" required>
+                  </div>
+                </div>
+                
+                <div>
+                  <label for="subject">Asunto</label>
+                  <input type="text" id="subject" name="subject" required>
+                </div>
+                
+                <div>
+                  <label for="message">Mensaje</label>
+                  <textarea id="message" name="message" rows="5" required></textarea>
+                </div>
+                
+                <div>
+                  <label for="type">Tipo de consulta</label>
+                  <select id="type" name="type">
+                    <option value="general">Consulta general</option>
+                    <option value="support">Soporte técnico</option>
+                    <option value="feedback">Sugerencias</option>
+                    <option value="business">Oportunidades de negocio</option>
+                  </select>
+                </div>
+                
+                <div>
+                  <label>
+                    <input type="checkbox" name="privacy" required>
+                    He leído y acepto la <a href="/privacy">política de privacidad</a>
+                  </label>
+                </div>
+                
+                <button type="submit">Enviar mensaje</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <div>
+    <h2>Preguntas Frecuentes</h2>
+    <p>Aquí encontrarás respuestas a las consultas más comunes</p>
+    
+    <div>
+      <div>
+        <h3>¿Cómo puedo cambiar mi contraseña?</h3>
+        <p>Puedes cambiar tu contraseña accediendo a tu perfil y seleccionando la opción "Cambiar contraseña". También puedes utilizar la función de "Olvidé mi contraseña" en la página de inicio de sesión.</p>
+      </div>
+      
+      <div>
+        <h3>¿Es segura mi información médica?</h3>
+        <p>Absolutamente. En WhatYouEat utilizamos los más altos estándares de seguridad para proteger tus datos. Toda la información se encripta y cumplimos con la normativa GDPR y LOPD.</p>
+      </div>
+      
+      <div>
+        <h3>¿Cómo puedo conectar con un médico o nutricionista?</h3>
+        <p>Al registrarte como paciente, puedes invitar a tu médico o nutricionista a unirse o elegir uno de los profesionales disponibles en nuestra plataforma.</p>
+      </div>
+      
+      <div>
+        <h3>¿Qué formatos de imagen son aceptados?</h3>
+        <p>Aceptamos imágenes en formato JPG, PNG y HEIC con un tamaño máximo de 10MB por archivo.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div>
+  <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d12147.35308726523!2d-3.7026518302246056!3d40.41676020000001!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd422997800a3c81%3A0xc436dec1618c2269!2zTWFkcmlkLCBFc3Bhw7Fh!5e0!3m2!1ses!2ses!4v1646136562719!5m2!1ses!2ses" width="100%" height="400" allowfullscreen="" loading="lazy"></iframe>
+</div> 
