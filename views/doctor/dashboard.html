@@ -1,0 +1,83 @@
+<!-- Dashboard del Médico -->
+<div class="row mb-4">
+  <div class="col-md-12">
+    <h1 class="mb-4 border-bottom pb-2">
+      <i class="fas fa-user-md me-2"></i>Dashboard del Médico
+    </h1>
+    <div class="alert alert-info">
+      <h4 class="alert-heading">¡Bienvenido, Dr. <%= user.name %>!</h4>
+      <p>Esta es tu área personal para gestionar y ver los registros de tus pacientes.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Buscador de Pacientes -->
+<div class="row mb-4">
+  <div class="col-md-12">
+    <div class="card shadow-sm">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0"><i class="fas fa-search me-2"></i>Buscar Pacientes</h5>
+      </div>
+      <div class="card-body">
+        <form action="/doctor/search" method="GET" class="row g-3 align-items-end">
+          <div class="col-md-8">
+            <label for="name" class="form-label">Nombre del Paciente</label>
+            <input type="text" class="form-control" id="name" name="name" placeholder="Buscar por nombre..." value="<%= typeof searchTerm != 'undefined' ? searchTerm : '' %>">
+          </div>
+          <div class="col-md-4">
+            <button type="submit" class="btn btn-primary w-100">
+              <i class="fas fa-search me-1"></i>Buscar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Lista de Pacientes -->
+<div class="row">
+  <div class="col-md-12">
+    <div class="card shadow-sm">
+      <div class="card-header bg-success text-white">
+        <h5 class="mb-0"><i class="fas fa-users me-2"></i>Lista de Pacientes</h5>
+      </div>
+      <div class="card-body">
+        <% if (patients && patients.length > 0) { %>
+          <div class="table-responsive">
+            <table class="table table-striped table-hover">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Nombre</th>
+                  <th scope="col">Correo Electrónico</th>
+                  <th scope="col">Fecha de Registro</th>
+                  <th scope="col">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% patients.forEach((patient, index) => { %>
+                  <tr>
+                    <th scope="row"><%= index + 1 %></th>
+                    <td><%= patient.name %></td>
+                    <td><%= patient.email %></td>
+                    <td><%= new Date(patient.created_at).toLocaleDateString() %></td>
+                    <td>
+                      <a href="/doctor/patient/<%= patient.id %>/history" class="btn btn-sm btn-primary">
+                        <i class="fas fa-book me-1"></i>Ver Diario
+                      </a>
+                    </td>
+                  </tr>
+                <% }); %>
+              </tbody>
+            </table>
+          </div>
+        <% } else { %>
+          <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>No se encontraron pacientes.
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div> 

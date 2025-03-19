@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> | WhatYouEat</title>
+  <!-- Forzar recarga de recursos eliminando cache -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/img/logo.png">
+  <!-- Estilos CSS -->
+  <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container">
+      <a class="navbar-brand d-flex align-items-center" href="/">
+        <img src="/img/logo.png" alt="WhatYouEat Logo" height="40" class="me-2">
+        <span>WhatYouEat</span>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/contact">Contacto</a>
+          </li>
+          <% if (user) { %>
+            <% if (user.role === 'paciente') { %>
+              <li class="nav-item">
+                <a class="nav-link" href="/patient/dashboard">Dashboard</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/patient/upload">Subir Foto</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" href="/patient/history">Ver Historial</a>
+              </li>
+            <% } else if (user.role === 'medico') { %>
+              <li class="nav-item">
+                <a class="nav-link" href="/doctor/dashboard">Dashboard</a>
+              </li>
+            <% } %>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                <i class="fas fa-user-circle me-1"></i><%= user.name %>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="/profile"><i class="fas fa-id-card me-2"></i>Mi Perfil</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item" href="/auth/logout"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
+              </ul>
+            </li>
+          <% } else { %>
+            <li class="nav-item">
+              <a class="nav-link" href="/auth/login">Iniciar Sesión</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/auth/register">Registrarse</a>
+            </li>
+          <% } %>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Mensajes Flash -->
+  <div class="flash-messages">
+    <% if (typeof success_msg !== 'undefined' && success_msg.length > 0) { %>
+      <div class="alert alert-success alert-dismissible fade show" role="alert" id="successAlert">
+        <div class="container">
+          <i class="fas fa-check-circle me-2"></i><%= success_msg %>
+          <button type="button" class="close-alert">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+    <% } %>
+    
+    <% if (typeof error_msg !== 'undefined' && error_msg.length > 0) { %>
+      <div class="alert alert-danger alert-dismissible fade show" role="alert" id="errorAlert">
+        <div class="container">
+          <i class="fas fa-exclamation-circle me-2"></i><%= error_msg %>
+          <button type="button" class="close-alert">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+    <% } %>
+    
+    <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
+      <div class="alert alert-danger alert-dismissible fade show" role="alert" id="validationAlert">
+        <div class="container">
+          <i class="fas fa-exclamation-triangle me-2"></i>Por favor corrige los siguientes errores:
+          <ul class="mb-0 mt-2">
+            <% errors.forEach(function(error) { %>
+              <li><%= error.msg %></li>
+            <% }); %>
+          </ul>
+          <button type="button" class="close-alert">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      </div>
+    <% } %>
+  </div>
+
+  <!-- Contenido Principal -->
+  <main>
+    <%- body %>
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container py-5">
+      <div class="row g-4">
+        <div class="col-lg-4 col-md-6">
+          <div class="d-flex align-items-center mb-3">
+            <img src="/img/logo.png" alt="WhatYouEat Logo" height="40" class="me-2">
+            <h5 class="mb-0">WhatYouEat</h5>
+          </div>
+          <p class="text-muted mb-3">Seguimiento nutricional personalizado para mejorar tus hábitos alimenticios día a día.</p>
+          <div class="social-links">
+            <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+            <a href="#" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
+            <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+          </div>
+        </div>
+        <div class="col-lg-2 col-md-6">
+          <h5 class="mb-3">Enlaces</h5>
+          <ul class="list-unstyled">
+            <li><a href="/">Inicio</a></li>
+            <li><a href="/contact">Contacto</a></li>
+            <li><a href="/about">Sobre Nosotros</a></li>
+            <li><a href="/faq">Preguntas Frecuentes</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-3 col-md-6">
+          <h5 class="mb-3">Políticas</h5>
+          <ul class="list-unstyled">
+            <li><a href="/privacy">Política de Privacidad</a></li>
+            <li><a href="/terms">Términos de Servicio</a></li>
+            <li><a href="/cookies">Política de Cookies</a></li>
+          </ul>
+        </div>
+        <div class="col-lg-3 col-md-6">
+          <h5 class="mb-3">Contacto</h5>
+          <ul class="list-unstyled contact-info-list">
+            <li><i class="fas fa-envelope"></i> info@whatyoueat.com</li>
+            <li><i class="fas fa-phone"></i> +34 912 345 678</li>
+            <li><i class="fas fa-map-marker-alt"></i> Madrid, España</li>
+          </ul>
+        </div>
+      </div>
+      <hr class="my-4 border-top">
+      <div class="row">
+        <div class="col-md-6 text-center text-md-start">
+          <p class="mb-0">&copy; <%= new Date().getFullYear() %> WhatYouEat. Todos los derechos reservados.</p>
+        </div>
+        <div class="col-md-6 text-center text-md-end">
+          <p class="mb-0">Desarrollado con <i class="fas fa-heart text-danger"></i> por Equipo WhatYouEat</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Custom JS -->
+  <script src="/js/main.js"></script>
+</body>
+</html> 
