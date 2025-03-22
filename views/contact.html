@@ -178,38 +178,9 @@
 <div>
   <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d12147.35308726523!2d-3.7026518302246056!3d40.41676020000001!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd422997800a3c81%3A0xc436dec1618c2269!2zTWFkcmlkLCBFc3Bhw7Fh!5e0!3m2!1ses!2ses!4v1646136562719!5m2!1ses!2ses" width="100%" height="400" allowfullscreen="" loading="lazy"></iframe>
 </div> 
-<!-- SCRIPT para el envio del mensaje de contacto que se debe añadir a un documento nuevo en /controllers/contactController.js -->
-<!-- <script>
-  document.getElementById("contactForm").addEventListener("submit", async function (e) {
-    e.preventDefault();
 
-    const form = e.target;
-    const formData = new FormData(form);
-    const data = Object.fromEntries(formData.entries());
+<!-- SCRIPT para validacion de formulario de contacto añadir un documento en /public/js/valForm/contactFormVal.js  -->
 
-    try {
-      const response = await fetch(form.action, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        alert(result.message);
-        form.reset(); // Limpia el formulario después de enviar
-      } else {
-        alert("Error al enviar el mensaje.");
-      }
-    } catch (error) {
-      console.error("Error:", error);
-      alert("Error de red o del servidor.");
-    }
-  });
-</script> -->
-
-<!-- SCRIPT para validacion de formulario de contacto añadir un documento en /public/js/valForm/contactForm.js  -->
 <script>
   document.getElementById("contactForm").addEventListener("submit", async function (e) {
     e.preventDefault();

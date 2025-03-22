@@ -70,7 +70,7 @@ router.get('/contact', (req, res) => {
   // Enviando un correo, guardando en base de datos, etc.
   res.json({ success: true, message: 'Mensaje recibido correctamente' });
 });*/
-router.post('/contact', (req, res) => {
+/*router.post('/contact', (req, res) => {
   const { name, email, message } = req.body;
 
   // En un entorno real, podrías guardar el mensaje o enviarlo por correo a 
@@ -79,7 +79,12 @@ router.post('/contact', (req, res) => {
     success: true,
     message: `Mensaje recibido: "${message}"`
   });
-});
+});*/
+
+// Procesar formulario de contacto
+const contactController = require('../controllers/contactController');
+// Ruta POST para procesar el formulario de contacto
+router.post('/contact', contactController.sendMessage);
 
 
 module.exports = router; 
