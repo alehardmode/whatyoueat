@@ -65,10 +65,21 @@ router.get('/contact', (req, res) => {
 });
 
 // Procesar formulario de contacto (simulado)
-router.post('/contact', (req, res) => {
+/*router.post('/contact', (req, res) => {
   // En un entorno real, aquí procesaríamos el formulario
   // Enviando un correo, guardando en base de datos, etc.
   res.json({ success: true, message: 'Mensaje recibido correctamente' });
+});*/
+router.post('/contact', (req, res) => {
+  const { name, email, message } = req.body;
+
+  // En un entorno real, podrías guardar el mensaje o enviarlo por correo a 
+
+  res.json({
+    success: true,
+    message: `Mensaje recibido: "${message}"`
+  });
 });
+
 
 module.exports = router; 
