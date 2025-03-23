@@ -1,3 +1,4 @@
+// controllers/authController.js
 const UserAuth = require('../models/UserAuth');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');

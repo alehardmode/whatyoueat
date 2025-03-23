@@ -36,8 +36,9 @@
             <div class="input-group">
               <span class="input-group-text"><i class="fas fa-lock"></i></span>
               <input type="password" class="form-control" id="password" name="password" required placeholder="Tu contraseña">
-              <button class="btn btn-outline-secondary" type="button" onclick="togglePassword()" tabindex="-1">
-                <i class="fas fa-eye" id="toggleIcon"></i>
+              <!-- boton para mostrar contraseña -->
+              <button class="btn btn-outline-secondary" type="button" id="togglePassword1" tabindex="-1" aria-label="Mostrar u ocultar contraseña">
+                <i class="fas fa-eye" id="toggleIcon1"></i>
               </button>
             </div>
           </div>
@@ -61,19 +62,3 @@
   </div>
 </div>
 
-<script>
-function togglePassword() {
-  const passwordInput = document.getElementById('password');
-  const toggleIcon = document.getElementById('toggleIcon');
-  
-  if (passwordInput.type === 'password') {
-    passwordInput.type = 'text';
-    toggleIcon.classList.remove('fa-eye');
-    toggleIcon.classList.add('fa-eye-slash');
-  } else {
-    passwordInput.type = 'password';
-    toggleIcon.classList.remove('fa-eye-slash');
-    toggleIcon.classList.add('fa-eye');
-  }
-}
-</script> 

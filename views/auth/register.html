@@ -9,7 +9,7 @@
     
     <div class="card border-0 shadow">
       <div class="card-body p-4 p-lg-5">
-        <form action="/auth/register" method="POST" class="needs-validation" novalidate>
+        <form action="/auth/register" method="POST" class="needs-validation">
           <div class="mb-4">
             <label for="name" class="form-label">Nombre Completo</label>
             <div class="input-group">
@@ -46,7 +46,8 @@
             <div class="input-group">
               <span class="input-group-text"><i class="fas fa-lock"></i></span>
               <input type="password" class="form-control" id="password" name="password" required placeholder="Crea una contraseña segura">
-              <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password', 'toggleIcon1')" tabindex="-1">
+              <!-- boton para mostrar contraseña -->
+              <button class="btn btn-outline-secondary" type="button" id="togglePassword1" tabindex="-1" aria-label="Mostrar u ocultar contraseña">
                 <i class="fas fa-eye" id="toggleIcon1"></i>
               </button>
             </div>
@@ -58,7 +59,8 @@
             <div class="input-group">
               <span class="input-group-text"><i class="fas fa-lock"></i></span>
               <input type="password" class="form-control" id="password2" name="password2" required placeholder="Repite tu contraseña">
-              <button class="btn btn-outline-secondary" type="button" onclick="togglePassword('password2', 'toggleIcon2')" tabindex="-1">
+              <!-- boton2 para mostrar confirmacion de contraseña -->
+              <button class="btn btn-outline-secondary" type="button" id="togglePassword2" tabindex="-1" aria-label="Mostrar u ocultar contraseña">
                 <i class="fas fa-eye" id="toggleIcon2"></i>
               </button>
             </div>
@@ -85,37 +87,3 @@
     </div>
   </div>
 </div>
-
-<script>
-function togglePassword(inputId, iconId) {
-  const passwordInput = document.getElementById(inputId);
-  const toggleIcon = document.getElementById(iconId);
-  
-  if (passwordInput.type === 'password') {
-    passwordInput.type = 'text';
-    toggleIcon.classList.remove('fa-eye');
-    toggleIcon.classList.add('fa-eye-slash');
-  } else {
-    passwordInput.type = 'password';
-    toggleIcon.classList.remove('fa-eye-slash');
-    toggleIcon.classList.add('fa-eye');
-  }
-}
-
-// Validación del formulario
-(function() {
-  'use strict';
-  window.addEventListener('load', function() {
-    var forms = document.getElementsByClassName('needs-validation');
-    var validation = Array.prototype.filter.call(forms, function(form) {
-      form.addEventListener('submit', function(event) {
-        if (form.checkValidity() === false) {
-          event.preventDefault();
-          event.stopPropagation();
-        }
-        form.classList.add('was-validated');
-      }, false);
-    });
-  }, false);
-})();
-</script> 
