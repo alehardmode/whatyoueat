@@ -123,17 +123,16 @@
                           </div>
                           <div class="mb-4">
                             <label for="type" class="form-label">Tipo de consulta</label>
-                          </div>
-                          <div class="input-group-text">
-                            <span class="input-group-text"><i class="fas fa-question-circle"></i></span>
-                            <select id="type" name="type" required>
-                              <option value="general">Consulta general</option>
-                              <option value="support">Soporte técnico</option>
-                              <option value="feedback">Sugerencias</option>
-                              <option value="business">Oportunidades de negocio</option>
-                            </select>
-                          </div>
-
+                            <div class="input-group">
+                              <span class="input-group-text"><i class="fas fa-user-tag"></i></span>
+                              <select class="form-select" id="role" name="role" required>
+                                <option value="" selected disabled>Selecciona un rol</option>
+                                <option value="general" <%= typeof role != 'undefined' && role === 'general' ? 'selected' : '' %>Consulta general</option>
+                                <option value="support" <%= typeof role != 'undefined' && role === 'support' ? 'selected' : '' %>Soporte técnico</option>
+                                <option value="feedback" <%= typeof role != 'undefined' && role === 'feedback' ? 'selected' : '' %>Sugerencias</option>
+                                <option value="business" <%= typeof role != 'undefined' && role === 'business' ? 'selected' : '' %>Oportunidades de negocio</option>
+                              </select>
+                            </div>
                           <div class="mb-4">
                             <label>
                               <input type="checkbox" name="privacy" required>
