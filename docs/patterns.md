@@ -14,7 +14,7 @@ Los modelos representan la capa de datos y lógica de negocio de la aplicación:
 - **Archivos principales**:
   - `UserAuth.js`: Gestiona la autenticación de usuarios con Supabase Auth
   - `Profile.js`: Maneja la información de perfil de los usuarios
-  - `FoodEntry.js`: Gestiona las entradas de comida
+  - `FoodEntry.js`: Gestiona las entradas de comida de los pacientes
 
 Los modelos encapsulan la lógica para:
 - Interactuar con la base de datos (Supabase)
@@ -26,10 +26,9 @@ Los modelos encapsulan la lógica para:
 ```javascript
 // models/FoodEntry.js
 const { supabase } = require('../config/supabase');
-
 class FoodEntry {
   // Obtener entradas de comida por ID de usuario
-  static async getHistoryByUserId(userId, startDate, endDate) {
+  static async getHistoryByUserId(userId, date = null) {
     try {
       let query = supabase
         .from('food_entries')
@@ -37,13 +36,14 @@ class FoodEntry {
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
       
-      // Aplicar filtros de fecha si se proporcionan
-      if (startDate) {
-        query = query.gte('created_at', startDate);
-      }
-      
-      if (endDate) {
-        query = query.lte('created_at', endDate);
+      // Si se proporciona una fecha, filtrar por esa fecha
+      if (date) {
+        const startOfDay = moment(date).startOf('day').toISOString();
+        const endOfDay = moment(date).endOf('day').toISOString();
+        
+        query = query
+          .gte('created_at', startOfDay)
+          .lte('created_at', endOfDay);
       }
       
       const { data, error } = await query;
@@ -57,7 +57,6 @@ class FoodEntry {
     }
   }
 }
-
 module.exports = FoodEntry;
 ```
 
@@ -70,9 +69,9 @@ Las vistas representan la interfaz de usuario de la aplicación:
 - **Configuración**: Aunque tienen extensión `.html`, se procesan con EJS mediante `app.engine('html', require('ejs').renderFile)`
 - **Estructura**:
   - `/layouts`: Plantillas base reutilizables
-  - `/auth`: Vistas relacionadas con autenticación
-  - `/patient`: Vistas específicas para pacientes
-  - `/doctor`: Vistas específicas para médicos
+  - `/auth`: Vistas relacionadas con autenticación (login.html, register.html)
+  - `/patient`: Vistas específicas para pacientes (dashboard.html, upload.html)
+  - `/doctor`: Vistas específicas para médicos (dashboard.html)
 
 Las vistas:
 - Reciben datos de los controladores
@@ -88,6 +87,7 @@ Los controladores manejan el flujo de la aplicación:
   - `authController.js`: Maneja la autenticación
   - `patientController.js`: Controla las funcionalidades para pacientes
   - `doctorController.js`: Controla las funcionalidades para médicos
+  - `contactController.js`: Gestiona el formulario de contacto
 
 Los controladores:
 - Reciben solicitudes del usuario (rutas)
@@ -98,26 +98,29 @@ Los controladores:
 **Ejemplo de implementación**:
 
 ```javascript
-// controllers/doctorController.js
-exports.getDashboard = async (req, res) => {
+// controllers/patientController.js
+exports.getHistory = async (req, res) => {
   try {
-    // Obtener lista de pacientes usando el modelo
-    const result = await Profile.getAllPatients();
+    const userId = req.session.user.id;
+    const date = req.query.date ? new Date(req.query.date) : new Date();
+    
+    const result = await FoodEntry.getHistoryByUserId(userId, date);
     
     if (!result.success) {
       throw new Error(result.error);
     }
     
-    // Renderizar vista con los datos obtenidos
-    res.render('doctor/dashboard', {
-      title: 'Dashboard del Médico',
+    res.render('patient/history', {
+      title: 'Historial de Comidas',
       user: req.session.user,
-      patients: result.patients
+      entries: result.entries,
+      date: moment(date).format('YYYY-MM-DD'),
+      moment
     });
   } catch (error) {
-    console.error('Error al cargar dashboard:', error);
-    req.flash('error_msg', 'Error al cargar el dashboard');
-    res.redirect('/auth/login');
+    console.error('Error al obtener historial:', error);
+    req.flash('error_msg', 'Error al cargar el historial');
+    res.redirect('/patient/dashboard');
   }
 };
 ```
@@ -130,7 +133,7 @@ exports.getDashboard = async (req, res) => {
 4. El controlador:
    - Procesa la solicitud y extrae los datos (archivo, formulario)
    - Interactúa con los modelos necesarios (`FoodEntry.js`)
-   - Gestiona la lógica de almacenamiento y base de datos
+   - Gestiona la lógica de almacenamiento en Supabase
    - Establece mensajes flash para feedback
    - Redirige o renderiza la vista apropiada
 5. La vista se muestra al usuario con los datos actualizados
@@ -158,23 +161,7 @@ const supabase = createClient(
   }
 );
 
-// Cliente para operaciones públicas
-const supabasePublic = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY,
-  {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-      detectSessionInUrl: false
-    }
-  }
-);
-
-module.exports = { 
-  supabase,
-  supabasePublic
-};
+module.exports = { supabase };
 ```
 
 Esto asegura que solo exista una instancia de la conexión a la base de datos en toda la aplicación.
@@ -250,3 +237,23 @@ res.redirect('/auth/login');
 ```
 
 Este patrón permite que los mensajes de estado persistan entre redirecciones HTTP, proporcionando feedback importante al usuario.
+
+## Patrón Strategy
+
+Implementamos el patrón Strategy para manejar diferentes roles de usuarios (pacientes y médicos):
+
+```javascript
+// routes/mainRoutes.js
+router.get('/dashboard', (req, res) => {
+  // Estrategia basada en rol de usuario
+  if (req.session.user.role === 'doctor') {
+    return res.redirect('/doctor/dashboard');
+  } else if (req.session.user.role === 'patient') {
+    return res.redirect('/patient/dashboard');
+  } else {
+    return res.redirect('/');
+  }
+});
+```
+
+Este patrón permite adaptar el comportamiento de la aplicación según el contexto (en este caso, el rol del usuario), manteniendo el código limpio y modular.
