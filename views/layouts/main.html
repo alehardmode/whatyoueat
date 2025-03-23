@@ -10,6 +10,10 @@
   <meta http-equiv="Expires" content="0">
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="/img/logo.png">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <!-- FONT AWESOME PARA ICONOS DE CONTRASEÑA añadir link para imagenes de iconos-->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <!-- Estilos CSS -->
   <link rel="stylesheet" href="/css/styles.css">
 </head>
@@ -17,13 +21,15 @@
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg sticky-top">
     <div class="container">
-      <a class="navbar-brand d-flex align-items-center" href="/">
-        <img src="/img/logo.png" alt="WhatYouEat Logo" height="40" class="me-2">
-        <span>WhatYouEat</span>
-      </a>
-      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <!-- Definir la URL del logo dinámicamente -->
+        <% const logoUrl = user ? (user.role === 'paciente' ? '/patient/dashboard' : user.role === 'medico' ? '/doctor/dashboard' : '/') : '/'; %>
+        <a class="navbar-brand d-flex align-items-center" href="<%= logoUrl %>">
+          <img src="/img/logo.png" alt="WhatYouEat Logo" height="40" class="me-2">
+          <span>WhatYouEat</span>
+        </a>
+      <!-- <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
         <span class="navbar-toggler-icon"></span>
-      </button>
+      </button> -->
       <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ms-auto">
           <li class="nav-item">
@@ -46,12 +52,11 @@
               </li>
             <% } %>
             <li class="nav-item dropdown">
-              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="fas fa-user-circle me-1"></i><%= user.name %>
               </a>
-              <ul class="dropdown-menu dropdown-menu-end">
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                 <li><a class="dropdown-item" href="/profile"><i class="fas fa-id-card me-2"></i>Mi Perfil</a></li>
-                <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item" href="/auth/logout"><i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión</a></li>
               </ul>
             </li>
@@ -64,7 +69,6 @@
             </li>
           <% } %>
         </ul>
-      </div>
     </div>
   </nav>
 
@@ -136,16 +140,16 @@
           <ul class="list-unstyled">
             <li><a href="/">Inicio</a></li>
             <li><a href="/contact">Contacto</a></li>
-            <li><a href="/about">Sobre Nosotros</a></li>
-            <li><a href="/faq">Preguntas Frecuentes</a></li>
+            <li><a href="/">Sobre Nosotros</a></li>
+            <li><a href="/faq">Preguntas Frecuentes</a></li> <!--NO FUNCIONA-->
           </ul>
         </div>
         <div class="col-lg-3 col-md-6">
           <h5 class="mb-3">Políticas</h5>
           <ul class="list-unstyled">
-            <li><a href="/privacy">Política de Privacidad</a></li>
-            <li><a href="/terms">Términos de Servicio</a></li>
-            <li><a href="/cookies">Política de Cookies</a></li>
+            <li><a href="/privacy">Política de Privacidad</a></li> <!--NO FUNCIONA-->
+            <li><a href="/terms">Términos de Servicio</a></li> <!--NO FUNCIONA-->
+            <li><a href="/cookies">Política de Cookies</a></li> <!--NO FUNCIONA-->
           </ul>
         </div>
         <div class="col-lg-3 col-md-6">
@@ -171,5 +175,9 @@
 
   <!-- Custom JS -->
   <script src="/js/main.js"></script>
+  <!-- Auth JS -->
+  <script src="/js/auth.js"></script>
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </body>
 </html> 
