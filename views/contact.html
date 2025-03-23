@@ -90,53 +90,61 @@
       </div>
     </div>
     
-    <div class="col-12">
-      <div class="text-center mb-5">
+      <div >
         <div>
-          <div>
-            <div>
-              <h3>Envíanos un Mensaje</h3>
-              <p>Completa el formulario y te responderemos a la brevedad.</p>           
-              <form id="contactForm" action="/contact" method="POST">
+          <div class="text-center mb-4">
+            <div class="card-body p-4 p-lg-5">
                 <div>
-                  <div>
-                    <label for="name">Nombre completo</label>
-                    <input type="text" id="name" name="name" maxlength="50" required>
-                  </div>
-                  <div>
-                    <label for="email">Correo electrónico</label>
-                    <input type="email" id="email" name="email" required>
-                  </div>
+                  <div class="card-body p-4 p-lg-5">
+                      <img src="/img/logo.png" alt="WhatYouEat Logo" width="80" class="mb-3">
+                      <h1 class="h3 mb-3">Envíanos un Mensaje</h1>
+                      <p class="text-muted mb-4">Completa el formulario y te responderemos a la brevedad.</p>
+                      <div class="card border-0 shadow">
+                      <form id="contactForm" action="/contact" method="POST" class="needs-validation" novalidate>
+                        <div class="mb-4">
+                          <label for="name" class="form-label">Nombre Completo</label>
+                          <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            <input type="text" class="form-control" id="name" name="name" required autofocus placeholder="nombre completo">
+                          </div>
+                          <label for="email" class="form-label">Correo Electrónico</label>
+                          <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                            <input type="email" class="form-control" id="email" name="email" required autofocus placeholder="tu@email.com">
+                          </div>
+                          <label for="isue" class="form-label">Asunto</label>
+                          <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-heading"></i></span>
+                            <input type="text" class="form-control" id="isue" name="isue" required autofocus placeholder="escribe el motivo de tu mensaje">
+                          </div>
+                          <label for="message" class="form-label">Mensaje</label>
+                          <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-comment"></i></span>
+                            <textarea type="text" class="form-control" id="message" name="message" maxlength="280" required autofocus placeholder="escribe lo que desees comunicarnos (max 280 caracteres)"></textarea>
+                          </div>
+                          <div class="mb-4">
+                            <label for="type" class="form-label">Tipo de consulta</label>
+                          </div>
+                          <div class="input-group-text">
+                            <span class="input-group-text"><i class="fas fa-question-circle"></i></span>
+                            <select id="type" name="type" required>
+                              <option value="general">Consulta general</option>
+                              <option value="support">Soporte técnico</option>
+                              <option value="feedback">Sugerencias</option>
+                              <option value="business">Oportunidades de negocio</option>
+                            </select>
+                          </div>
+
+                          <div class="mb-4">
+                            <label>
+                              <input type="checkbox" name="privacy" required>
+                              He leído y acepto la <a href="/privacy">política de privacidad</a>
+                            </label>
+                        </div>
+                        <div class="d-grid gap-2 mb-4">
+                          <button type="submit" class="btn btn-primary btn-lg"> Enviar mensaje </button>
+                        </div>
                 </div>
-                
-                <div>
-                  <label for="subject">Asunto</label>
-                  <input type="text" id="subject" name="subject" maxlength="50" required>
-                </div>
-                
-                <div>
-                  <label for="message">Mensaje</label>
-                  <textarea id="message" name="message" rows="5" maxlength="280" required></textarea>
-                </div>
-                
-                <div>
-                  <label for="type">Tipo de consulta</label>
-                  <select id="type" name="type">
-                    <option value="general">Consulta general</option>
-                    <option value="support">Soporte técnico</option>
-                    <option value="feedback">Sugerencias</option>
-                    <option value="business">Oportunidades de negocio</option>
-                  </select>
-                </div>
-                
-                <div>
-                  <label>
-                    <input type="checkbox" name="privacy" required>
-                    He leído y acepto la <a href="/privacy">política de privacidad</a>
-                  </label>
-                </div>
-                <button type="submit">Enviar mensaje</button>
-                <div id="toast" class="toast hidden"></div>
               </form>
             </div>
           </div>

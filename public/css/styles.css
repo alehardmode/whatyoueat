@@ -417,3 +417,6 @@ section {
   color: var(--primary);
   margin-bottom: 0.5rem;
 }
+li {
+  list-style: none
+}
