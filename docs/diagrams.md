@@ -15,8 +15,7 @@
         ↓                      ↓                      |
 +-------+------------------------+                    |
 |                                |                    |
-|          APLICACIÓN            |                    |
-|                                |                    |
+|          EXPRESS APP           |                    |
 +-+------------+------------+----+                    |
   |            |            |                         |
   |            |            |                         |
@@ -35,7 +34,7 @@
             +-----+
 ```
 
-## Diagrama de Flujo de Datos Actualizado
+## Diagrama de Flujo de Datos
 
 ```
 +-------------+         +------------+         +-------------+
@@ -58,57 +57,94 @@
 |             |         |             |         |             |
 |  Interfaz   |         |   Modelo    |         |  Supabase   |
 |  Usuario    |         |             +-------->+  Database   |
-+-------------+         +-------------+  CRUD   +-------------+
++-------------+         +-------------+  CRUD   |  & Storage  |
+                                                +-------------+
 ```
 
 ## Diagrama de Clases (POO)
 
-```
-+----------------------+          +------------------------+
-| Server               |          | Router                 |
-+----------------------+          +------------------------+
-| - app: Express       |          | - routes: Array        |
-| - port: number       |<>------->| + registerRoute()      |
-| - middlewares: Array |          | + getRoutes()          |
-| + start()            |          +------------------------+
-| + stop()             |                    ∧
-+----------+-----------+                    |
-           |                                |
-           |                   +------------+------------+
-           |                   |                         |
-           |            +------+------+           +------+------+
-           |            | AuthRouter  |           | MainRouter  |
-           |            +-------------+           +-------------+
-           |            | + login()   |           | + home()    |
-           |            | + logout()  |           | + about()   |
-           |            +-------------+           +-------------+
-           |
-           |
-+----------v-----------+          +-----------------------+
-| Controller           |          | Model                 |
-+-----------------------          +-----------------------+
-| - model: Model       |<>------->| - db: SupabaseClient  |
-| + handleRequest()    |          | + create()            |
-+-----------^-----------          | + read()              |
-            |                     | + update()            |
-            |                     | + delete()            |
-            |                     +----------^------------+
-            |                                |
-            |                                |
-        +---+-------------+    +-------------+----------+
-        |                 |    |                        |
-+-------+--------+   +----+----+-----+    +-------------+------+
-| AuthController |   | PatientCtrl   |    | FoodEntryModel     |
-+----------------+   +---------------+    +--------------------+
-| + login()      |   | + dashboard() |    | - table: string    |
-| + register()   |   | + upload()    |    | - storage: Storage |
-| + logout()     |   | + history()   |    | + uploadImage()    |
-+----------------+   +---------------+    | + getEntries()     |
-                                          +--------------------+
+```mermaid
+classDiagram
+        Server o-- Router : contains
+        Server o-- Controller : uses
+        Controller o-- Model : uses
+        Router <|-- AuthRouter : extends
+        Router <|-- MainRouter : extends
+        Controller <|-- AuthCtrl : extends
+        Controller <|-- PatientCtrl : extends
+        Controller <|-- ContactCtrl : extends
+        Controller <|-- DoctorCtrl : extends
+        Model <|-- FoodEntryModel : extends
 
+        class Server {
+                -app: Express
+                -port: number
+                -middlewares: Array
+                +start()
+                +stop()
+        }
+
+        class Router {
+                -routes: Array
+                +registerRoute()
+                +getRoutes()
+        }
+
+        class AuthRouter {
+                +login()
+                +logout()
+        }
+
+        class MainRouter {
+                +home()
+                +about()
+        }
+
+        class Controller {
+                -model: Model
+                +handleRequest()
+        }
+
+        class AuthCtrl {
+                +login()
+                +register()
+                +logout()
+        }
+
+        class PatientCtrl {
+                +dashboard()
+                +upload()
+                +history()
+        }
+
+        class ContactCtrl {
+                +getContactForm()
+                +submitContact()
+        }
+
+        class DoctorCtrl {
+                +getDashboard()
+                +getPatient()
+                +getHistory()
+        }
+
+        class Model {
+                -db: SupabaseClient
+                +create()
+                +read()
+                +update()
+                +delete()
+        }
+
+        class FoodEntryModel {
+                +create()
+                +getHistoryById()
+                +update()
+                +delete()
+        }
 ```
 
-## Diagrama Entidad-Relación (Base de Datos) Actualizado
+## Diagrama Entidad-Relación (Base de Datos)
 
 ```
 +----------------------+       +-------------------------+
@@ -151,8 +187,8 @@
                                                  v
 +-----------------+     +---------------+     +----------------+
 |                 |     |               |     |                |
-|   Supabase      <-----+   Modelo      <-----+ multer (temp   |
-|   Storage       |     |  FoodEntry    |     |  storage)      |
+|   Supabase      <-----+   Modelo      <-----+    Multer     |
+|   Storage       |     |  FoodEntry    |     | (procesamiento)|
 +--------+--------+     +---------------+     +----------------+
          |
          v
@@ -166,60 +202,96 @@
 ## Estructura de Archivos Detallada
 
 ```
-server.js                      # Punto de entrada de la aplicación
-  ├── .env                     # Variables de entorno
+whatyoueat/
+  ├── server.js                 # Punto de entrada de la aplicación
+  ├── package.json              # Dependencias y scripts
+  ├── LICENSE                   # Licencia del proyecto
+  ├── README.md                 # Documentación general
   │
-  ├── config/
-  │     └── supabase.js        # Configuración de la conexión a Supabase
+  ├── config/                   # Configuraciones
+  │     └── supabase.js         # Configuración de la conexión a Supabase
   │
-  ├── routes/
-  │     ├── mainRoutes.js      # Rutas públicas
-  │     ├── authRoutes.js      # Rutas de autenticación
-  │     ├── patientRoutes.js   # Rutas para pacientes
-  │     └── doctorRoutes.js    # Rutas para médicos
+  ├── controllers/              # Controladores
+  │     ├── authController.js   # Manejo de autenticación
+  │     ├── contactController.js # Gestión del formulario de contacto
+  │     ├── doctorController.js # Funcionalidades específicas de médicos
+  │     └── patientController.js # Funcionalidades específicas de pacientes
   │
-  ├── controllers/
-  │     ├── authController.js  # Controlador de autenticación
-  │     ├── patientController.js # Controlador para funciones de paciente
-  │     └── doctorController.js  # Controlador para funciones de médico
+  ├── database/                 # Archivos relacionados con la BD
+  │     ├── init.sql           # Script SQL para inicializar la base de datos
+  │     └── testDB.js          # Pruebas de conexión a la BD
   │
-  ├── models/
-  │     ├── UserAuth.js        # Modelo para gestión de usuarios y auth
-  │     ├── Profile.js         # Modelo para gestión de perfiles
-  │     └── FoodEntry.js       # Modelo para entradas de comida
+  ├── docs/                     # Documentación técnica
+  │     ├── diagrams.md         # Diagramas de la arquitectura
+  │     ├── patterns.md         # Patrones de diseño implementados  
+  │     └── validation.md       # Validación de estándares web
   │
-  ├── middleware/
-  │     └── authMiddleware.js  # Middleware de autenticación y autorización
+  ├── middleware/               # Middlewares
+  │     └── authMiddleware.js   # Middleware de autenticación y autorización
   │
-  ├── views/                   # Archivos HTML procesados con EJS
-  │     ├── layouts/main.html  # Layout principal
+  ├── models/                   # Modelos
+  │     ├── FoodEntry.js        # Modelo para gestión de entradas de comida
+  │     ├── Profile.js          # Modelo para gestión de perfiles de usuario
+  │     └── UserAuth.js         # Modelo para gestión de autenticación
+  │
+  ├── public/                   # Archivos estáticos
+  │     ├── css/
+  │     │     └── styles.css    # Estilos CSS principales
   │     │
-  │     ├── index.html         # Página de inicio
-  │     ├── contact.html       # Página de contacto
-  │     ├── 404.html           # Página de error 404
+  │     ├── img/                # Imágenes
+  │     │     ├── logo.png      # Logo de la aplicación
+  │     │     ├── demo/         # Imágenes de demostración
+  │     │     └── temp/         # Almacenamiento temporal
   │     │
-  │     ├── auth/              # Vistas de autenticación
-  │     │     ├── login.html
-  │     │     └── register.html
-  │     │
-  │     ├── patient/           # Vistas para pacientes
-  │     │     ├── dashboard.html
-  │     │     └── upload.html
-  │     │
-  │     └── doctor/            # Vistas para médicos
-  │           └── dashboard.html
+  │     └── js/                 # JavaScript del cliente
+  │           ├── auth.js       # Funciones de autenticación
+  │           ├── main.js       # Funciones principales
+  │           └── valForm/
+  │                 └── contactFormVal.js # Validación del formulario de contacto
   │
-  ├── public/                  # Archivos estáticos
-  │     ├── css/styles.css
-  │     ├── js/main.js
-  │     └── img/
-  │           ├── logo.png
-  │           ├── demo/        # Imágenes de demostración
-  │           └── temp/        # Almacenamiento temporal de archivos
+  ├── routes/                   # Rutas
+  │     ├── authRoutes.js       # Rutas de autenticación
+  │     ├── doctorRoutes.js     # Rutas específicas para médicos
+  │     ├── mainRoutes.js       # Rutas principales/públicas
+  │     └── patientRoutes.js    # Rutas específicas para pacientes
   │
-  ├── utils/
-  │     └── generateSecret.js  # Utilidad para generar secretos seguros
+  ├── utils/                    # Utilidades
+  │     └── generateSecret.js   # Generador de secretos seguros para sesiones
   │
-  └── database/
-        └── init.sql           # Script SQL para inicializar la base de datos
+  └── views/                    # Vistas (archivos HTML procesados con EJS)
+        ├── 404.html            # Página de error 404
+        ├── contact.html        # Página de contacto
+        ├── index.html          # Página de inicio
+        │
+        ├── auth/               # Vistas de autenticación
+        │     ├── login.html    # Página de inicio de sesión
+        │     └── register.html # Página de registro
+        │
+        ├── doctor/             # Vistas para médicos
+        │     └── dashboard.html # Dashboard del médico
+        │
+        ├── layouts/            # Plantillas base
+        │     └── main.html     # Layout principal
+        │
+        └── patient/            # Vistas para pacientes
+              ├── dashboard.html # Dashboard del paciente
+              └── upload.html   # Formulario de subida de fotos
+```
+
+## Flujo de Autenticación y Sesiones
+
+```
++------------------+    +------------------+    +------------------+
+|                  |    |                  |    |                  |
+| Formulario Login +---->  authController  +---->  UserAuth Model  |
+|                  |    |                  |    |                  |
++------------------+    +--------+---------+    +--------+---------+
+                                 |                       |
+                                 |                       |
+                                 v                       v
+                        +--------+---------+    +--------+---------+
+                        |                  |    |                  |
+                        | express-session  |    |    Supabase      |
+                        |                  |    |    Auth API      |
+                        +------------------+    +------------------+
 ```
