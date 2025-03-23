@@ -28,10 +28,11 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         defaultSrc: ["'self'"],
-        scriptSrc: ["'self'", "'unsafe-inline'"],
-        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"], //"https://cdn.jsdelivr.net" para aloja librerías populares como Bootstrap, jQuery, Font Awesome (iconos de nuestra WEB)
         imgSrc: ["'self'", 'data:', 'blob:'],
-        fontSrc: ["'self'"]
+        fontSrc: ["'self'", "https://cdnjs.cloudflare.com"],
+        frameSrc: ["'self'", "https://www.google.com"] // Permite iframes de Google Maps
       }
     },
     crossOriginEmbedderPolicy: false,
