@@ -1,0 +1,48 @@
+<!-- Página de Error -->
+<div class="container py-5">
+  <div class="row">
+    <div class="col-md-8 mx-auto text-center">
+      <div class="card border-0 shadow">
+        <div class="card-body p-5">
+          <div class="mb-4">
+            <i class="fas fa-exclamation-triangle text-danger" style="font-size: 4rem;"></i>
+          </div>
+          <h1 class="display-4 mb-4">Oops! Ha ocurrido un error</h1>
+          
+          <% if (typeof message !== 'undefined') { %>
+            <p class="lead mb-4 text-danger"><%= message %></p>
+          <% } else { %>
+            <p class="lead mb-4 text-danger">Lo sentimos, algo salió mal al procesar tu solicitud.</p>
+          <% } %>
+          
+          <% if (typeof error !== 'undefined' && process.env.NODE_ENV !== 'production') { %>
+            <div class="alert alert-danger text-start mb-4">
+              <h5 class="alert-heading">Detalles del error:</h5>
+              <pre class="mb-0"><%= error.stack %></pre>
+            </div>
+          <% } %>
+          
+          <hr class="my-4">
+          
+          <p class="mb-4">Puedes intentar las siguientes acciones:</p>
+          
+          <ul class="list-unstyled text-start d-inline-block">
+            <li class="mb-2"><i class="fas fa-redo me-2"></i>Recargar la página</li>
+            <li class="mb-2"><i class="fas fa-home me-2"></i>Volver al <a href="/">inicio</a></li>
+            <li class="mb-2"><i class="fas fa-sign-in-alt me-2"></i>Iniciar <a href="/auth/login">sesión</a> nuevamente</li>
+            <li class="mb-2"><i class="fas fa-envelope me-2"></i>Contactar con <a href="/contact">soporte</a></li>
+          </ul>
+          
+          <div class="mt-5">
+            <a href="javascript:history.back()" class="btn btn-primary btn-lg me-2">
+              <i class="fas fa-arrow-left me-2"></i>Volver atrás
+            </a>
+            <a href="/" class="btn btn-outline-primary btn-lg">
+              <i class="fas fa-home me-2"></i>Ir al inicio
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div> 

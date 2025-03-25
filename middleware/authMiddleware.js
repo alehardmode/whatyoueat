@@ -4,7 +4,7 @@
  */
 exports.isAuthenticated = (req, res, next) => {
   // Verificar si el usuario está autenticado mediante la sesión
-  if (req.session.isLoggedIn && req.session.userId) {
+  if (req.session.user) {
     return next();
   }
   
@@ -22,13 +22,15 @@ exports.isAuthenticated = (req, res, next) => {
  */
 exports.isPatient = (req, res, next) => {
   // Primero verificar si está autenticado
-  if (!req.session.isLoggedIn || !req.session.userId) {
+  if (!req.session.user) {
     req.flash('error_msg', 'Por favor inicia sesión para acceder a esta página');
     return res.redirect('/auth/login');
   }
   
   // Luego verificar si es paciente
-  if (req.session.userRole === 'paciente') {
+  if (req.session.user.role === 'paciente') {
+    // Asignar req.session.user a req.user para mantener consistencia en controladores
+    req.user = req.session.user;
     return next();
   }
   
@@ -43,13 +45,15 @@ exports.isPatient = (req, res, next) => {
  */
 exports.isDoctor = (req, res, next) => {
   // Primero verificar si está autenticado
-  if (!req.session.isLoggedIn || !req.session.userId) {
+  if (!req.session.user) {
     req.flash('error_msg', 'Por favor inicia sesión para acceder a esta página');
     return res.redirect('/auth/login');
   }
   
   // Luego verificar si es médico
-  if (req.session.userRole === 'medico') {
+  if (req.session.user.role === 'medico') {
+    // Asignar req.session.user a req.user para mantener consistencia en controladores
+    req.user = req.session.user;
     return next();
   }
   
@@ -63,11 +67,11 @@ exports.isDoctor = (req, res, next) => {
  * Redirige a usuarios ya logueados que intenten acceder a páginas de login/registro
  */
 exports.isNotAuthenticated = (req, res, next) => {
-  if (req.session.isLoggedIn) {
+  if (req.session.user) {
     // Si ya está autenticado, redirigir según rol
-    if (req.session.userRole === 'paciente') {
+    if (req.session.user.role === 'paciente') {
       return res.redirect('/patient/dashboard');
-    } else if (req.session.userRole === 'medico') {
+    } else if (req.session.user.role === 'medico') {
       return res.redirect('/doctor/dashboard');
     } else {
       return res.redirect('/');

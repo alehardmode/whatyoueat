@@ -27,11 +27,15 @@ router.get('/dashboard', patientController.getDashboard);
 
 // Rutas para subir foto
 router.get('/upload', patientController.getUploadForm);
-router.post('/upload', upload.single('photo'), patientController.postUpload);
+router.post('/upload', upload.single('food_photo'), patientController.postUpload);
 
 // Rutas para historial
-router.get('/history', patientController.getHistory);
+router.get('/history', patientController.getFoodHistory);
 router.get('/entry/:id', patientController.getEntryDetail);
 router.get('/entry/:id/delete', patientController.deleteEntry);
+
+// Rutas para editar entradas
+router.get('/entry/:id/edit', patientController.getEditForm);
+router.post('/entry/:id/update', patientController.updateEntry);
 
 module.exports = router; 

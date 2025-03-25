@@ -1,93 +1,213 @@
 <!-- Formulario para Subir Fotos de Comida -->
-<div class="container mb-5">
-<div class="card border-0 shadow">
-<div class="row mb-4">
-  <div class="col-md-12 animate-on-scroll">
-    <h1 class="mb-4 border-bottom pb-2">
-      <i class="fas fa-camera me-2"></i>Subir Foto de Comida
-    </h1>
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/patient/dashboard">Dashboard</a></li>
-        <li class="breadcrumb-item active">Subir Foto</li>
-      </ol>
-    </nav>
-  </div>
-</div>
-
-<div class="row">
-  <div class="col-md-8 mx-auto animate-on-scroll delay-1">
-    <div class="card shadow-lg">
-      <div class="card-header bg-primary text-white">
-        <h4 class="mb-0"><i class="fas fa-utensils me-2"></i>Registrar Comida</h4>
+<div class="container my-5">
+  <div class="row">
+    <div class="col-md-12">
+      <!-- Alerta de error - Solo se muestra si hay un error -->
+      <% if (error_msg) { %>
+      <div class="alert alert-danger mt-4 custom-alert" role="alert">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h5 class="mb-1">Error</h5>
+            <p><%= error_msg %></p>
+          </div>
+          <button type="button" class="btn-close alert-close" aria-label="Cerrar"></button>
+        </div>
       </div>
-      <div class="card-body">
-        <form action="/patient/upload" method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
-          <!-- Foto -->
+      <% } %>
+      
+      <!-- Alerta de éxito - Solo se muestra si hay un mensaje de éxito -->
+      <% if (success_msg) { %>
+      <div class="alert alert-success mt-4 custom-alert" role="alert">
+        <div class="d-flex justify-content-between align-items-start">
+          <div>
+            <h5 class="mb-1">Éxito</h5>
+            <p><%= success_msg %></p>
+          </div>
+          <button type="button" class="btn-close alert-close" aria-label="Cerrar"></button>
+        </div>
+      </div>
+      <% } %>
+
+      <div class="card border-0 shadow">
+        <div class="card-header bg-primary text-white py-3">
+          <h3 class="mb-0">
+            <i class="fas fa-camera me-2"></i>Subir Foto de Comida
+          </h3>
+        </div>
+        
+        <div class="card-body p-4">
+          <!-- Navegación -->
+          <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+              <li class="breadcrumb-item"><a href="/patient/dashboard">Dashboard</a></li>
+              <li class="breadcrumb-item active">Subir Foto</li>
+            </ol>
+          </nav>
+          
+          <!-- Botón Volver -->
           <div class="mb-4">
-            <label for="photo" class="form-label">Foto de la Comida <span class="text-danger">*</span></label>
-            <div class="input-group mb-3">
-              <input type="file" class="form-control" id="photo" name="photo" accept="image/*" required>
-              <label class="input-group-text" for="photo"><i class="fas fa-camera"></i></label>
-              <div class="invalid-feedback">Por favor selecciona una imagen.</div>
-            </div>
-            <div class="form-text">Selecciona una foto clara de tu comida. Formatos permitidos: JPG, PNG, GIF (máx. 10MB)</div>
-            
-            <!-- Vista previa de la imagen -->
-            <div class="mt-3 text-center d-none" id="imagePreviewContainer">
-              <img id="imagePreview" class="img-fluid img-thumbnail" style="max-height: 300px;" alt="Vista previa">
-            </div>
+            <a href="/patient/dashboard" class="btn btn-secondary" id="cancelButton">
+              <i class="fas fa-arrow-left me-2"></i>Volver al Dashboard
+            </a>
           </div>
           
-          <!-- Comentarios -->
-          <div class="mb-4">
-            <label for="comments" class="form-label">Comentarios <span class="text-danger">*</span></label>
-            <textarea class="form-control" id="comments" name="comments" rows="3" placeholder="Describe la comida, cómo te sentiste después de comerla, etc." required></textarea>
-            <div class="invalid-feedback">Por favor añade un comentario sobre esta comida.</div>
-          </div>
-          
-          <!-- Ingredientes -->
-          <div class="mb-4">
-            <label for="ingredients" class="form-label">Ingredientes y Cantidades <span class="text-danger">*</span></label>
-            <div class="ingredients-container">
-              <div class="input-group mb-2">
-                <input type="text" class="form-control" id="ingredients" name="ingredients" placeholder="Ej: 100g arroz, 150g pollo, 1 cucharada aceite de oliva..." required>
-                <span class="input-group-text"><i class="fas fa-list"></i></span>
-                <div class="invalid-feedback">Por favor lista los ingredientes principales.</div>
+          <!-- Formulario simple -->
+          <form action="/patient/upload" method="POST" enctype="multipart/form-data" id="uploadForm" novalidate>
+            <!-- Foto -->
+            <div class="mb-4">
+              <label for="photo" class="form-label fw-bold">Foto de la Comida <span class="text-danger">*</span></label>
+              <input type="file" class="form-control <%= typeof validationErrors !== 'undefined' && validationErrors.photo ? 'is-invalid' : '' %>" id="photo" name="photo" accept="image/*" required>
+              <div class="form-text">Selecciona una foto clara de tu comida (máx. 10MB)</div>
+              <!-- Mensaje de error para la foto -->
+              <div id="photo-error" class="invalid-feedback" <%= typeof validationErrors !== 'undefined' && validationErrors.photo ? 'style="display: block;"' : 'style="display: none;"' %>>
+                <%= typeof validationErrors !== 'undefined' && validationErrors.photo ? validationErrors.photo : '' %>
+              </div>
+              
+              <!-- Vista previa -->
+              <div class="mt-3 text-center d-none" id="previewContainer">
+                <img id="preview" class="img-thumbnail" style="max-height: 250px;" alt="Vista previa">
               </div>
             </div>
-            <div class="form-text">Intenta ser lo más preciso posible con las cantidades aproximadas.</div>
-          </div>
-          
-          <!-- Botones -->
-          <div class="d-flex justify-content-between mt-4">
-            <a href="/patient/dashboard" class="btn btn-secondary">
-              <i class="fas fa-arrow-left me-1"></i>Cancelar
-            </a>
-            <button type="submit" class="btn btn-primary">
-              <i class="fas fa-save me-1"></i>Guardar
-            </button>
-          </div>
-        </form>
+            
+            <!-- Comentarios -->
+            <div class="mb-4">
+              <label for="comments" class="form-label fw-bold">Comentarios <span class="text-danger">*</span></label>
+              <textarea class="form-control <%= typeof validationErrors !== 'undefined' && validationErrors.comments ? 'is-invalid' : '' %>" id="comments" name="comments" rows="3" placeholder="Describe la comida..." required><%= typeof formData !== 'undefined' && formData.comments ? formData.comments : '' %></textarea>
+              <!-- Mensaje de error para comentarios -->
+              <div id="comments-error" class="invalid-feedback" <%= typeof validationErrors !== 'undefined' && validationErrors.comments ? 'style="display: block;"' : 'style="display: none;"' %>>
+                <%= typeof validationErrors !== 'undefined' && validationErrors.comments ? validationErrors.comments : '' %>
+              </div>
+            </div>
+            
+            <!-- Ingredientes -->
+            <div class="mb-4">
+              <label for="ingredients" class="form-label fw-bold">Ingredientes <span class="text-danger">*</span></label>
+              <input type="text" class="form-control <%= typeof validationErrors !== 'undefined' && validationErrors.ingredients ? 'is-invalid' : '' %>" id="ingredients" name="ingredients" placeholder="Ej: arroz, pollo, aceite..." required value="<%= typeof formData !== 'undefined' && formData.ingredients ? formData.ingredients : '' %>">
+              <div class="form-text">Intenta ser lo más preciso posible con las cantidades aproximadas.</div>
+              <!-- Mensaje de error para ingredientes -->
+              <div id="ingredients-error" class="invalid-feedback" <%= typeof validationErrors !== 'undefined' && validationErrors.ingredients ? 'style="display: block;"' : 'style="display: none;"' %>>
+                <%= typeof validationErrors !== 'undefined' && validationErrors.ingredients ? validationErrors.ingredients : '' %>
+              </div>
+            </div>
+            
+            <!-- Botón Guardar -->
+            <div class="text-end mt-4">
+              <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-save me-2"></i>Guardar
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   </div>
 </div>
-</div>
-</div>
 
-<!-- JavaScript para previsualizar la imagen -->
+<!-- JavaScript directo en la página -->
 <script>
-  document.getElementById('photo').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const preview = document.getElementById('imagePreview');
-        preview.src = e.target.result;
-        document.getElementById('imagePreviewContainer').classList.remove('d-none');
+  // Esperamos a que el DOM esté completamente cargado
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM cargado para upload.html');
+    
+    // Control de bucles
+    let isUpdating = false;
+    
+    // Referencias a elementos del DOM
+    const photoInput = document.getElementById('photo');
+    const preview = document.getElementById('preview');
+    const previewContainer = document.getElementById('previewContainer');
+    const uploadForm = document.getElementById('uploadForm');
+    
+    // Vista previa de la imagen
+    if (photoInput && preview && previewContainer) {
+      // Evitar múltiples event listeners
+      if (!photoInput.hasAttribute('data-preview-configured')) {
+        photoInput.setAttribute('data-preview-configured', 'true');
+        
+        photoInput.addEventListener('change', function() {
+          const file = this.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+              preview.src = e.target.result;
+              previewContainer.classList.remove('d-none');
+              previewContainer.style.display = 'block';
+            }
+            reader.readAsDataURL(file);
+          }
+        });
       }
-      reader.readAsDataURL(file);
+    }
+    
+    // Creamos contenedores para mensajes de error si no existen
+    function createErrorContainer(inputId, message) {
+      // Buscar si ya existe el contenedor de error
+      let errorContainer = document.getElementById(inputId + '-error');
+      
+      if (!errorContainer) {
+        // Si no existe, crear uno nuevo
+        errorContainer = document.createElement('div');
+        errorContainer.id = inputId + '-error';
+        errorContainer.className = 'invalid-feedback';
+        
+        // Insertar después del input
+        const input = document.getElementById(inputId);
+        if (input && input.parentNode) {
+          input.classList.add('is-invalid');
+          input.parentNode.appendChild(errorContainer);
+        }
+      }
+      
+      errorContainer.textContent = message;
+      errorContainer.style.display = 'block';
+      return errorContainer;
+    }
+    
+    // Limpiar mensajes de error
+    function clearValidationErrors() {
+      document.querySelectorAll('.is-invalid').forEach(el => {
+        el.classList.remove('is-invalid');
+      });
+      
+      document.querySelectorAll('.invalid-feedback').forEach(el => {
+        el.style.display = 'none';
+      });
+    }
+    
+    // Validación del formulario (sin causar bucles y sin alerts)
+    if (uploadForm && !uploadForm.hasAttribute('data-validation-configured')) {
+      uploadForm.setAttribute('data-validation-configured', 'true');
+      
+      uploadForm.addEventListener('submit', function(event) {
+        const photo = document.getElementById('photo');
+        const comments = document.getElementById('comments');
+        const ingredients = document.getElementById('ingredients');
+        
+        // Limpiar errores previos
+        clearValidationErrors();
+        
+        let isValid = true;
+        
+        // Validaciones básicas sin usar alert()
+        if (!photo || !photo.files.length) {
+          createErrorContainer('photo', 'Por favor selecciona una imagen');
+          isValid = false;
+        }
+        
+        if (!comments || !comments.value.trim()) {
+          createErrorContainer('comments', 'Por favor añade un comentario');
+          isValid = false;
+        }
+        
+        if (!ingredients || !ingredients.value.trim()) {
+          createErrorContainer('ingredients', 'Por favor lista los ingredientes');
+          isValid = false;
+        }
+        
+        if (!isValid) {
+          event.preventDefault();
+        }
+      });
     }
   });
 </script> 
