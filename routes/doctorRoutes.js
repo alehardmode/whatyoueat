@@ -9,13 +9,13 @@ router.use(isDoctor);
 // Dashboard del médico
 router.get('/dashboard', doctorController.getDashboard);
 
-// Buscar pacientes
-router.get('/search', doctorController.searchPatients);
+// Búsqueda y asignación de pacientes
+router.get('/search-patients', doctorController.searchPatients);
+router.get('/assign-patient/:patientId', doctorController.assignPatient);
+router.get('/remove-patient/:relationId', doctorController.removePatient);
 
 // Ver historial de paciente
-router.get('/patient/:patientId/history', doctorController.getPatientHistory);
-
-// Ver detalle de entrada
-router.get('/entry/:id', doctorController.getEntryDetail);
+router.get('/patient/:patientId', doctorController.getPatientHistory);
+router.get('/patient/:patientId/entry/:entryId', doctorController.getEntryDetail);
 
 module.exports = router; 

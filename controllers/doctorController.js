@@ -1,12 +1,15 @@
 const Profile = require('../models/Profile');
 const FoodEntry = require('../models/FoodEntry');
+const DoctorPatient = require('../models/DoctorPatient');
 const moment = require('moment');
 
 // Mostrar dashboard del médico
 exports.getDashboard = async (req, res) => {
   try {
-    // Obtener lista de pacientes
-    const result = await Profile.getAllPatients();
+    const doctorId = req.session.user.id;
+    
+    // Obtener lista de pacientes asignados
+    const result = await DoctorPatient.getPatientsByDoctor(doctorId);
     
     if (!result.success) {
       throw new Error(result.error);
@@ -15,44 +18,111 @@ exports.getDashboard = async (req, res) => {
     res.render('doctor/dashboard', {
       title: 'Dashboard del Médico',
       user: req.session.user,
-      patients: result.patients
+      patients: result.patients,
+      moment
     });
   } catch (error) {
     console.error('Error al cargar dashboard:', error);
-    req.flash('error_msg', 'Error al cargar el dashboard');
-    res.redirect('/auth/login');
+    res.render('doctor/dashboard', {
+      title: 'Dashboard del Médico',
+      user: req.session.user,
+      patients: [],
+      error: 'Error al cargar la información del dashboard'
+    });
   }
 };
 
 // Filtrar pacientes por nombre
 exports.searchPatients = async (req, res) => {
   try {
-    const { name } = req.query;
+    const { search } = req.query;
+    const doctorId = req.session.user.id;
     
-    // Obtener todos los pacientes
-    const result = await Profile.getAllPatients();
+    let patients = [];
+    let error = null;
+    
+    if (search) {
+      // Buscar pacientes por nombre
+      const result = await Profile.searchPatientsByName(search);
+      
+      if (!result.success) {
+        throw new Error(result.error);
+      }
+      
+      patients = result.patients;
+    }
+    
+    // Obtener pacientes ya asignados a este médico
+    const assignedResult = await DoctorPatient.getPatientsByDoctor(doctorId);
+    const assignedIds = assignedResult.success 
+      ? assignedResult.patients.map(p => p.id) 
+      : [];
+    
+    // Marcar en la lista de búsqueda cuáles ya están asignados
+    patients = patients.map(patient => ({
+      ...patient,
+      isAssigned: assignedIds.includes(patient.id)
+    }));
+    
+    res.render('doctor/search-patients', {
+      title: 'Buscar Pacientes',
+      user: req.session.user,
+      patients,
+      searchTerm: search || '',
+      moment
+    });
+  } catch (error) {
+    console.error('Error al buscar pacientes:', error);
+    res.render('doctor/search-patients', {
+      title: 'Buscar Pacientes',
+      user: req.session.user,
+      patients: [],
+      searchTerm: req.query.search || '',
+      error: 'Error al buscar pacientes'
+    });
+  }
+};
+
+// Asignar un paciente a este médico
+exports.assignPatient = async (req, res) => {
+  try {
+    const { patientId } = req.params;
+    const doctorId = req.session.user.id;
+    
+    // Asignar paciente
+    const result = await DoctorPatient.assign(doctorId, patientId);
     
     if (!result.success) {
       throw new Error(result.error);
     }
     
-    // Filtrar por nombre si se proporciona un término de búsqueda
-    let patients = result.patients;
-    if (name) {
-      patients = patients.filter(patient => 
-        patient.name.toLowerCase().includes(name.toLowerCase())
-      );
+    req.flash('success_msg', 'Paciente asignado correctamente');
+    res.redirect('/doctor/search-patients');
+  } catch (error) {
+    console.error('Error al asignar paciente:', error);
+    req.flash('error_msg', 'Error al asignar paciente: ' + error.message);
+    res.redirect('/doctor/search-patients');
+  }
+};
+
+// Eliminar la relación con un paciente
+exports.removePatient = async (req, res) => {
+  try {
+    const { relationId } = req.params;
+    const doctorId = req.session.user.id;
+    
+    // Eliminar relación
+    const result = await DoctorPatient.remove(relationId, doctorId);
+    
+    if (!result.success) {
+      throw new Error(result.error);
     }
     
-    res.render('doctor/dashboard', {
-      title: 'Dashboard del Médico',
-      user: req.session.user,
-      patients,
-      searchTerm: name
-    });
+    req.flash('success_msg', 'Paciente removido correctamente');
+    res.redirect('/doctor/dashboard');
   } catch (error) {
-    console.error('Error al buscar pacientes:', error);
-    req.flash('error_msg', 'Error al buscar pacientes');
+    console.error('Error al remover paciente:', error);
+    req.flash('error_msg', 'Error al remover paciente: ' + error.message);
     res.redirect('/doctor/dashboard');
   }
 };
@@ -61,35 +131,69 @@ exports.searchPatients = async (req, res) => {
 exports.getPatientHistory = async (req, res) => {
   try {
     const { patientId } = req.params;
-    const date = req.query.date ? new Date(req.query.date) : new Date();
+    const doctorId = req.session.user.id;
+    const { date_from, date_to, page: pageParam } = req.query;
+    const page = parseInt(pageParam) || 1;
+    const limit = parseInt(req.query.limit) || 10;
     
-    // Verificar que el paciente existe
-    const userResult = await Profile.getById(patientId);
+    // Crear objeto de filtros para pasar a la vista
+    const filters = {
+      date_from: date_from || '',
+      date_to: date_to || ''
+    };
     
-    if (!userResult.success) {
-      throw new Error(userResult.error);
+    // Verificar que el paciente está asignado a este médico
+    const assignedResult = await DoctorPatient.getPatientsByDoctor(doctorId);
+    
+    if (!assignedResult.success) {
+      throw new Error(assignedResult.error);
     }
     
-    // Verificar que es un paciente
-    if (userResult.user.role !== 'paciente') {
-      req.flash('error_msg', 'El usuario seleccionado no es un paciente');
+    const isAssigned = assignedResult.patients.some(p => p.id === patientId);
+    
+    if (!isAssigned) {
+      req.flash('error_msg', 'No tienes permiso para ver este paciente');
       return res.redirect('/doctor/dashboard');
     }
     
-    // Obtener historial de comidas
-    const result = await FoodEntry.getHistoryByUserId(patientId, date);
+    // Obtener perfil del paciente
+    const profileResult = await Profile.getById(patientId);
     
-    if (!result.success) {
-      throw new Error(result.error);
+    if (!profileResult.success) {
+      throw new Error(profileResult.error);
+    }
+    
+    // Lógica para manejar el filtro de fecha
+    let dateFilter = null;
+    
+    if (date_from && date_to) {
+      // Si ambas fechas están presentes, usamos el rango completo
+      dateFilter = { from: new Date(date_from), to: new Date(date_to) };
+    } else if (date_from) {
+      // Si solo hay fecha inicial, filtramos desde esa fecha hasta hoy
+      dateFilter = { from: new Date(date_from), to: new Date() };
+    } else if (date_to) {
+      // Si solo hay fecha final, filtramos desde el inicio del tiempo hasta esa fecha
+      dateFilter = { from: new Date(0), to: new Date(date_to) };
+    }
+    
+    // Obtener entradas del paciente
+    const entriesResult = await FoodEntry.getHistoryByUserId(patientId, dateFilter, page, limit);
+    
+    if (!entriesResult.success) {
+      throw new Error(entriesResult.error);
     }
     
     res.render('doctor/patient-history', {
-      title: `Historial de ${userResult.user.name}`,
+      title: `Historial de ${profileResult.profile.name}`,
       user: req.session.user,
-      patient: userResult.user,
-      entries: result.entries,
-      date: moment(date).format('YYYY-MM-DD'),
-      moment
+      patient: profileResult.profile,
+      entries: entriesResult.entries,
+      filters,
+      currentPage: page,
+      totalPages: entriesResult.pagination.totalPages,
+      moment,
+      currentUrl: req.originalUrl.split('?')[0]
     });
   } catch (error) {
     console.error('Error al obtener historial del paciente:', error);
@@ -98,35 +202,56 @@ exports.getPatientHistory = async (req, res) => {
   }
 };
 
-// Ver detalle de una entrada
+// Ver detalle de una entrada de un paciente
 exports.getEntryDetail = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { patientId, entryId } = req.params;
+    const doctorId = req.session.user.id;
     
-    // Obtener entrada
-    const result = await FoodEntry.getById(id);
+    // Verificar que el paciente está asignado a este médico
+    const assignedResult = await DoctorPatient.getPatientsByDoctor(doctorId);
     
-    if (!result.success) {
-      throw new Error(result.error);
+    if (!assignedResult.success) {
+      throw new Error(assignedResult.error);
     }
     
-    // Obtener información del paciente
-    const userResult = await Profile.getById(result.entry.user_id);
+    const isAssigned = assignedResult.patients.some(p => p.id === patientId);
     
-    if (!userResult.success) {
-      throw new Error(userResult.error);
+    if (!isAssigned) {
+      req.flash('error_msg', 'No tienes permiso para ver este paciente');
+      return res.redirect('/doctor/dashboard');
+    }
+    
+    // Obtener perfil del paciente
+    const profileResult = await Profile.getById(patientId);
+    
+    if (!profileResult.success) {
+      throw new Error(profileResult.error);
+    }
+    
+    // Obtener entrada específica
+    const entryResult = await FoodEntry.getById(entryId);
+    
+    if (!entryResult.success) {
+      throw new Error(entryResult.error);
+    }
+    
+    // Verificar que la entrada pertenece al paciente
+    if (entryResult.entry.user_id !== patientId) {
+      req.flash('error_msg', 'La entrada solicitada no pertenece a este paciente');
+      return res.redirect(`/doctor/patient/${patientId}`);
     }
     
     res.render('doctor/entry-detail', {
       title: 'Detalle de Comida',
       user: req.session.user,
-      entry: result.entry,
-      patient: userResult.user,
+      patient: profileResult.profile,
+      entry: entryResult.entry,
       moment
     });
   } catch (error) {
-    console.error('Error al obtener detalle:', error);
-    req.flash('error_msg', 'Error al cargar el detalle');
+    console.error('Error al obtener detalle de entrada:', error);
+    req.flash('error_msg', 'Error al cargar los detalles de la entrada');
     res.redirect('/doctor/dashboard');
   }
 }; 

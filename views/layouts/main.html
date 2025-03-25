@@ -75,30 +75,32 @@
 
   <!-- Mensajes Flash -->
   <div class="flash-messages">
-    <% if (typeof success_msg !== 'undefined' && success_msg.length > 0) { %>
-      <div class="alert alert-success alert-dismissible fade show" role="alert" id="successAlert">
-        <div class="container">
-          <i class="fas fa-check-circle me-2"></i><%= success_msg %>
-          <button type="button" class="close-alert">
-            <i class="fas fa-times"></i>
-          </button>
+    <% if (success_msg && success_msg.length > 0) { %>
+      <div class="alert alert-success alert-dismissible" role="alert">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <i class="fas fa-check-circle me-2"></i>
+            <%= success_msg %>
+          </div>
+          <button type="button" class="btn-close flash-close" aria-label="Cerrar"></button>
         </div>
       </div>
     <% } %>
     
-    <% if (typeof error_msg !== 'undefined' && error_msg.length > 0) { %>
-      <div class="alert alert-danger alert-dismissible fade show" role="alert" id="errorAlert">
-        <div class="container">
-          <i class="fas fa-exclamation-circle me-2"></i><%= error_msg %>
-          <button type="button" class="close-alert">
-            <i class="fas fa-times"></i>
-          </button>
+    <% if (error_msg && error_msg.length > 0) { %>
+      <div class="alert alert-danger alert-dismissible" role="alert">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <%= error_msg %>
+          </div>
+          <button type="button" class="btn-close flash-close" aria-label="Cerrar"></button>
         </div>
       </div>
     <% } %>
     
     <% if (typeof errors !== 'undefined' && errors.length > 0) { %>
-      <div class="alert alert-danger alert-dismissible fade show" role="alert" id="validationAlert">
+      <div class="alert alert-danger alert-dismissible" role="alert" id="validationAlert">
         <div class="container">
           <i class="fas fa-exclamation-triangle me-2"></i>Por favor corrige los siguientes errores:
           <ul class="mb-0 mt-2">
@@ -177,7 +179,185 @@
   <script src="/js/main.js"></script>
   <!-- Auth JS -->
   <script src="/js/auth.js"></script>
+  
+  <!-- Script condicional para la página de historial -->
+  <% if (title === 'Historial de Comidas') { %>
+  <script src="/js/history.js"></script>
+  <% } %>
+  
+  <!-- Script para la página de subir foto -->
+  <% if (title === 'Subir Foto de Comida') { %>
+  <script src="/js/upload.js"></script>
+  <% } %>
+  
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+  <!-- Inicialización específica para modales Bootstrap -->
+  <script>
+    // Asegurar que los modales de Bootstrap funcionen correctamente
+    document.addEventListener('DOMContentLoaded', function() {
+      // Inicializar todos los modales manualmente
+      const modales = document.querySelectorAll('.modal');
+      if (modales.length > 0) {
+        console.log('Inicializando', modales.length, 'modales directamente');
+        modales.forEach(modalElement => {
+          const modalId = modalElement.id;
+          try {
+            // Usar la API nativa de Bootstrap para inicializar
+            const modal = new bootstrap.Modal(modalElement, {
+              backdrop: true,
+              keyboard: true,
+              focus: true
+            });
+            
+            // Store the modal instance on the element
+            modalElement._bsModal = modal;
+            
+            console.log('Modal inicializado correctamente:', modalId);
+          } catch (error) {
+            console.error('Error al inicializar modal', modalId, error);
+          }
+        });
+      }
+    });
+  </script>
+
+  <!-- Script para precargar la página y mostrar un spinner mientras carga -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Layout principal cargado');
+      
+      // Variable para controlar si estamos en proceso de actualización
+      let isUpdating = false;
+      
+      // Limitador para prevenir bucles infinitos
+      let updateCount = 0;
+      const MAX_UPDATES = 5;
+      
+      // Prevenir cualquier comportamiento automático de Bootstrap para las alertas
+      function prevenirCierreAutomaticoAlertas() {
+        // Evitar actualizaciones múltiples
+        if (isUpdating || updateCount >= MAX_UPDATES) return;
+        
+        try {
+          isUpdating = true;
+          updateCount++;
+          
+          // 1. Desactivar los atributos data-bs-dismiss sin reemplazar nodos
+          document.querySelectorAll('[data-bs-dismiss="alert"]').forEach(el => {
+            if (!el.hasAttribute('data-processed')) {
+              el.removeAttribute('data-bs-dismiss');
+              el.setAttribute('data-processed', 'true');
+            }
+          });
+          
+          // 2. Modificar clases sin reemplazar nodos
+          document.querySelectorAll('.alert:not([data-processed])').forEach(alert => {
+            alert.classList.remove('fade', 'show');
+            alert.classList.add('custom-alert');
+            alert.setAttribute('data-processed', 'true');
+            
+            // No clonar/reemplazar para evitar bucles
+          });
+          
+          console.log('Prevención de cierre automático aplicada (iteración ' + updateCount + ')');
+          isUpdating = false;
+        } catch (e) {
+          console.error('Error al prevenir cierre automático de alertas:', e);
+          isUpdating = false;
+        }
+      }
+      
+      // Ejecutar solo una vez al inicio
+      prevenirCierreAutomaticoAlertas();
+      
+      // Configurar los botones de cierre de forma segura
+      function configurarBotonesCierre() {
+        if (isUpdating) return;
+        
+        try {
+          isUpdating = true;
+          
+          // Buscar solo botones que no han sido procesados
+          const closeButtons = document.querySelectorAll('.flash-close:not([data-configured]), .close-alert:not([data-configured]), .alert-close:not([data-configured])');
+          
+          closeButtons.forEach(button => {
+            // Marcar como configurado para no volver a procesarlo
+            button.setAttribute('data-configured', 'true');
+            
+            // Añadir manejador sin clonar el botón
+            button.addEventListener('click', function handleCloseClick(e) {
+              e.preventDefault();
+              e.stopPropagation();
+              
+              const alert = this.closest('.alert');
+              if (alert) {
+                console.log('Cerrando alerta manualmente');
+                
+                // Transición suave
+                alert.style.opacity = '0';
+                alert.style.transition = 'opacity 0.3s ease';
+                
+                // Ocultar después de la transición
+                setTimeout(() => {
+                  alert.style.display = 'none';
+                }, 300);
+              }
+            });
+          });
+          
+          if (closeButtons.length > 0) {
+            console.log('Configurados ' + closeButtons.length + ' botones de cierre');
+          }
+          
+          isUpdating = false;
+        } catch (e) {
+          console.error('Error al configurar botones de cierre:', e);
+          isUpdating = false;
+        }
+      }
+      
+      // Configurar botones una vez
+      configurarBotonesCierre();
+      
+      // Observador de mutaciones simplificado
+      try {
+        // Usamos un debounce para limitar la frecuencia de actualizaciones
+        let debounceTimer = null;
+        
+        const debouncedUpdate = function() {
+          if (debounceTimer !== null) {
+            clearTimeout(debounceTimer);
+          }
+          
+          debounceTimer = setTimeout(function() {
+            if (updateCount < MAX_UPDATES) {
+              configurarBotonesCierre();
+              debounceTimer = null;
+            }
+          }, 500);
+        };
+        
+        // Simplificar el observador para reducir el impacto en el rendimiento
+        const observer = new MutationObserver(debouncedUpdate);
+        
+        // Observar solo cambios de clases en el contenedor de mensajes flash
+        const flashMessages = document.querySelector('.flash-messages');
+        if (flashMessages) {
+          observer.observe(flashMessages, { 
+            childList: true, 
+            subtree: true,
+            attributes: false
+          });
+          console.log('Observador configurado para .flash-messages');
+        }
+      } catch (e) {
+        console.error('Error al configurar observador:', e);
+      }
+      
+      console.log('Configuración de alertas completada');
+    });
+  </script>
 </body>
 </html> 

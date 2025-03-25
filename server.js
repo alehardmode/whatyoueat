@@ -117,6 +117,116 @@ app.use('/auth', authRoutes);
 app.use('/patient', patientRoutes);
 app.use('/doctor', doctorRoutes);
 
+// Ruta para el diagnóstico de Supabase
+app.get('/api/check-supabase', async (req, res) => {
+  try {
+    const { supabase, testSupabaseConnection } = require('./config/supabase');
+    
+    console.log('API de diagnóstico de Supabase iniciada');
+    
+    const result = {
+      success: false,
+      buckets: [],
+      bucket_info: null,
+      database: {
+        connected: false
+      }
+    };
+    
+    // Comprobar conexión general
+    try {
+      const connected = await testSupabaseConnection();
+      result.success = connected;
+      console.log('Resultado de conexión general:', connected);
+    } catch (e) {
+      console.error('Error en test de conexión:', e);
+      result.connection_error = e.message;
+    }
+    
+    // Intentar obtener lista de buckets
+    try {
+      console.log('Intentando listar buckets...');
+      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+      
+      if (bucketsError) {
+        console.error('Error al listar buckets:', bucketsError);
+        result.buckets_error = bucketsError.message;
+      } else if (buckets) {
+        result.buckets = buckets.map(b => b.name);
+        console.log('Buckets encontrados:', result.buckets);
+        
+        // Si existe el bucket food-photos, obtener su información
+        const foodPhotosBucket = buckets.find(b => b.name === 'food-photos');
+        if (foodPhotosBucket) {
+          console.log('Bucket food-photos encontrado');
+          result.bucket_info = {
+            id: foodPhotosBucket.id,
+            name: foodPhotosBucket.name,
+            public: foodPhotosBucket.public
+          };
+          
+          // Verificar si podemos listar archivos
+          try {
+            console.log('Verificando contenido del bucket food-photos...');
+            const { data: files, error: filesError } = await supabase.storage
+              .from('food-photos')
+              .list('uploads', { limit: 5 });
+              
+            // Añadir información de archivos si está disponible
+            if (filesError) {
+              console.error('Error al listar archivos:', filesError);
+              result.bucket_info.files_error = filesError.message;
+            } else {
+              console.log('Archivos encontrados:', files ? files.length : 0);
+              result.bucket_info.files = files || [];
+            }
+          } catch (e) {
+            console.error('Error al acceder a archivos:', e);
+            result.bucket_info.files_error = e.message;
+          }
+        } else {
+          console.log('Bucket food-photos NO encontrado');
+        }
+      }
+    } catch (e) {
+      console.error('Error al acceder a Storage:', e);
+      result.storage_error = e.message;
+    }
+    
+    // Verificar conexión a la base de datos
+    try {
+      console.log('Verificando acceso a la tabla food_entries...');
+      const { data: tableData, error: tableError } = await supabase
+        .from('food_entries')
+        .select('id')
+        .limit(1);
+        
+      result.database.connected = !tableError;
+      
+      if (tableError) {
+        console.error('Error al acceder a food_entries:', tableError);
+        result.database.error = tableError.message;
+        result.database.code = tableError.code;
+      } else {
+        console.log('Acceso exitoso a food_entries');
+        result.database.has_data = tableData && tableData.length > 0;
+      }
+    } catch (e) {
+      console.error('Error al acceder a la base de datos:', e);
+      result.database.error = e.message;
+    }
+    
+    console.log('Enviando respuesta de diagnóstico...');
+    res.json(result);
+  } catch (error) {
+    console.error('Error general en API de diagnóstico:', error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+});
+
 // Manejador de errores 404
 app.use((req, res) => {
   res.status(404).render('404', { title: 'Página no encontrada' });

@@ -251,38 +251,44 @@ section {
   border-color: var(--danger);
 }
 
-/* Alertas y notificaciones */
+/* Estilos para las alertas */
 .alert {
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   position: relative;
-  padding: 1rem 1.25rem;
-  margin-bottom: 1rem;
-  border: 1px solid transparent;
-  border-radius: var(--border-radius);
   opacity: 1;
   transition: opacity 0.3s ease;
 }
 
-.alert-success {
-  color: #0f5132;
-  background-color: #d1e7dd;
-  border-color: #badbcc;
+.alert-dismissible {
+  padding-right: 3rem;
 }
 
-.alert-danger {
-  color: #842029;
-  background-color: #f8d7da;
-  border-color: #f5c2c7;
-}
-
-.close-alert {
+.alert .btn-close {
   position: absolute;
-  top: 0;
-  right: 0;
-  padding: 0.75rem 1.25rem;
-  background: none;
-  border: none;
+  top: 10px;
+  right: 10px;
   cursor: pointer;
-  font-size: 1.25rem;
+  opacity: 0.7;
+}
+
+.alert .btn-close:hover {
+  opacity: 1;
+}
+
+.flash-messages {
+  position: relative;
+  z-index: 1000;
+}
+
+/* Animación para alertas */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.alert-success, .alert-danger, .alert-warning, .alert-info {
+  animation: fadeIn 0.3s ease forwards;
 }
 
 /* Spinner de carga */
@@ -419,4 +425,168 @@ section {
 }
 li {
   list-style: none
+}
+
+/* Estilos para la vista de historial */
+.animate-on-scroll {
+  opacity: 0;
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.animate-on-scroll.fade-in-up {
+  transform: translateY(20px);
+}
+
+.animate-on-scroll.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Estilos para las tarjetas de historial de comidas */
+.entry-card {
+  transition: all 0.3s ease;
+  overflow: hidden;
+}
+
+.entry-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06) !important;
+}
+
+.entry-card:hover .card-img-container img {
+  transform: scale(1.05);
+}
+
+.entry-card:hover .image-overlay {
+  background: rgba(0,0,0,0.3);
+  opacity: 1;
+}
+
+/* Estilos para imágenes con error */
+.error-img {
+  object-fit: contain !important;
+  padding: 10px;
+  background-color: #f8f9fa;
+}
+
+/* Mejoras de accesibilidad para el contraste */
+.badge.bg-primary {
+  background-color: #0d6efd !important;
+  color: white !important;
+  font-weight: 600;
+}
+
+/* Asegurar que las imágenes siempre tengan espacio suficiente */
+.card-img-container {
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Animación suave para carga de imágenes */
+.card-img-top {
+  opacity: 1;
+  animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Estilos para la página de detalle */
+.img-fluid.rounded {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.img-fluid.rounded:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Alertas personalizadas - inmunes a Bootstrap */
+.custom-alert {
+  position: relative;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  opacity: 1 !important; /* Forzar opacidad */
+  display: block !important; /* Solo se ocultará mediante JavaScript explícito */
+}
+
+.custom-alert.alert-danger {
+  color: #721c24;
+  background-color: #f8d7da;
+  border-color: #f5c2c7;
+}
+
+.custom-alert.alert-success {
+  color: #155724;
+  background-color: #d4edda;
+  border-color: #c3e6cb;
+}
+
+.custom-alert.alert-warning {
+  color: #856404;
+  background-color: #fff3cd;
+  border-color: #ffeeba;
+}
+
+.custom-alert.alert-info {
+  color: #0c5460;
+  background-color: #d1ecf1;
+  border-color: #bee5eb;
+}
+
+/* Contenedor de diagnóstico */
+.diagnostic-container {
+  transition: all 0.3s ease;
+  overflow: hidden;
+  max-height: 1000px; /* Valor alto para permitir contenido extenso */
+}
+
+.diagnostic-container.collapsed {
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-width: 0;
+  margin: 0;
+}
+
+/* Botones dentro de alertas */
+.alert .btn {
+  transition: all 0.2s ease;
+}
+
+/* Estilos para modales - versión simplificada */
+.modal-content {
+  border: none;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Prevenir cualquier manipulación del modal por JavaScript de terceros */
+.modal,
+.modal-dialog,
+.modal-backdrop {
+  /* Sobrescribir solo lo esencial */
+  transition: opacity 0.15s linear !important;
+}
+
+/* Estilo para la sección de información detallada */
+#informacion-detallada {
+  scroll-margin-top: 80px; /* Margen superior para el desplazamiento */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+#informacion-detallada:target {
+  transform: scale(1.01);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Efecto de desplazamiento suave para toda la página */
+html {
+  scroll-behavior: smooth;
 }

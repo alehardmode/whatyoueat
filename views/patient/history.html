@@ -1,0 +1,158 @@
+<!-- Vista de Historial de Comidas -->
+<div class="container mb-5">
+  <div class="row mb-4">
+    <div class="col-md-12 animate-on-scroll">
+      <h1 class="mb-4 border-bottom pb-2">
+        <i class="fas fa-history me-2"></i>Mi Historial de Comidas
+      </h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/patient/dashboard">Dashboard</a></li>
+          <li class="breadcrumb-item active">Historial</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <!-- Filtros de búsqueda -->
+  <div class="card shadow mb-4">
+    <div class="card-body">
+      <h5 class="card-title">
+        <i class="fas fa-filter me-2"></i>Filtrar Entradas
+      </h5>
+      <form action="/patient/history" method="GET" class="row g-3">
+        <div class="col-md-4">
+          <label for="date-from" class="form-label">Desde</label>
+          <input type="date" class="form-control" id="date-from" name="date_from" 
+                 value="<%= filters?.date_from || '' %>">
+        </div>
+        <div class="col-md-4">
+          <label for="date-to" class="form-label">Hasta</label>
+          <input type="date" class="form-control" id="date-to" name="date_to" 
+                 value="<%= filters?.date_to || '' %>">
+        </div>
+        <div class="col-md-4 d-flex align-items-end">
+          <button type="submit" class="btn btn-primary me-2">
+            <i class="fas fa-search me-1"></i>Buscar
+          </button>
+          <a href="/patient/history" class="btn btn-outline-secondary">
+            <i class="fas fa-redo me-1"></i>Reiniciar
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Entradas del historial -->
+  <div class="row">
+    <% if (foodEntries && foodEntries.length > 0) { %>
+      <% foodEntries.forEach((entry, index) => { %>
+        <div class="col-md-4 mb-4">
+          <div class="card h-100 shadow-sm food-entry-card">
+            <div class="card-img-container" style="height: 200px; overflow: hidden; position: relative; background-color: #f8f9fa;">
+              <img 
+                src="<%= entry.image_url %>" 
+                class="card-img-top" 
+                alt="Foto de comida" 
+                style="width: 100%; height: 100%; object-fit: cover;"
+                onerror="this.onerror=null; this.src='/img/empty-plate.svg'; this.alt='Imagen no disponible'; console.error('Error al cargar imagen:', this.src); this.style.padding = '20px';"
+                onload="this.parentElement.querySelector('.loading-indicator')?.remove();"
+              >
+              <!-- Indicador de carga -->
+              <div class="loading-indicator" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                <div class="spinner-border text-primary" role="status">
+                  <span class="visually-hidden">Cargando...</span>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <h5 class="card-title">Entrada #<%= entry.entryNumber || index + 1 %></h5>
+              <p class="card-text text-muted small">
+                <i class="fas fa-calendar-alt"></i> 
+                <%= new Date(entry.created_at).toLocaleDateString('es-ES', { 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                }) %>
+              </p>
+              <p class="card-text">
+                <% if (entry.comments && entry.comments.length > 50) { %>
+                  <%= entry.comments.substring(0, 50) %>...
+                <% } else { %>
+                  <%= entry.comments || 'Sin comentarios' %>
+                <% } %>
+              </p>
+              <a href="/patient/entry/<%= entry.id %>" class="btn btn-sm btn-primary">Ver detalles</a>
+            </div>
+          </div>
+        </div>
+      <% }); %>
+    <% } else { %>
+      <div class="col-12 text-center py-5">
+        <div class="card shadow-sm">
+          <div class="card-body">
+            <img src="/img/empty-plate.svg" alt="No hay entradas" style="max-width: 150px; margin-bottom: 20px;">
+            <h3>Aún no has registrado ninguna comida</h3>
+            <p class="text-muted">Cuando registres tus comidas, aparecerán aquí.</p>
+            <a href="/patient/upload" class="btn btn-primary">
+              <i class="fas fa-plus-circle"></i> Registrar comida
+            </a>
+          </div>
+        </div>
+      </div>
+    <% } %>
+  </div>
+
+  <!-- Paginación -->
+  <% if (totalPages > 1) { %>
+    <div class="row">
+      <div class="col-12">
+        <nav aria-label="Paginación de historial">
+          <ul class="pagination justify-content-center">
+            <!-- Botón anterior -->
+            <li class="page-item <%= currentPage <= 1 ? 'disabled' : '' %>">
+              <a class="page-link" href="/patient/history?page=<%= currentPage - 1 %>" tabindex="-1" aria-disabled="<%= currentPage <= 1 %>">
+                <i class="fas fa-chevron-left"></i> Anterior
+              </a>
+            </li>
+            
+            <!-- Páginas -->
+            <% for(let i = 1; i <= totalPages; i++) { %>
+              <li class="page-item <%= currentPage == i ? 'active' : '' %>">
+                <a class="page-link" href="/patient/history?page=<%= i %>"><%= i %></a>
+              </li>
+            <% } %>
+            
+            <!-- Botón siguiente -->
+            <li class="page-item <%= currentPage >= totalPages ? 'disabled' : '' %>">
+              <a class="page-link" href="/patient/history?page=<%= currentPage + 1 %>" aria-disabled="<%= currentPage >= totalPages %>">
+                Siguiente <i class="fas fa-chevron-right"></i>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  <% } %>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Iniciar precarga de imágenes
+    const images = document.querySelectorAll('.card-img-top');
+    images.forEach(img => {
+      // Solo para imágenes que aún no están cargadas
+      if (!img.complete) {
+        img.addEventListener('error', function() {
+          console.error('Error al cargar imagen:', img.src);
+        });
+      } else {
+        // Quitar indicador de carga si ya está cargada
+        const loadingIndicator = img.parentElement.querySelector('.loading-indicator');
+        if (loadingIndicator) loadingIndicator.remove();
+      }
+    });
+  });
+</script> 

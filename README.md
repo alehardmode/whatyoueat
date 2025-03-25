@@ -1,165 +1,96 @@
-# WhatYouEat - Aplicación de Seguimiento Nutricional
+# WhatYouEat - Seguimiento Nutricional
 
-Una aplicación web para que los pacientes registren su alimentación diaria mediante fotos, comentarios e ingredientes, permitiendo a los médicos hacer un seguimiento detallado de los hábitos alimenticios de sus pacientes.
+Aplicación web que permite a pacientes registrar su alimentación mediante fotos y a médicos hacer un seguimiento de los hábitos alimenticios de sus pacientes.
 
-## Características Principales
+## Características
 
-### Para Pacientes
+### Pacientes
 - Registro de comidas mediante fotografías
-- Inclusión de comentarios y detalles de ingredientes
-- Visualización de historial de comidas con filtrado por fechas
+- Visualización del historial con filtrado por fechas
+- Gestión completa (crear, ver, editar, eliminar) de entradas
 
-### Para Médicos
-- Vista de lista de pacientes con búsqueda por nombre
-- Acceso al historial de comidas de cada paciente
-- Visualización detallada de cada entrada
+### Médicos
+- Búsqueda y asignación de pacientes
+- Visualización del historial alimenticio de pacientes asignados
+- Acceso a detalles de cada entrada alimenticia
 
-## Tecnologías Utilizadas
+## Tecnologías
 
-### Frontend
-- HTML5
-- CSS3
-- JavaScript (ES6+)
-- Bootstrap 5
-- EJS como motor de plantillas (archivos con extensión .html procesados por EJS)
+- **Frontend**: HTML5, CSS3, JavaScript, Bootstrap 5, EJS
+- **Backend**: Node.js, Express.js, Supabase (PostgreSQL)
+- **Seguridad**: bcrypt, express-session, middleware por roles
 
-### Backend
-- Node.js
-- Express.js
-- Supabase (PostgreSQL en la nube)
+## Instalación Rápida
 
-### Seguridad
-- bcrypt (encriptación de contraseñas)
-- express-session (manejo seguro de sesiones)
-- Middleware de protección de rutas por rol
-- Cookies httpOnly y seguras
-- Regeneración de ID de sesión
-
-## Instalación
-
-1. Clona este repositorio:
+1. Clonar el repositorio
 ```bash
 git clone https://github.com/tu-usuario/whatyoueat.git
 cd whatyoueat
 ```
 
-2. Instala las dependencias:
+2. Instalar dependencias
 ```bash
 npm install
 ```
 
-3. Genera un SESSION_SECRET seguro utilizando la utilidad proporcionada:
+3. Generar SESSION_SECRET
 ```bash
 node utils/generateSecret.js
 ```
 
-4. Crea un archivo `.env` en la raíz del proyecto basado en `.env.example` y configura tus credenciales:
-```
-PORT=3000
-NODE_ENV=development
-APP_URL=http://localhost:3000
-SESSION_SECRET=tu_valor_generado_por_utils_generateSecret
+4. Configurar archivo `.env` basado en `.env.example`
 
-# Credenciales de Supabase
-SUPABASE_URL=tu_url_de_supabase
-SUPABASE_KEY=tu_api_key_de_supabase
+5. Configurar Supabase:
+   - Crear un proyecto en [Supabase](https://supabase.com/)
+   - Ejecutar el script en `database/init.sql`
+   - Crear bucket de almacenamiento `food-photos`
 
-5. Configura la base de datos Supabase:
-   - Crea un proyecto en [Supabase](https://supabase.com/)
-   - Ejecuta el script SQL en `database/init.sql` para crear las tablas y políticas necesarias
-   - Crea un bucket de almacenamiento llamado `food-photos` para las imágenes
-
-6. Inicia la aplicación:
+6. Iniciar la aplicación
 ```bash
 npm start
 ```
+
+## Uso
+
+1. **Registro/Acceso**: Regístrate como paciente o médico
+2. **Pacientes**: Sube fotos de comidas con detalles e ingredientes
+3. **Médicos**: Asigna pacientes y visualiza su historial alimenticio
 
 ## Estructura del Proyecto
 
 ```
 /whatyoueat
-  ├── /config              # Configuración de servicios (Supabase, etc.)
-  ├── /controllers         # Controladores para la lógica de negocio
-  ├── /database            # Scripts SQL y migraciones
-  ├── /docs                # Documentación del proyecto
-  │     ├── patterns.md    # Documentación de patrones de diseño
-  │     ├── diagrams.md    # Diagramas de interrelación de ficheros
-  │     └── validation.md  # Validación de estándares web
-  ├── /middleware          # Middleware personalizado (autenticación, etc.)
-  ├── /models              # Modelos de datos
-  ├── /public              # Archivos estáticos (CSS, JS, imágenes)
-  ├── /routes              # Rutas de la aplicación
-  ├── /utils               # Utilidades (generador de secretos, etc.)
-  ├── /views               # Vistas HTML (procesadas con EJS)
-  ├── .env.example         # Ejemplo de variables de entorno
-  ├── package.json         # Dependencias y scripts
-  ├── server.js            # Punto de entrada de la aplicación
-  └── README.md            # Documentación
+  ├── /config           # Configuración (Supabase)
+  ├── /controllers      # Lógica de negocio
+  ├── /database         # Scripts SQL
+  ├── /docs             # Documentación
+  ├── /middleware       # Middleware (autenticación, etc.)
+  ├── /models           # Modelos de datos
+  ├── /public           # Archivos estáticos
+  ├── /routes           # Definición de rutas
+  ├── /utils            # Utilidades
+  ├── /views            # Plantillas HTML/EJS
+  ├── server.js         # Punto de entrada
+  └── README.md         # Documentación
 ```
 
-## Gestión Segura de Sesiones
+## Seguridad
 
-Este proyecto implementa una gestión de sesiones segura utilizando `express-session`. Las principales características de seguridad incluyen:
-
-### Generación de SESSION_SECRET Seguro
-
-Para garantizar la seguridad de las sesiones, usamos un SESSION_SECRET criptográficamente fuerte. Pasos para generarlo:
-
-1. Ejecuta la utilidad de generación de secretos:
-```bash
-node utils/generateSecret.js
-```
-
-2. Copia el valor generado y añádelo a tu archivo `.env`
-
-### Protección de las Sesiones
-
-La implementación incluye múltiples capas de seguridad:
-
-- **Cookies httpOnly**: Previene acceso a cookies desde JavaScript
-- **Secure en producción**: Cookies solo enviadas por HTTPS en producción
-- **SameSite strict**: Evita ataques CSRF
-- **Regeneración de ID de sesión**: Previene ataques de session fixation
-
-## Uso
-
-### Registro y Acceso
-1. Accede a la página de inicio
-2. Regístrate como paciente o médico
-3. Inicia sesión con tus credenciales
-
-### Para Pacientes
-1. Desde el dashboard, haz clic en "Subir Foto"
-2. Selecciona una imagen de tu comida
-3. Añade comentarios e ingredientes
-4. Visualiza tu historial de comidas usando el filtro de fechas
-
-### Para Médicos
-1. Desde el dashboard, visualiza la lista de pacientes
-2. Utiliza el buscador para filtrar por nombre
-3. Accede al historial del paciente haciendo clic en "Ver Diario"
-4. Revisa las entradas de comida del paciente
+- Cookies httpOnly y seguras en producción
+- Sesiones con regeneración de ID
+- Almacenamiento seguro de contraseñas con bcrypt
+- Autorización basada en roles
 
 ## Contribución
 
 1. Haz un fork del repositorio
-2. Crea una nueva rama (`git checkout -b feature/nueva-caracteristica`)
-3. Realiza tus cambios y haz commit (`git commit -m 'Añade nueva característica'`)
-4. Sube los cambios a tu rama (`git push origin feature/nueva-caracteristica`)
-5. Abre un Pull Request
+2. Crea una nueva rama para tu característica
+3. Envía un Pull Request
 
 ## Licencia
 
-Este proyecto está licenciado bajo la Licencia MIT - consulta el archivo LICENSE para más detalles.
+MIT - Ver archivo LICENSE para más detalles
 
 ## Contacto
 
-Para preguntas, sugerencias o soporte, contáctanos en whatyoueat.project@gmail.com
-
-## Documentación
-
-El proyecto incluye documentación detallada en la carpeta `/docs`:
-
-- **Patrones de diseño**: Explicación del patrón MVC y otros patrones utilizados (/docs/patterns.md)
-- **Diagramas**: Diagramas de arquitectura, interrelación de ficheros y clases (/docs/diagrams.md)
-- **Validación**: Resultados de validación de estándares web y accesibilidad (/docs/validation.md)
+whatyoueat.project@gmail.com

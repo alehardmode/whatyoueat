@@ -18,6 +18,9 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Configurar efectos de animación en elementos
   setupAnimations();
+  
+  // Ya no es necesario: la inicialización de modales se maneja en el layout principal
+  // setupModals();
 });
 
 /**

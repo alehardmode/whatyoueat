@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="256px" height="256px" viewBox="0 0 256 256" version="1.1" xmlns="http://www.w3.org/2000/svg">
+    <title>Plato Vacío</title>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <circle fill="#F5F5F5" cx="128" cy="128" r="120"></circle>
+        <circle stroke="#E0E0E0" stroke-width="4" cx="128" cy="128" r="100"></circle>
+        <circle stroke="#EEEEEE" stroke-width="2" cx="128" cy="128" r="80"></circle>
+        <g transform="translate(96, 96)">
+            <circle fill="#CCCCCC" cx="32" cy="32" r="8"></circle>
+            <path d="M48,24 C48,37.255 37.255,48 24,48 C10.745,48 0,37.255 0,24 C0,10.745 10.745,0 24,0" stroke="#CCCCCC" stroke-width="2" stroke-linecap="round" stroke-dasharray="5,5"></path>
+        </g>
+        <text font-family="Arial, sans-serif" font-size="12" fill="#999999" text-anchor="middle" x="128" y="180">
+            Imagen no disponible
+        </text>
+    </g>
+</svg> 
