@@ -50,6 +50,99 @@ COMMENT ON COLUMN food_entries.ingredients IS 'Lista de ingredientes y cantidade
 COMMENT ON COLUMN food_entries.created_at IS 'Fecha de creación de la entrada';
 COMMENT ON COLUMN food_entries.updated_at IS 'Fecha de última actualización de la entrada';
 
+-- Tabla de relaciones médico-paciente
+DROP TABLE IF EXISTS doctor_patient_relationships CASCADE;
+CREATE TABLE doctor_patient_relationships (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  doctor_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  patient_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
+  status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'terminated')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  CONSTRAINT no_self_relationship CHECK (doctor_id <> patient_id),
+  CONSTRAINT unique_doctor_patient UNIQUE (doctor_id, patient_id)
+);
+
+-- Función para validar roles en relaciones médico-paciente
+CREATE OR REPLACE FUNCTION check_doctor_patient_roles()
+RETURNS TRIGGER AS $$
+DECLARE
+  doctor_role TEXT;
+  patient_role TEXT;
+BEGIN
+  -- Obtener los roles
+  SELECT role INTO doctor_role FROM profiles WHERE id = NEW.doctor_id;
+  SELECT role INTO patient_role FROM profiles WHERE id = NEW.patient_id;
+
+  -- Validar roles
+  IF doctor_role <> 'medico' THEN
+    RAISE EXCEPTION 'El usuario con ID % no es médico', NEW.doctor_id;
+  END IF;
+  
+  IF patient_role <> 'paciente' THEN
+    RAISE EXCEPTION 'El usuario con ID % no es paciente', NEW.patient_id;
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger para validar roles en relaciones médico-paciente
+DROP TRIGGER IF EXISTS trigger_check_doctor_patient_roles ON doctor_patient_relationships;
+CREATE TRIGGER trigger_check_doctor_patient_roles
+BEFORE INSERT OR UPDATE ON doctor_patient_relationships
+FOR EACH ROW
+EXECUTE FUNCTION check_doctor_patient_roles();
+
+-- Comentarios para la tabla de relaciones médico-paciente
+COMMENT ON TABLE doctor_patient_relationships IS 'Almacena las relaciones entre médicos y sus pacientes';
+COMMENT ON COLUMN doctor_patient_relationships.id IS 'Identificador único para cada relación';
+COMMENT ON COLUMN doctor_patient_relationships.doctor_id IS 'Identificador del médico';
+COMMENT ON COLUMN doctor_patient_relationships.patient_id IS 'Identificador del paciente';
+COMMENT ON COLUMN doctor_patient_relationships.status IS 'Estado de la relación: pending (pendiente), active (activa), terminated (terminada)';
+COMMENT ON COLUMN doctor_patient_relationships.created_at IS 'Fecha de creación de la relación';
+COMMENT ON COLUMN doctor_patient_relationships.updated_at IS 'Fecha de última actualización de la relación';
+
+-- Índices para mejorar el rendimiento
+CREATE INDEX idx_doctor_patient_doctor_id ON doctor_patient_relationships(doctor_id);
+CREATE INDEX idx_doctor_patient_patient_id ON doctor_patient_relationships(patient_id);
+CREATE INDEX idx_doctor_patient_status ON doctor_patient_relationships(status);
+
+-- Trigger para actualizar updated_at
+DROP TRIGGER IF EXISTS update_doctor_patient_relationships_updated_at ON doctor_patient_relationships;
+CREATE TRIGGER update_doctor_patient_relationships_updated_at
+BEFORE UPDATE ON doctor_patient_relationships
+FOR EACH ROW
+EXECUTE PROCEDURE update_updated_at_column();
+
+-- Habilitar RLS en la tabla
+ALTER TABLE doctor_patient_relationships ENABLE ROW LEVEL SECURITY;
+
+-- Políticas de seguridad para la tabla de relaciones médico-paciente
+DROP POLICY IF EXISTS "Doctors can view their patient relationships" ON doctor_patient_relationships;
+CREATE POLICY "Doctors can view their patient relationships"
+ON doctor_patient_relationships FOR SELECT
+TO authenticated
+USING (doctor_id = auth.uid() OR patient_id = auth.uid());
+
+DROP POLICY IF EXISTS "Doctors can insert relationships" ON doctor_patient_relationships;
+CREATE POLICY "Doctors can insert relationships"
+ON doctor_patient_relationships FOR INSERT
+TO authenticated
+WITH CHECK (doctor_id = auth.uid() AND is_doctor(auth.uid()));
+
+DROP POLICY IF EXISTS "Doctors can update their patient relationships" ON doctor_patient_relationships;
+CREATE POLICY "Doctors can update their patient relationships"
+ON doctor_patient_relationships FOR UPDATE
+TO authenticated
+USING (doctor_id = auth.uid() AND is_doctor(auth.uid()));
+
+DROP POLICY IF EXISTS "Doctors can delete their patient relationships" ON doctor_patient_relationships;
+CREATE POLICY "Doctors can delete their patient relationships"
+ON doctor_patient_relationships FOR DELETE
+TO authenticated
+USING (doctor_id = auth.uid() AND is_doctor(auth.uid()));
+
 -- Índices para mejorar el rendimiento
 CREATE INDEX idx_food_entries_user_id ON food_entries(user_id);
 CREATE INDEX idx_food_entries_created_at ON food_entries(created_at);
@@ -171,4 +264,4 @@ CREATE TRIGGER on_auth_user_created
 
 -- Buckets de almacenamiento para imágenes
 -- NOTA: Esto debe configurarse manualmente desde la UI de Supabase Storage
--- Crear un bucket llamado "food-photos" con permisos RLS adecuados 
+-- Crear un bucket llamado "food-photos" con permisos RLS adecuados
