@@ -92,7 +92,7 @@ document.getElementById("contactForm").addEventListener("submit", async function
   }
 });
 
-// falta comentario de showToast()
+// funcion que gestiona el mensaje que se muestra la div toast del formulario de contacto
 function showToast(message, type = "success") {
   const toast = document.getElementById("toast");
   toast.textContent = type === "success" ? `✅ ${message}` : `❌ ${message}`;
