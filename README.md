@@ -43,7 +43,6 @@ node utils/generateSecret.js
 5. Configurar Supabase:
    - Crear un proyecto en [Supabase](https://supabase.com/)
    - Ejecutar el script en `database/init.sql`
-   - Crear bucket de almacenamiento `food-photos`
 
 6. Iniciar la aplicación
 ```bash
@@ -55,37 +54,6 @@ npm start
 1. **Registro/Acceso**: Regístrate como paciente o médico
 2. **Pacientes**: Sube fotos de comidas con detalles e ingredientes
 3. **Médicos**: Asigna pacientes y visualiza su historial alimenticio
-
-## Estructura del Proyecto
-
-```
-/whatyoueat
-  ├── /config           # Configuración (Supabase)
-  ├── /controllers      # Lógica de negocio
-  ├── /database         # Scripts SQL
-  ├── /docs             # Documentación
-  ├── /middleware       # Middleware (autenticación, etc.)
-  ├── /models           # Modelos de datos
-  ├── /public           # Archivos estáticos
-  ├── /routes           # Definición de rutas
-  ├── /utils            # Utilidades
-  ├── /views            # Plantillas HTML/EJS
-  ├── server.js         # Punto de entrada
-  └── README.md         # Documentación
-```
-
-## Seguridad
-
-- Cookies httpOnly y seguras en producción
-- Sesiones con regeneración de ID
-- Almacenamiento seguro de contraseñas con bcrypt
-- Autorización basada en roles
-
-## Contribución
-
-1. Haz un fork del repositorio
-2. Crea una nueva rama para tu característica
-3. Envía un Pull Request
 
 ## Licencia
 

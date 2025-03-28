@@ -1,52 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const path = require('path');
-const fs = require('fs');
-
-// Ruta específica para servir el archivo CSS
-router.get('/css/styles.css', (req, res) => {
-  const cssPath = path.join(__dirname, '../public/css/styles.css');
-  
-  fs.readFile(cssPath, 'utf8', (err, data) => {
-    if (err) {
-      console.error('Error al leer el archivo CSS:', err);
-      return res.status(500).send('Error al cargar el archivo CSS');
-    }
-    
-    res.setHeader('Content-Type', 'text/css');
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    
-    console.log('Sirviendo archivo CSS desde ruta específica');
-    res.send(data);
-  });
-});
-
-// Ruta específica para servir el archivo CSS básico
-router.get('/css/basic.css', (req, res) => {
-  const cssPath = path.join(__dirname, '../public/css/basic.css');
-  
-  fs.readFile(cssPath, 'utf8', (err, data) => {
-    if (err) {
-      console.error('Error al leer el archivo CSS básico:', err);
-      return res.status(500).send('Error al cargar el archivo CSS básico');
-    }
-    
-    res.setHeader('Content-Type', 'text/css');
-    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    
-    console.log('Sirviendo archivo CSS básico desde ruta específica');
-    res.send(data);
-  });
-});
-
-// Página de prueba para CSS
-router.get('/test-css', (req, res) => {
-  res.sendFile(path.join(__dirname, '../public/test.html'));
-});
+const { isAuthenticated } = require('../middleware/authMiddleware');
+const Profile = require('../models/Profile');
+const contactController = require('../controllers/contactController');
+const { handleHttpError } = require('../utils/errorHandler');
 
 // Página de inicio
 router.get('/', (req, res) => {
@@ -64,27 +21,54 @@ router.get('/contact', (req, res) => {
   });
 });
 
-// Procesar formulario de contacto (simulado)
-/*router.post('/contact', (req, res) => {
-  // En un entorno real, aquí procesaríamos el formulario
-  // Enviando un correo, guardando en base de datos, etc.
-  res.json({ success: true, message: 'Mensaje recibido correctamente' });
-});*/
-/*router.post('/contact', (req, res) => {
-  const { name, email, message } = req.body;
-
-  // En un entorno real, podrías guardar el mensaje o enviarlo por correo a 
-
-  res.json({
-    success: true,
-    message: `Mensaje recibido: "${message}"`
-  });
-});*/
-
-// Procesar formulario de contacto
-const contactController = require('../controllers/contactController');
 // Ruta POST para procesar el formulario de contacto
 router.post('/contact', contactController.sendMessage);
 
+// Ruta de perfil (solo usuarios autenticados)
+router.get('/profile', isAuthenticated, async (req, res) => {
+  try {
+    const userId = req.session.user.id;
+    const result = await Profile.getById(userId);
+    
+    if (!result.success) {
+      req.flash('error_msg', 'No se pudo cargar la información completa del perfil.');
+      return res.render('profile', {
+        title: 'Mi Perfil',
+        user: req.session.user,
+        profile: null
+      });
+    }
+    
+    res.render('profile', {
+      title: 'Mi Perfil',
+      user: req.session.user,
+      profile: result.profile
+    });
+  } catch (error) {
+    handleHttpError(error, res, req, 'Ocurrió un error al cargar tu perfil');
+  }
+});
 
-module.exports = router; 
+// Páginas informativas
+router.get('/about', (req, res) => {
+  res.render('about', { 
+    title: 'Acerca de',
+    user: req.session.user
+  });
+});
+
+router.get('/privacy', (req, res) => {
+  res.render('privacy', { 
+    title: 'Política de Privacidad',
+    user: req.session.user
+  });
+});
+
+router.get('/terms', (req, res) => {
+  res.render('terms', { 
+    title: 'Términos y Condiciones',
+    user: req.session.user
+  });
+});
+
+module.exports = router;

@@ -118,7 +118,7 @@ a:hover {
 }
 
 .btn:hover {
-  transform: translateY(-1px);
+  /* transform: translateY(-1px); */ /* Removed transform */
   box-shadow: var(--shadow);
 }
 
@@ -202,7 +202,7 @@ a:hover {
 
 .card:hover {
   box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+  /* transform: translateY(-2px); */ /* Removed transform */
 }
 
 /* Secciones */
@@ -400,7 +400,7 @@ section {
 }
 
 .food-entry-card:hover {
-  transform: translateY(-4px);
+  /* transform: translateY(-4px); */ /* Removed transform */
   box-shadow: var(--shadow-lg);
 }
 
@@ -449,13 +449,15 @@ li {
 }
 
 .entry-card:hover {
-  transform: translateY(-5px);
+  /* transform: translateY(-5px); */ /* Removed transform */
   box-shadow: 0 10px 20px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06) !important;
 }
 
+/* 
 .entry-card:hover .card-img-container img {
-  transform: scale(1.05);
+transform: scale(1.05); 
 }
+*/ /* Removed transform */
 
 .entry-card:hover .image-overlay {
   background: rgba(0,0,0,0.3);
@@ -487,7 +489,7 @@ li {
 /* Animación suave para carga de imágenes */
 .card-img-top {
   opacity: 1;
-  animation: fadeIn 0.5s;
+  /* animation: fadeIn 0.5s; */ /* Removed animation */
 }
 
 @keyframes fadeIn {
@@ -502,7 +504,7 @@ li {
 }
 
 .img-fluid.rounded:hover {
-  transform: scale(1.02);
+  /* transform: scale(1.02); */ /* Removed transform */
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
@@ -567,13 +569,7 @@ li {
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
 }
 
-/* Prevenir cualquier manipulación del modal por JavaScript de terceros */
-.modal,
-.modal-dialog,
-.modal-backdrop {
-  /* Sobrescribir solo lo esencial */
-  transition: opacity 0.15s linear !important;
-}
+/* Removed conflicting modal transition override */
 
 /* Estilo para la sección de información detallada */
 #informacion-detallada {

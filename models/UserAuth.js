@@ -1,4 +1,5 @@
 const { supabase } = require('../config/supabase');
+const { getAuthErrorMessage } = require('../utils/errorHandler');
 
 class UserAuth {
   // Registrar un nuevo usuario usando el servicio de autenticación de Supabase
@@ -22,10 +23,19 @@ class UserAuth {
         }
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        console.error('Error en registro de usuario:', authError);
+        return { 
+          success: false, 
+          error: getAuthErrorMessage(authError.code, authError.message)
+        };
+      }
       
       if (!authData || !authData.user) {
-        throw new Error('No se pudo crear el usuario. Respuesta de autenticación incompleta.');
+        return { 
+          success: false, 
+          error: 'No se pudo crear el usuario. Respuesta de autenticación incompleta.' 
+        };
       }
       
       // Creación exitosa
@@ -40,7 +50,10 @@ class UserAuth {
       };
     } catch (error) {
       console.error('Error al registrar usuario:', error);
-      return { success: false, error: error.message };
+      return { 
+        success: false, 
+        error: error.message || 'Error en el registro de usuario'
+      };
     }
   }
 
@@ -53,10 +66,19 @@ class UserAuth {
         password
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        console.error('Error en inicio de sesión:', authError);
+        return { 
+          success: false, 
+          error: getAuthErrorMessage(authError.code, authError.message)
+        };
+      }
       
       if (!authData || !authData.user) {
-        throw new Error('No se pudo iniciar sesión. Respuesta de autenticación incompleta.');
+        return { 
+          success: false, 
+          error: 'No se pudo iniciar sesión. Respuesta de autenticación incompleta.' 
+        };
       }
       
       // Obtener los metadatos del usuario
@@ -75,7 +97,10 @@ class UserAuth {
       };
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
-      return { success: false, error: error.message };
+      return { 
+        success: false, 
+        error: error.message || 'Error en el inicio de sesión'
+      };
     }
   }
 
@@ -84,12 +109,21 @@ class UserAuth {
     try {
       const { error } = await supabase.auth.signOut();
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error al cerrar sesión:', error);
+        return { 
+          success: false, 
+          error: getAuthErrorMessage(error.code, error.message)
+        };
+      }
       
       return { success: true };
     } catch (error) {
       console.error('Error al cerrar sesión:', error);
-      return { success: false, error: error.message };
+      return { 
+        success: false, 
+        error: error.message || 'Error al cerrar sesión'
+      };
     }
   }
 
@@ -100,12 +134,21 @@ class UserAuth {
         redirectTo: `${process.env.APP_URL || 'http://localhost:3000'}/auth/update-password`,
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error al solicitar recuperación de contraseña:', error);
+        return { 
+          success: false, 
+          error: getAuthErrorMessage(error.code, error.message)
+        };
+      }
       
       return { success: true };
     } catch (error) {
       console.error('Error al solicitar recuperación de contraseña:', error);
-      return { success: false, error: error.message };
+      return { 
+        success: false, 
+        error: error.message || 'Error al solicitar recuperación de contraseña'
+      };
     }
   }
 
@@ -116,12 +159,21 @@ class UserAuth {
         password: newPassword
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error al actualizar contraseña:', error);
+        return { 
+          success: false, 
+          error: getAuthErrorMessage(error.code, error.message)
+        };
+      }
       
       return { success: true };
     } catch (error) {
       console.error('Error al actualizar contraseña:', error);
-      return { success: false, error: error.message };
+      return { 
+        success: false, 
+        error: error.message || 'Error al actualizar contraseña'
+      };
     }
   }
 
@@ -132,12 +184,21 @@ class UserAuth {
         data: userData
       });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error al actualizar datos del usuario:', error);
+        return { 
+          success: false, 
+          error: getAuthErrorMessage(error.code, error.message)
+        };
+      }
       
       return { success: true };
     } catch (error) {
       console.error('Error al actualizar datos del usuario:', error);
-      return { success: false, error: error.message };
+      return { 
+        success: false, 
+        error: error.message || 'Error al actualizar datos del usuario'
+      };
     }
   }
 }

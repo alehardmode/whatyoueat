@@ -22,7 +22,7 @@
       <div class="card-header bg-primary text-white">
         <h4 class="mb-0">
           <i class="fas fa-calendar-alt me-2"></i>
-          <%= moment(entry.created_at).format('DD/MM/YYYY HH:mm') %>
+          <%= entry.name || 'Comida sin nombre' %> - <%= moment(entry.meal_date || entry.created_at).format('DD/MM/YYYY HH:mm') %>
         </h4>
       </div>
       <div class="card-body">
@@ -31,56 +31,22 @@
           <div class="col-md-6 mb-4">
             <div class="card">
               <div class="card-body text-center">
-                <div class="image-container" style="min-height: 300px; display: flex; align-items: center; justify-content: center;">
-                  <img 
-                    src="<%= entry.image_url %>" 
-                    class="img-fluid rounded shadow" 
-                    alt="Imagen de comida" 
-                    style="max-height: 400px; object-fit: contain; width: auto; max-width: 100%;"
-                    onerror="this.onerror=null; this.src='/img/empty-plate.svg'; this.alt='Imagen no disponible'; console.error('Error al cargar imagen:', this.src); this.style.padding = '20px'; this.style.background = '#f8f9fa';"
-                    onload="console.log('Imagen cargada correctamente'); this.classList.add('loaded');">
-                  
-                  <!-- Indicador de carga (se oculta cuando la imagen se carga) -->
-                  <div class="loading-indicator" style="position: absolute; display: none;">
-                    <div class="spinner-border text-primary" role="status">
-                      <span class="visually-hidden">Cargando...</span>
-                    </div>
+                <div class="image-container" style="min-height: 300px; display: flex; align-items: center; justify-content: center; position: relative;">
+                  <!-- Placeholder mientras carga la imagen -->
+                  <div class="image-loading-spinner spinner-border text-primary" role="status" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                    <span class="visually-hidden">Cargando...</span>
                   </div>
+                  <img 
+                    src="/img/empty-plate.svg"
+                    data-src="<%= entry.image_url || entry.image_data %>" 
+                    class="img-fluid rounded shadow lazy-image" 
+                    alt="<%= entry.name || 'Imagen de comida' %>" 
+                    loading="lazy"
+                    style="max-height: 400px; object-fit: contain; width: auto; max-width: 100%; opacity: 0; transition: opacity 0.3s ease-in-out;"
+                    onerror="this.onerror=null; this.src='/img/empty-plate.svg'; this.alt='Imagen no disponible'; this.style.padding = '20px'; this.style.background = '#f8f9fa'; this.style.opacity = '1';">
                 </div>
               </div>
             </div>
-            
-            <!-- Script para mejorar la carga de imágenes -->
-            <script>
-              document.addEventListener('DOMContentLoaded', function() {
-                const img = document.querySelector('.image-container img');
-                const loadingIndicator = document.querySelector('.loading-indicator');
-                
-                if (img && loadingIndicator) {
-                  // Mostrar indicador de carga
-                  loadingIndicator.style.display = 'block';
-                  
-                  // Verificar si la imagen ya está en caché
-                  if (img.complete) {
-                    loadingIndicator.style.display = 'none';
-                  } else {
-                    // Para imágenes que necesitan cargarse
-                    img.addEventListener('load', function() {
-                      loadingIndicator.style.display = 'none';
-                    });
-                    
-                    img.addEventListener('error', function() {
-                      loadingIndicator.style.display = 'none';
-                    });
-                    
-                    // Timeout para evitar espera infinita
-                    setTimeout(function() {
-                      loadingIndicator.style.display = 'none';
-                    }, 10000);
-                  }
-                }
-              });
-            </script>
           </div>
           
           <!-- Detalles -->
@@ -92,17 +58,23 @@
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                   <span><i class="fas fa-calendar me-2"></i>Fecha:</span>
                   <span class="badge bg-primary rounded-pill">
-                    <%= moment(entry.created_at).format('DD/MM/YYYY') %>
+                    <%= moment(entry.meal_date || entry.created_at).format('DD/MM/YYYY') %>
                   </span>
                 </li>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
                   <span><i class="fas fa-clock me-2"></i>Hora:</span>
                   <span class="badge bg-primary rounded-pill">
-                    <%= moment(entry.created_at).format('HH:mm') %>
+                    <%= moment(entry.meal_date || entry.created_at).format('HH:mm') %>
                   </span>
                 </li>
                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                  <span><i class="fas fa-history me-2"></i>Tiempo transcurrido:</span>
+                  <span><i class="fas fa-utensils me-2"></i>Tipo de comida:</span>
+                  <span class="badge bg-info rounded-pill">
+                    <%= entry.meal_type || 'No especificado' %>
+                  </span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <span><i class="fas fa-history me-2"></i>Creado:</span>
                   <span class="badge bg-secondary rounded-pill">
                     <%= moment(entry.created_at).fromNow() %>
                   </span>
@@ -110,29 +82,15 @@
               </ul>
             </div>
             
-            <!-- Ingredientes -->
+            <!-- Descripción -->
             <div class="mb-4">
-              <h5><i class="fas fa-list me-2"></i>Ingredientes</h5>
+              <h5><i class="fas fa-comment me-2"></i>Descripción</h5>
               <div class="card">
                 <div class="card-body">
-                  <% if (entry.ingredients) { %>
-                    <p class="card-text"><%= entry.ingredients %></p>
+                  <% if (entry.description) { %>
+                    <p class="card-text"><%= entry.description %></p>
                   <% } else { %>
-                    <p class="text-muted">No se especificaron ingredientes.</p>
-                  <% } %>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Comentarios -->
-            <div class="mb-4">
-              <h5><i class="fas fa-comment me-2"></i>Comentarios</h5>
-              <div class="card">
-                <div class="card-body">
-                  <% if (entry.comments) { %>
-                    <p class="card-text"><%= entry.comments %></p>
-                  <% } else { %>
-                    <p class="text-muted">No hay comentarios para esta entrada.</p>
+                    <p class="text-muted">No hay descripción para esta entrada.</p>
                   <% } %>
                 </div>
               </div>
@@ -181,4 +139,44 @@
 </div>
 
 </div>
-</div> 
+</div>
+
+<!-- Script para implementar lazy loading de la imagen de detalle -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const lazyImage = document.querySelector('.lazy-image');
+    if (lazyImage) {
+      const src = lazyImage.getAttribute('data-src');
+      const spinner = document.querySelector('.image-loading-spinner');
+      
+      // Si tenemos el atributo data-src y es diferente del placeholder
+      if (src && src !== '/img/empty-plate.svg') {
+        // Crear una nueva imagen para precargar
+        const newImg = new Image();
+        
+        newImg.onload = function() {
+          // Cuando la imagen se carga completamente
+          lazyImage.src = src;
+          lazyImage.style.opacity = '1';
+          if (spinner) spinner.style.display = 'none'; // Más eficiente que cambiar opacity
+        };
+        
+        newImg.onerror = function() {
+          // Si hay error al cargar la imagen
+          if (spinner) spinner.style.display = 'none';
+          // Empty-plate ya está cargado, solo ajustamos el estilo
+          lazyImage.style.padding = '20px';
+          lazyImage.style.background = '#f8f9fa';
+          lazyImage.style.opacity = '1';
+        };
+        
+        // Iniciar carga de la imagen real
+        newImg.src = src;
+      } else {
+        // Si no hay data-src o es igual al placeholder, sólo mostramos el placeholder
+        if (spinner) spinner.style.display = 'none';
+        lazyImage.style.opacity = '1';
+      }
+    }
+  });
+</script>

@@ -1,4 +1,4 @@
-<!-- Página de Error -->
+<!-- Página de Error del Servidor -->
 <div class="container py-5">
   <div class="row">
     <div class="col-md-8 mx-auto text-center">
@@ -9,17 +9,13 @@
           </div>
           <h1 class="display-4 mb-4">Oops! Ha ocurrido un error</h1>
           
-          <% if (typeof message !== 'undefined') { %>
-            <p class="lead mb-4 text-danger"><%= message %></p>
-          <% } else { %>
-            <p class="lead mb-4 text-danger">Lo sentimos, algo salió mal al procesar tu solicitud.</p>
-          <% } %>
-          
-          <% if (typeof error !== 'undefined' && process.env.NODE_ENV !== 'production') { %>
+          <% if (typeof error !== 'undefined' && Object.keys(error).length > 0) { %>
             <div class="alert alert-danger text-start mb-4">
               <h5 class="alert-heading">Detalles del error:</h5>
-              <pre class="mb-0"><%= error.stack %></pre>
+              <pre class="mb-0"><%= JSON.stringify(error, null, 2) %></pre>
             </div>
+          <% } else { %>
+            <p class="lead mb-4 text-danger">Lo sentimos, algo salió mal al procesar tu solicitud.</p>
           <% } %>
           
           <hr class="my-4">

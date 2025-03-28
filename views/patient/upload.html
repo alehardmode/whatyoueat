@@ -3,7 +3,7 @@
   <div class="row">
     <div class="col-md-12">
       <!-- Alerta de error - Solo se muestra si hay un error -->
-      <% if (error_msg) { %>
+      <% if (error_msg && error_msg.length > 0) { %>
       <div class="alert alert-danger mt-4 custom-alert" role="alert">
         <div class="d-flex justify-content-between align-items-start">
           <div>
@@ -16,7 +16,7 @@
       <% } %>
       
       <!-- Alerta de éxito - Solo se muestra si hay un mensaje de éxito -->
-      <% if (success_msg) { %>
+      <% if (success_msg && success_msg.length > 0) { %>
       <div class="alert alert-success mt-4 custom-alert" role="alert">
         <div class="d-flex justify-content-between align-items-start">
           <div>
@@ -55,9 +55,9 @@
           <form action="/patient/upload" method="POST" enctype="multipart/form-data" id="uploadForm" novalidate>
             <!-- Foto -->
             <div class="mb-4">
-              <label for="photo" class="form-label fw-bold">Foto de la Comida <span class="text-danger">*</span></label>
-              <input type="file" class="form-control <%= typeof validationErrors !== 'undefined' && validationErrors.photo ? 'is-invalid' : '' %>" id="photo" name="photo" accept="image/*" required>
-              <div class="form-text">Selecciona una foto clara de tu comida (máx. 10MB)</div>
+              <label for="food_photo" class="form-label fw-bold">Foto de la Comida <span class="text-danger">*</span></label>
+              <input type="file" class="form-control <%= typeof validationErrors !== 'undefined' && validationErrors.photo ? 'is-invalid' : '' %>" id="food_photo" name="food_photo" accept="image/*" required>
+              <div class="form-text">Selecciona una foto clara de tu comida (máx. 10MB). La imagen será comprimida automáticamente.</div>
               <!-- Mensaje de error para la foto -->
               <div id="photo-error" class="invalid-feedback" <%= typeof validationErrors !== 'undefined' && validationErrors.photo ? 'style="display: block;"' : 'style="display: none;"' %>>
                 <%= typeof validationErrors !== 'undefined' && validationErrors.photo ? validationErrors.photo : '' %>
@@ -68,26 +68,45 @@
                 <img id="preview" class="img-thumbnail" style="max-height: 250px;" alt="Vista previa">
               </div>
             </div>
-            
-            <!-- Comentarios -->
+            <!-- Nombre de la comida -->
             <div class="mb-4">
-              <label for="comments" class="form-label fw-bold">Comentarios <span class="text-danger">*</span></label>
-              <textarea class="form-control <%= typeof validationErrors !== 'undefined' && validationErrors.comments ? 'is-invalid' : '' %>" id="comments" name="comments" rows="3" placeholder="Describe la comida..." required><%= typeof formData !== 'undefined' && formData.comments ? formData.comments : '' %></textarea>
-              <!-- Mensaje de error para comentarios -->
-              <div id="comments-error" class="invalid-feedback" <%= typeof validationErrors !== 'undefined' && validationErrors.comments ? 'style="display: block;"' : 'style="display: none;"' %>>
-                <%= typeof validationErrors !== 'undefined' && validationErrors.comments ? validationErrors.comments : '' %>
+              <label for="foodName" class="form-label fw-bold">Nombre de la comida <span class="text-danger">*</span></label>
+              <input type="text" class="form-control <%= typeof validationErrors !== 'undefined' && validationErrors.foodName ? 'is-invalid' : '' %>" id="foodName" name="foodName" placeholder="Ej: Ensalada mediterránea" required value="<%= typeof formData !== 'undefined' && formData.foodName ? formData.foodName : '' %>">
+              <div class="form-text">Nombre descriptivo de la comida.</div>
+              <!-- Mensaje de error para nombre -->
+              <div id="foodName-error" class="invalid-feedback" <%= typeof validationErrors !== 'undefined' && validationErrors.foodName ? 'style="display: block;"' : 'style="display: none;"' %>>
+                <%= typeof validationErrors !== 'undefined' && validationErrors.foodName ? validationErrors.foodName : '' %>
               </div>
             </div>
             
-            <!-- Ingredientes -->
+            <!-- Descripción -->
             <div class="mb-4">
-              <label for="ingredients" class="form-label fw-bold">Ingredientes <span class="text-danger">*</span></label>
-              <input type="text" class="form-control <%= typeof validationErrors !== 'undefined' && validationErrors.ingredients ? 'is-invalid' : '' %>" id="ingredients" name="ingredients" placeholder="Ej: arroz, pollo, aceite..." required value="<%= typeof formData !== 'undefined' && formData.ingredients ? formData.ingredients : '' %>">
-              <div class="form-text">Intenta ser lo más preciso posible con las cantidades aproximadas.</div>
-              <!-- Mensaje de error para ingredientes -->
-              <div id="ingredients-error" class="invalid-feedback" <%= typeof validationErrors !== 'undefined' && validationErrors.ingredients ? 'style="display: block;"' : 'style="display: none;"' %>>
-                <%= typeof validationErrors !== 'undefined' && validationErrors.ingredients ? validationErrors.ingredients : '' %>
+              <label for="description" class="form-label fw-bold">Descripción <span class="text-danger">*</span></label>
+              <textarea class="form-control <%= typeof validationErrors !== 'undefined' && validationErrors.description ? 'is-invalid' : '' %>" id="description" name="description" rows="3" placeholder="Describe la comida..." required><%= typeof formData !== 'undefined' && formData.description ? formData.description : '' %></textarea>
+              <!-- Mensaje de error para descripción -->
+              <div id="description-error" class="invalid-feedback" <%= typeof validationErrors !== 'undefined' && validationErrors.description ? 'style="display: block;"' : 'style="display: none;"' %>>
+                <%= typeof validationErrors !== 'undefined' && validationErrors.description ? validationErrors.description : '' %>
               </div>
+            </div>
+
+            <!-- Tipo de comida -->
+            <div class="mb-4">
+              <label for="mealType" class="form-label fw-bold">Tipo de comida</label>
+              <select class="form-select" id="mealType" name="mealType">
+                <option value="desayuno">Desayuno</option>
+                <option value="almuerzo">Almuerzo</option>
+                <option value="cena">Cena</option>
+                <option value="merienda">Merienda</option>
+                <option value="snack">Snack</option>
+                <option value="other">Otro</option>
+              </select>
+            </div>
+
+            <!-- Fecha y hora de la comida -->
+            <div class="mb-4">
+              <label for="mealDate" class="form-label fw-bold">Fecha y hora</label>
+              <input type="datetime-local" class="form-control" id="mealDate" name="mealDate">
+              <div class="form-text">Si se deja en blanco, se usará la fecha actual.</div>
             </div>
             
             <!-- Botón Guardar -->
@@ -103,111 +122,24 @@
   </div>
 </div>
 
-<!-- JavaScript directo en la página -->
+<!-- Incluir el script de upload.js -->
+<script src="/js/upload.js"></script>
+
+<!-- Script para inicializar la fecha y hora actual -->
 <script>
-  // Esperamos a que el DOM esté completamente cargado
   document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM cargado para upload.html');
+    // Obtener la fecha y hora actual en formato ISO
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
     
-    // Control de bucles
-    let isUpdating = false;
+    // Formatear para el input datetime-local
+    const formattedDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
     
-    // Referencias a elementos del DOM
-    const photoInput = document.getElementById('photo');
-    const preview = document.getElementById('preview');
-    const previewContainer = document.getElementById('previewContainer');
-    const uploadForm = document.getElementById('uploadForm');
-    
-    // Vista previa de la imagen
-    if (photoInput && preview && previewContainer) {
-      // Evitar múltiples event listeners
-      if (!photoInput.hasAttribute('data-preview-configured')) {
-        photoInput.setAttribute('data-preview-configured', 'true');
-        
-        photoInput.addEventListener('change', function() {
-          const file = this.files[0];
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-              preview.src = e.target.result;
-              previewContainer.classList.remove('d-none');
-              previewContainer.style.display = 'block';
-            }
-            reader.readAsDataURL(file);
-          }
-        });
-      }
-    }
-    
-    // Creamos contenedores para mensajes de error si no existen
-    function createErrorContainer(inputId, message) {
-      // Buscar si ya existe el contenedor de error
-      let errorContainer = document.getElementById(inputId + '-error');
-      
-      if (!errorContainer) {
-        // Si no existe, crear uno nuevo
-        errorContainer = document.createElement('div');
-        errorContainer.id = inputId + '-error';
-        errorContainer.className = 'invalid-feedback';
-        
-        // Insertar después del input
-        const input = document.getElementById(inputId);
-        if (input && input.parentNode) {
-          input.classList.add('is-invalid');
-          input.parentNode.appendChild(errorContainer);
-        }
-      }
-      
-      errorContainer.textContent = message;
-      errorContainer.style.display = 'block';
-      return errorContainer;
-    }
-    
-    // Limpiar mensajes de error
-    function clearValidationErrors() {
-      document.querySelectorAll('.is-invalid').forEach(el => {
-        el.classList.remove('is-invalid');
-      });
-      
-      document.querySelectorAll('.invalid-feedback').forEach(el => {
-        el.style.display = 'none';
-      });
-    }
-    
-    // Validación del formulario (sin causar bucles y sin alerts)
-    if (uploadForm && !uploadForm.hasAttribute('data-validation-configured')) {
-      uploadForm.setAttribute('data-validation-configured', 'true');
-      
-      uploadForm.addEventListener('submit', function(event) {
-        const photo = document.getElementById('photo');
-        const comments = document.getElementById('comments');
-        const ingredients = document.getElementById('ingredients');
-        
-        // Limpiar errores previos
-        clearValidationErrors();
-        
-        let isValid = true;
-        
-        // Validaciones básicas sin usar alert()
-        if (!photo || !photo.files.length) {
-          createErrorContainer('photo', 'Por favor selecciona una imagen');
-          isValid = false;
-        }
-        
-        if (!comments || !comments.value.trim()) {
-          createErrorContainer('comments', 'Por favor añade un comentario');
-          isValid = false;
-        }
-        
-        if (!ingredients || !ingredients.value.trim()) {
-          createErrorContainer('ingredients', 'Por favor lista los ingredientes');
-          isValid = false;
-        }
-        
-        if (!isValid) {
-          event.preventDefault();
-        }
-      });
-    }
+    // Establecer el valor por defecto
+    document.getElementById('mealDate').value = formattedDateTime;
   });
-</script> 
+</script>

@@ -51,37 +51,36 @@
           <div class="card h-100 shadow-sm food-entry-card">
             <div class="card-img-container" style="height: 200px; overflow: hidden; position: relative; background-color: #f8f9fa;">
               <img 
-                src="<%= entry.image_url %>" 
-                class="card-img-top" 
-                alt="Foto de comida" 
+                src="/img/empty-plate.svg"
+                data-src="<%= entry.image_url || entry.image_data || '/img/empty-plate.svg' %>"
+                class="card-img-top lazy-image" 
+                alt="<%= entry.name || 'Foto de comida' %>" 
+                loading="lazy"
                 style="width: 100%; height: 100%; object-fit: cover;"
-                onerror="this.onerror=null; this.src='/img/empty-plate.svg'; this.alt='Imagen no disponible'; console.error('Error al cargar imagen:', this.src); this.style.padding = '20px';"
-                onload="this.parentElement.querySelector('.loading-indicator')?.remove();"
+                onerror="this.onerror=null; this.src='/img/empty-plate.svg'; this.alt='Imagen no disponible'; this.style.padding = '20px';"
               >
-              <!-- Indicador de carga -->
-              <div class="loading-indicator" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                <div class="spinner-border text-primary" role="status">
-                  <span class="visually-hidden">Cargando...</span>
-                </div>
+              <div class="image-loading-spinner spinner-border text-primary" role="status" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                <span class="visually-hidden">Cargando...</span>
               </div>
             </div>
             <div class="card-body">
-              <h5 class="card-title">Entrada #<%= entry.entryNumber || index + 1 %></h5>
-              <p class="card-text text-muted small">
-                <i class="fas fa-calendar-alt"></i> 
-                <%= new Date(entry.created_at).toLocaleDateString('es-ES', { 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                }) %>
-              </p>
+              <h5 class="card-title"><%= entry.name || 'Comida sin nombre' %></h5>
+              <div class="d-flex justify-content-between mb-2">
+                <span class="badge bg-info"><%= entry.meal_type || 'Otro' %></span>
+                <small class="text-muted">
+                  <i class="fas fa-calendar-alt"></i> 
+                  <%= new Date(entry.meal_date || entry.created_at).toLocaleDateString('es-ES', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric'
+                  }) %>
+                </small>
+              </div>
               <p class="card-text">
-                <% if (entry.comments && entry.comments.length > 50) { %>
-                  <%= entry.comments.substring(0, 50) %>...
+                <% if (entry.description && entry.description.length > 50) { %>
+                  <%= entry.description.substring(0, 50) %>...
                 <% } else { %>
-                  <%= entry.comments || 'Sin comentarios' %>
+                  <%= entry.description || 'Sin descripción' %>
                 <% } %>
               </p>
               <a href="/patient/entry/<%= entry.id %>" class="btn btn-sm btn-primary">Ver detalles</a>
@@ -106,28 +105,28 @@
   </div>
 
   <!-- Paginación -->
-  <% if (totalPages > 1) { %>
+  <% if (pagination.totalPages > 1) { %>
     <div class="row">
       <div class="col-12">
         <nav aria-label="Paginación de historial">
           <ul class="pagination justify-content-center">
             <!-- Botón anterior -->
-            <li class="page-item <%= currentPage <= 1 ? 'disabled' : '' %>">
-              <a class="page-link" href="/patient/history?page=<%= currentPage - 1 %>" tabindex="-1" aria-disabled="<%= currentPage <= 1 %>">
+            <li class="page-item <%= pagination.currentPage <= 1 ? 'disabled' : '' %>">
+              <a class="page-link" href="/patient/history?page=<%= pagination.currentPage - 1 %><%= filters.date_from ? '&date_from='+filters.date_from : '' %><%= filters.date_to ? '&date_to='+filters.date_to : '' %>" tabindex="-1" aria-disabled="<%= pagination.currentPage <= 1 %>">
                 <i class="fas fa-chevron-left"></i> Anterior
               </a>
             </li>
             
             <!-- Páginas -->
-            <% for(let i = 1; i <= totalPages; i++) { %>
-              <li class="page-item <%= currentPage == i ? 'active' : '' %>">
-                <a class="page-link" href="/patient/history?page=<%= i %>"><%= i %></a>
+            <% for(let i = 1; i <= pagination.totalPages; i++) { %>
+              <li class="page-item <%= pagination.currentPage == i ? 'active' : '' %>">
+                <a class="page-link" href="/patient/history?page=<%= i %><%= filters.date_from ? '&date_from='+filters.date_from : '' %><%= filters.date_to ? '&date_to='+filters.date_to : '' %>"><%= i %></a>
               </li>
             <% } %>
             
             <!-- Botón siguiente -->
-            <li class="page-item <%= currentPage >= totalPages ? 'disabled' : '' %>">
-              <a class="page-link" href="/patient/history?page=<%= currentPage + 1 %>" aria-disabled="<%= currentPage >= totalPages %>">
+            <li class="page-item <%= pagination.currentPage >= pagination.totalPages ? 'disabled' : '' %>">
+              <a class="page-link" href="/patient/history?page=<%= pagination.currentPage + 1 %><%= filters.date_from ? '&date_from='+filters.date_from : '' %><%= filters.date_to ? '&date_to='+filters.date_to : '' %>" aria-disabled="<%= pagination.currentPage >= pagination.totalPages %>">
                 Siguiente <i class="fas fa-chevron-right"></i>
               </a>
             </li>
@@ -138,21 +137,148 @@
   <% } %>
 </div>
 
+<!-- Estilo para efecto de carga de imágenes -->
+<style>
+  .lazy-image {
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+  }
+  .lazy-image.loaded {
+    opacity: 1;
+  }
+  .image-loading-spinner {
+    transition: opacity 0.3s ease-in-out;
+  }
+  .image-loading-spinner.hidden {
+    opacity: 0;
+  }
+</style>
+
+<!-- Script para implementar lazy loading avanzado y optimizado -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Iniciar precarga de imágenes
-    const images = document.querySelectorAll('.card-img-top');
-    images.forEach(img => {
-      // Solo para imágenes que aún no están cargadas
-      if (!img.complete) {
-        img.addEventListener('error', function() {
-          console.error('Error al cargar imagen:', img.src);
+    // Control de concurrencia - limitar cargas simultáneas
+    const MAX_CONCURRENT_LOADS = 3;
+    let activeLoads = 0;
+    const loadQueue = [];
+    
+    function processQueue() {
+      if (loadQueue.length === 0 || activeLoads >= MAX_CONCURRENT_LOADS) return;
+      
+      // Tomar la siguiente imagen de la cola
+      const nextImg = loadQueue.shift();
+      activeLoads++;
+      
+      const img = nextImg.element;
+      const src = nextImg.src;
+      const spinner = nextImg.spinner;
+      
+      // Precargar la imagen
+      const newImg = new Image();
+      
+      newImg.onload = function() {
+        // Aplicar la imagen cuando se cargue
+        setTimeout(() => {
+          img.src = src;
+          img.classList.add('loaded');
+          if (spinner) spinner.style.display = 'none';
+          
+          // Liberar un espacio para otra carga
+          activeLoads--;
+          processQueue();
+        }, 50);
+      };
+      
+      newImg.onerror = function() {
+        // Si hay error al cargar, cargar el placeholder
+        img.src = '/img/empty-plate.svg';
+        img.style.padding = '20px';
+        img.classList.add('loaded');
+        if (spinner) spinner.style.display = 'none';
+        
+        // Liberar un espacio para otra carga
+        activeLoads--;
+        processQueue();
+      };
+      
+      // Iniciar la carga real
+      setTimeout(() => {
+        newImg.src = src;
+      }, 20);
+    }
+    
+    function queueImageLoad(imgElement, src, spinner) {
+      // Añadir a la cola
+      loadQueue.push({ element: imgElement, src: src, spinner: spinner });
+      // Intentar procesar la cola
+      processQueue();
+    }
+    
+    // Implementación de IntersectionObserver para lazy loading
+    if ('IntersectionObserver' in window) {
+      const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            const src = img.getAttribute('data-src');
+            const spinner = img.parentNode.querySelector('.image-loading-spinner');
+            
+            // Solo cargar si src existe y es diferente al placeholder
+            if (src && src !== '/img/empty-plate.svg') {
+              queueImageLoad(img, src, spinner);
+            } else {
+              // Si es el placeholder, mostrarlo inmediatamente
+              img.classList.add('loaded');
+              if (spinner) spinner.style.display = 'none';
+            }
+            
+            // Dejar de observar esta imagen
+            observer.unobserve(img);
+          }
         });
-      } else {
-        // Quitar indicador de carga si ya está cargada
-        const loadingIndicator = img.parentElement.querySelector('.loading-indicator');
-        if (loadingIndicator) loadingIndicator.remove();
+      }, {
+        rootMargin: '150px 0px',
+        threshold: 0.01
+      });
+      
+      // Observar todas las imágenes con clase lazy-image
+      document.querySelectorAll('img.lazy-image').forEach(img => {
+        imageObserver.observe(img);
+      });
+    } else {
+      // Fallback para navegadores que no soportan IntersectionObserver
+      // Carga progresiva para no bloquear el navegador
+      const lazyImages = Array.from(document.querySelectorAll('img.lazy-image'));
+      let processed = 0;
+      
+      function processNextBatch() {
+        const batchSize = 3;
+        const end = Math.min(processed + batchSize, lazyImages.length);
+        
+        for (let i = processed; i < end; i++) {
+          const img = lazyImages[i];
+          const src = img.getAttribute('data-src');
+          const spinner = img.parentNode.querySelector('.image-loading-spinner');
+          
+          if (src && src !== '/img/empty-plate.svg') {
+            img.src = src;
+          }
+          
+          img.classList.add('loaded');
+          if (spinner) spinner.style.display = 'none';
+        }
+        
+        processed = end;
+        
+        if (processed < lazyImages.length) {
+          setTimeout(processNextBatch, 100);
+        }
       }
-    });
+      
+      // Iniciar procesamiento por lotes
+      if (lazyImages.length > 0) {
+        processNextBatch();
+      }
+    }
   });
-</script> 
+</script>

@@ -4,23 +4,13 @@
 
 // Esperar a que el DOM esté completamente cargado
 document.addEventListener('DOMContentLoaded', function() {
-  // Gestionar alertas
-  setupAlerts();
-  
-  // Configurar todos los botones con efectos visuales
+  console.log('main.js cargado correctamente');
   setupButtons();
-  
-  // Listeners para el formulario de subida de fotos
+  setupAlerts();
   setupPhotoUploadForm();
-  
-  // Listeners para el selector de fechas en el historial
   setupDateSelector();
-  
   // Configurar efectos de animación en elementos
   setupAnimations();
-  
-  // Ya no es necesario: la inicialización de modales se maneja en el layout principal
-  // setupModals();
 });
 
 /**
@@ -36,36 +26,11 @@ function setupAnimations() {
 }
 
 /**
- * Configura todos los botones de la aplicación
- */
-function setupButtons() {
-  // Seleccionamos todos los botones de la aplicación
-  const allButtons = document.querySelectorAll('button, .btn, [role="button"], input[type="submit"]');
-  
-  // Para cada botón, verificamos su funcionalidad
-  allButtons.forEach((button) => {
-    // Añadimos el listener para todos los botones
-    button.addEventListener('click', function(e) {
-      // Si el botón está dentro de un form y no tiene type="submit", prevenimos el envío
-      if (button.closest('form') && button.type !== 'submit' && !button.classList.contains('submit-form')) {
-        e.preventDefault();
-      }
-      
-      // Efecto de hover mejorado
-      this.classList.add('button-clicked');
-      setTimeout(() => {
-        this.classList.remove('button-clicked');
-      }, 300);
-    });
-  });
-}
-
-/**
  * Configuración de alertas y notificaciones
  */
 function setupAlerts() {
   // Auto-cerrar alertas después de 5 segundos si no tienen .alert-permanent
-  const autoCloseAlerts = document.querySelectorAll('.alert:not(.alert-permanent)');
+  const autoCloseAlerts = document.querySelectorAll('.alert:not(.alert-permanent):not(.flash-messages .alert)');
   
   if (autoCloseAlerts.length > 0) {
     setTimeout(function() {
@@ -80,8 +45,8 @@ function setupAlerts() {
     }, 5000);
   }
   
-  // Configurar botones de cierre manuales
-  document.querySelectorAll('.close-alert').forEach(button => {
+  // Configurar botones de cierre manuales (excepto flash messages)
+  document.querySelectorAll('.close-alert:not(.flash-close)').forEach(button => {
     button.addEventListener('click', function() {
       const alert = this.closest('.alert');
       if (alert) {
@@ -222,4 +187,29 @@ function setupDateSelector() {
       }
     });
   }
+}
+
+/**
+ * Configuración de botones
+ */
+function setupButtons() {
+  // Seleccionamos todos los botones de la aplicación
+  const allButtons = document.querySelectorAll('button, .btn, [role="button"], input[type="submit"]');
+  
+  // Para cada botón, verificamos su funcionalidad
+  allButtons.forEach((button) => {
+    // Añadimos el listener para todos los botones
+    button.addEventListener('click', function(e) {
+      // Si el botón está dentro de un form y no tiene type="submit", prevenimos el envío
+      if (button.closest('form') && button.type !== 'submit' && !button.classList.contains('submit-form')) {
+        e.preventDefault();
+      }
+      
+      // Efecto de hover mejorado
+      this.classList.add('button-clicked');
+      setTimeout(() => {
+        this.classList.remove('button-clicked');
+      }, 300);
+    });
+  });
 }
