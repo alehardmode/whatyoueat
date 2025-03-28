@@ -4,27 +4,36 @@
 
 ```mermaid
 flowchart TB
-    Cliente["CLIENTE\n(Navegador)"] ---|HTTP Requests| Express["EXPRESS APP"]
-    Servidor["SERVIDOR\n(Node.js)"] ---|API Requests| Express
+    Cliente["CLIENTE
+    (Navegador)"] ---|HTTP Requests| Express["EXPRESS APP"]
+    Servidor["SERVIDOR
+    (Node.js)"] ---|API Requests| Express
     Express --> Rutas["RUTAS"]
     Rutas --> Controladores["CONTROLADORES"]
     Controladores --> Modelos["MODELOS"]
     Controladores --> Vistas["VISTAS"]
-    Modelos ---|Consultas| BaseDatos["BASE DATOS\n(Supabase)"]
+    Modelos ---|Consultas| BaseDatos["BASE DATOS
+    (Supabase)"]
 ```
 
 ## Diagrama de Flujo de Datos
 
 ```mermaid
 flowchart TD
-    Cliente["Navegador\nCliente"] -->|HTTP| Express["Express\nServer"]
+    Cliente["Navegador
+    Cliente"] -->|HTTP| Express["Express
+    Server"]
     Express -->|Rutas| Middleware["Middleware"]
-    Middleware -->|Autorización| Solicitud["Solicitud\nValidada"]
+    Middleware -->|Autorización| Solicitud["Solicitud
+    Validada"]
     Solicitud --> Controlador["Controlador"]
-    Controlador -->|Render| Vista["Vista\n(HTML+EJS)"]
+    Controlador -->|Render| Vista["Vista
+    (HTML+EJS)"]
     Controlador -->|Manipulación de datos| Modelo["Modelo"]
-    Modelo -->|CRUD| Supabase["Supabase\nDatabase & Storage"]
-    Vista -->|HTML, CSS, JS| Interface["Interfaz\nUsuario"]
+    Modelo -->|CRUD| Supabase["Supabase
+    Database & Storage"]
+    Vista -->|HTML, CSS, JS| Interface["Interfaz
+    Usuario"]
 ```
 
 ## Diagrama de Clases (POO)
@@ -145,14 +154,23 @@ erDiagram
 
 ```mermaid
 flowchart LR
-    Dashboard["Paciente\nDashboard"] --> FormSubida["Formulario\nde Subida"]
-    FormSubida --> PatientCtrl["Controlador\npatientCtrl"]
-    PatientCtrl --> Multer["Multer\n(procesamiento)"]
-    Multer --> Modelo["Modelo\nFoodEntry"]
-    Modelo --> Storage["Supabase\nStorage"]
-    Storage --> URLImagen["URL imagen\nalmacenada"]
-    URLImagen --> BaseDatos["Base de\ndatos"]
-    BaseDatos --> Historial["Historial de\ncomidas"]
+    Dashboard["Paciente
+    Dashboard"] --> FormSubida["Formulario
+    de Subida"]
+    FormSubida --> PatientCtrl["Controlador
+    patientCtrl"]
+    PatientCtrl --> Multer["Multer
+    (procesamiento)"]
+    Multer --> Modelo["Modelo
+    FoodEntry"]
+    Modelo --> Storage["Supabase
+    Storage"]
+    Storage --> URLImagen["URL imagen
+    almacenada"]
+    URLImagen --> BaseDatos["Base de
+    datos"]
+    BaseDatos --> Historial["Historial de
+    comidas"]
 ```
 
 ## Estructura de Archivos Detallada
@@ -253,8 +271,11 @@ graph TD
 
 ```mermaid
 flowchart LR
-    FormLogin["Formulario\nLogin"] --> AuthCtrl["authController"]
-    AuthCtrl --> UserAuth["UserAuth\nModel"]
+    FormLogin["Formulario
+    Login"] --> AuthCtrl["authController"]
+    AuthCtrl --> UserAuth["UserAuth
+    Model"]
     AuthCtrl --> Session["express-session"]
-    UserAuth --> SupabaseAuth["Supabase\nAuth API"]
+    UserAuth --> SupabaseAuth["Supabase
+    Auth API"]
 ```
