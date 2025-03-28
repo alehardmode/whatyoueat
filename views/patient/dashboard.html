@@ -109,8 +109,8 @@
     </div>
     <% } %>
 
-    <!-- Sección de Información Detallada -->
-    <div id="informacion-detallada" class="card border-info mt-4 mb-4 shadow-sm">
+    <!-- Sección de Información Detallada FIJA -->
+    <!-- <div id="informacion-detallada" class="card border-info mt-4 mb-4 shadow-sm">
       <div class="card-header bg-info text-white">
         <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>¿Cómo usar esta aplicación?</h5>
       </div>
@@ -136,6 +136,49 @@
         </div>
         <div class="mt-3 text-center">
           <p class="text-muted">Estos consejos te ayudarán a sacar el máximo provecho de la aplicación y permitirán que tu médico te ofrezca recomendaciones más personalizadas.</p>
+        </div>
+      </div>
+    </div> 
+    -->
+    <!-- Sección de Información Detallada DESPLEGABLE -->
+    <div id="informacion-detallada" class="container mt-4 mb-4">
+      <div class="accordion shadow-sm" id="infoAccordion">
+        <!-- Elemento "¿Cómo usar esta aplicación?" del accordion -->
+        <div class="accordion-item">
+          <h3 class="accordion-header" id="headingInfo">
+            <button class="accordion-button bg-info text-white" type="button" data-bs-toggle="collapse" data-bs-target="#collapseInfo" aria-expanded="true" aria-controls="collapseInfo">
+              <i class="fas fa-info-circle me-2"></i>¿Cómo usar esta aplicación?
+            </button>
+          </h3>
+          <!-- body del accordion -->
+          <div id="collapseInfo" class="accordion-collapse collapse show" aria-labelledby="headingInfo" data-bs-parent="#infoAccordion">
+            <div class="accordion-body">
+              <div class="row">
+                <!-- Primer elemento del accordion (Para pacientes) -->
+                <div class="col-md-6">
+                  <h5>Para pacientes:</h5>
+                  <ul class="list-group list-group-flush mb-4">
+                    <li class="list-group-item"><i class="fas fa-camera me-2 text-primary"></i>Toma una foto de cada comida que realizas.</li>
+                    <li class="list-group-item"><i class="fas fa-edit me-2 text-primary"></i>Añade el nombre, el tipo de comida y una descripción detallada.</li>
+                    <li class="list-group-item"><i class="fas fa-chart-line me-2 text-primary"></i>Revisa tu historial para ver patrones y tendencias.</li>
+                    <li class="list-group-item"><i class="fas fa-share-alt me-2 text-primary"></i>Comparte este historial con tu médico para un mejor seguimiento.</li>
+                  </ul>
+                </div>
+                <!-- Segundo elemento del accordion (Consejos útiles) -->
+                <div class="col-md-6">
+                  <h5>Consejos útiles:</h5>
+                  <ul class="list-group list-group-flush">
+                    <li class="list-group-item"><i class="fas fa-lightbulb me-2 text-warning"></i>Trata de tomar las fotos con buena iluminación.</li>
+                    <li class="list-group-item"><i class="fas fa-list me-2 text-warning"></i>Detalla lo más posible los ingredientes y cantidades aproximadas.</li>
+                    <li class="list-group-item"><i class="fas fa-calendar-check me-2 text-warning"></i>Mantén un registro diario para un mejor análisis.</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="mt-3 text-center">
+                <p class="text-muted">Estos consejos te ayudarán a sacar el máximo provecho de la aplicación y permitirán que tu médico te ofrezca recomendaciones más personalizadas.</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
