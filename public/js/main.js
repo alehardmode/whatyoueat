@@ -11,6 +11,12 @@ document.addEventListener('DOMContentLoaded', function() {
   setupDateSelector();
   // Configurar efectos de animación en elementos
   setupAnimations();
+  
+  // Inicializar tooltips de Bootstrap
+  initTooltips();
+  
+  // Escuchar el botón de reenvío de confirmación de correo
+  setupResendConfirmationButton();
 });
 
 /**
@@ -29,30 +35,43 @@ function setupAnimations() {
  * Configuración de alertas y notificaciones
  */
 function setupAlerts() {
-  // Auto-cerrar alertas después de 5 segundos si no tienen .alert-permanent
-  const autoCloseAlerts = document.querySelectorAll('.alert:not(.alert-permanent):not(.flash-messages .alert)');
+  console.log('Configurando alertas...');
+  
+  // Solo cerrar automáticamente alertas normales (no persistentes)
+  const autoCloseAlerts = document.querySelectorAll('.alert:not(.alert-permanent):not(.persistent-alert):not(.flash-messages .alert)');
+  console.log('Alertas auto-close:', autoCloseAlerts.length);
   
   if (autoCloseAlerts.length > 0) {
-    setTimeout(function() {
+    setTimeout(() => {
       autoCloseAlerts.forEach(alert => {
-        if (alert && !alert.classList.contains('d-none')) {
+        if (alert && document.body.contains(alert)) {
           alert.style.opacity = '0';
           setTimeout(() => {
-            alert.remove();
+            if (alert && document.body.contains(alert)) {
+              alert.remove();
+            }
           }, 300);
         }
       });
-    }, 5000);
+    }, 7000);
   }
   
-  // Configurar botones de cierre manuales (excepto flash messages)
-  document.querySelectorAll('.close-alert:not(.flash-close)').forEach(button => {
-    button.addEventListener('click', function() {
+  // Configurar todos los botones de cierre (para alertas normales y persistentes)
+  const closeButtons = document.querySelectorAll('.alert .btn-close, .alert .close-alert');
+  console.log('Botones de cierre configurados:', closeButtons.length);
+  
+  closeButtons.forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
       const alert = this.closest('.alert');
+      console.log('Cerrando alerta:', alert?.id || 'sin ID');
+      
       if (alert) {
         alert.style.opacity = '0';
         setTimeout(() => {
-          alert.remove();
+          if (alert && document.body.contains(alert)) {
+            alert.remove();
+          }
         }, 300);
       }
     });
@@ -210,6 +229,175 @@ function setupButtons() {
       setTimeout(() => {
         this.classList.remove('button-clicked');
       }, 300);
+    });
+  });
+}
+
+// Inicializar tooltips de Bootstrap
+function initTooltips() {
+  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+  tooltipTriggerList.map(function(tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+  });
+}
+
+// Configurar botón de reenvío de confirmación de correo
+function setupResendConfirmationButton() {
+  const resendBtn = document.getElementById('resendConfirmationBtn');
+  if (resendBtn) {
+    resendBtn.addEventListener('click', async function() {
+      try {
+        // Cambiar estado del botón
+        const originalText = resendBtn.innerHTML;
+        resendBtn.disabled = true;
+        resendBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Enviando...';
+        
+        // Realizar la petición
+        const response = await fetch('/auth/resend-confirmation', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({})
+        });
+        
+        const data = await response.json();
+        
+        // Mostrar mensaje según el resultado
+        if (data.success) {
+          // Crea un nuevo div para el mensaje
+          const messageDiv = document.createElement('div');
+          messageDiv.className = 'alert alert-success mt-2';
+          
+          // Crear estructura del mensaje con botón de cierre
+          messageDiv.innerHTML = `
+            <div class="position-relative">
+              <div class="mb-2">
+                <i class="fas fa-check-circle me-2"></i>${data.message}
+              </div>
+              <button type="button" class="btn-close position-absolute top-0 end-0" aria-label="Cerrar"></button>
+            </div>
+          `;
+          
+          // Inserta el mensaje después del botón
+          resendBtn.parentNode.insertBefore(messageDiv, resendBtn.nextSibling);
+          
+          // Configurar el botón de cierre
+          const closeButton = messageDiv.querySelector('.btn-close');
+          if (closeButton) {
+            closeButton.addEventListener('click', () => {
+              messageDiv.remove();
+            });
+          }
+          
+          // Restaurar el botón después de 1 segundo
+          setTimeout(() => {
+            resendBtn.disabled = false;
+            resendBtn.innerHTML = originalText;
+          }, 1000);
+        } else {
+          // Mostrar error
+          const messageDiv = document.createElement('div');
+          
+          // Analizar el error para detectar si es un rate limit
+          let errorMessage = data.message || 'Error al reenviar el correo';
+          let alertClass = 'alert-danger';
+          let iconClass = 'fa-exclamation-circle';
+          
+          // Comprobar si es un error de limitación de tasa
+          if (data.code === 'over_email_send_rate_limit' || errorMessage.includes('only request this after')) {
+            alertClass = 'alert-warning';
+            iconClass = 'fa-clock';
+            // Extraer el tiempo de espera del mensaje si está disponible
+            const waitTimeMatch = errorMessage.match(/after (\d+) seconds/);
+            const waitTime = waitTimeMatch ? waitTimeMatch[1] : '60';
+            
+            errorMessage = `Por razones de seguridad, debes esperar ${waitTime} segundos antes de solicitar otro correo.`;
+          }
+          
+          messageDiv.className = `alert ${alertClass} mt-2`;
+          
+          // Crear estructura del mensaje con botón de cierre
+          messageDiv.innerHTML = `
+            <div class="position-relative">
+              <div class="mb-2">
+                <i class="fas ${iconClass} me-2"></i>${errorMessage}
+              </div>
+              <button type="button" class="btn-close position-absolute top-0 end-0" aria-label="Cerrar"></button>
+            </div>
+          `;
+          
+          // Inserta el mensaje después del botón
+          resendBtn.parentNode.insertBefore(messageDiv, resendBtn.nextSibling);
+          
+          // Configurar el botón de cierre
+          const closeButton = messageDiv.querySelector('.btn-close');
+          if (closeButton) {
+            closeButton.addEventListener('click', () => {
+              messageDiv.remove();
+            });
+          }
+          
+          // Restaurar el botón después de 1 segundo
+          setTimeout(() => {
+            resendBtn.disabled = false;
+            resendBtn.innerHTML = originalText;
+          }, 1000);
+        }
+      } catch (error) {
+        console.error('Error al reenviar correo de confirmación:', error);
+        
+        // Mostrar error genérico
+        const messageDiv = document.createElement('div');
+        let errorMessage = 'Error al reenviar el correo de confirmación';
+        let alertClass = 'alert-danger';
+        let iconClass = 'fa-exclamation-circle';
+        
+        // Intentar detectar error de limitación de tasa
+        if (error.message && (error.message.includes('rate limit') || error.message.includes('after'))) {
+          alertClass = 'alert-warning';
+          iconClass = 'fa-clock';
+          errorMessage = 'Por razones de seguridad, debes esperar antes de solicitar otro correo.';
+        }
+        
+        messageDiv.className = `alert ${alertClass} mt-2`;
+        
+        // Crear estructura del mensaje con botón de cierre
+        messageDiv.innerHTML = `
+          <div class="position-relative">
+            <div class="mb-2">
+              <i class="fas ${iconClass} me-2"></i>${errorMessage}
+            </div>
+            <button type="button" class="btn-close position-absolute top-0 end-0" aria-label="Cerrar"></button>
+          </div>
+        `;
+        
+        // Inserta el mensaje después del botón
+        resendBtn.parentNode.insertBefore(messageDiv, resendBtn.nextSibling);
+        
+        // Configurar el botón de cierre
+        const closeButton = messageDiv.querySelector('.btn-close');
+        if (closeButton) {
+          closeButton.addEventListener('click', () => {
+            messageDiv.remove();
+          });
+        }
+        
+        // Restaurar el botón inmediatamente en caso de error
+        resendBtn.disabled = false;
+        resendBtn.innerHTML = 'Reenviar correo de confirmación';
+      }
+    });
+  }
+  
+  // Configurar botones de cierre para alertas de correo no confirmado
+  const emailAlerts = document.querySelectorAll('#emailConfirmationAlert .btn-close');
+  emailAlerts.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const alert = this.closest('.alert');
+      if (alert) {
+        alert.remove();
+      }
     });
   });
 }
