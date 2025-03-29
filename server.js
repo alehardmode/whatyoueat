@@ -146,6 +146,16 @@ app.use('/img', express.static(path.join(__dirname, 'public/img'), {
   }
 }));
 
+// Configuración para servir iconos
+app.use('/icons', express.static(path.join(__dirname, 'public/icons'), { 
+  maxAge: process.env.NODE_ENV === 'production' ? 604800000 : cacheTime, // 7 días para iconos en producción
+  setHeaders: function (res, path) {
+    if (process.env.NODE_ENV === 'production') {
+      res.setHeader('Cache-Control', 'public, max-age=604800');
+    }
+  }
+}));
+
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'), { 
   maxAge: process.env.NODE_ENV === 'production' ? 604800000 : cacheTime,
   setHeaders: function (res, path) {

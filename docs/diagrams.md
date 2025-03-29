@@ -221,7 +221,7 @@ graph TD
     Public --> Img[img/]
     Img --> EmptyPlate[empty-plate.svg]
     Img --> HeroImage[hero-image.png]
-    Img --> Logo[logo.png]
+    Img --> Logo[logo.webp]
     Public --> JS[js/]
     JS --> Auth[auth.js]
     JS --> EntryDetail[entry-detail.js]
