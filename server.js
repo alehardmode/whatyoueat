@@ -161,6 +161,27 @@ app.use('/auth', authRoutes);
 app.use('/patient', patientRoutes);
 app.use('/doctor', doctorRoutes);
 
+// ===== API ROUTES =====
+// Ruta para verificar si un correo electrónico ya está registrado
+app.get('/api/check-email', async (req, res) => {
+  try {
+    const { email } = req.query;
+    
+    if (!email) {
+      return res.status(400).json({ error: 'Se requiere un correo electrónico' });
+    }
+    
+    // Utilizar el método del modelo UserAuth para verificar
+    const UserAuth = require('./models/UserAuth');
+    const result = await UserAuth.checkEmailExists(email);
+    
+    return res.json(result);
+  } catch (error) {
+    console.error('Error en endpoint check-email:', error);
+    return res.status(500).json({ error: 'Error al verificar correo electrónico' });
+  }
+});
+
 // ===== DIAGNÓSTICO SUPABASE =====
 app.get('/api/check-supabase', async (req, res) => {
   try {

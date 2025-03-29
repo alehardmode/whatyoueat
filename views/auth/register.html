@@ -10,7 +10,7 @@
     <!-- Formulario de registro -->
     <div class="card border-0 shadow">
       <div class="card-body p-4 p-lg-5">
-        <form action="/auth/register" method="POST" class="needs-validation" novalidate>
+        <form action="/auth/register" method="POST" class="needs-validation" novalidate id="registerForm">
           <!-- elemento nombre formulario -->
           <div class="mb-4">
             <label for="name" class="form-label">Nombre Completo</label>
@@ -22,9 +22,10 @@
           <!-- elemento email formulario -->
           <div class="mb-4">
             <label for="email" class="form-label">Correo Electrónico</label>
-            <div class="input-group">
+            <div class="input-group has-validation">
               <span class="input-group-text"><i class="fas fa-envelope"></i></span>
               <input type="email" class="form-control" id="email" name="email" value="<%= typeof email != 'undefined' ? email : '' %>" required placeholder="tu@email.com">
+              <div class="invalid-feedback" id="email-feedback">Por favor ingresa un correo electrónico válido</div>
             </div>
           </div>
           <!-- elemento rol formulario -->
@@ -89,3 +90,67 @@
     </div>
   </div>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const emailInput = document.getElementById('email');
+    const emailFeedback = document.getElementById('email-feedback');
+    const registerForm = document.getElementById('registerForm');
+    let emailTimeout;
+    
+    // Comprobar si el correo ya existe cuando el usuario deja de escribir
+    emailInput.addEventListener('input', function() {
+      clearTimeout(emailTimeout);
+      
+      // Limpiar estados de validación cada vez que el usuario escribe
+      emailInput.classList.remove('is-invalid');
+      emailInput.classList.remove('is-valid');
+      
+      // Validar formato de correo electrónico
+      if (!emailInput.checkValidity()) {
+        emailInput.classList.add('is-invalid');
+        emailFeedback.textContent = 'Por favor ingresa un correo electrónico válido';
+        return;
+      }
+      
+      // Esperar 500ms después de que el usuario deje de escribir
+      emailTimeout = setTimeout(async function() {
+        if (emailInput.value.trim() === '') return;
+        
+        try {
+          // Mostrar indicador de carga
+          emailInput.classList.add('is-loading');
+          
+          // Consultar si el correo ya existe
+          const response = await fetch(`/api/check-email?email=${encodeURIComponent(emailInput.value)}`);
+          const data = await response.json();
+          
+          // Validar resultado
+          if (data.exists) {
+            emailInput.classList.remove('is-valid'); // Asegurarse de quitar cualquier indicador de válido
+            emailInput.classList.add('is-invalid');
+            emailFeedback.textContent = 'Este correo electrónico ya está registrado';
+          } else {
+            emailInput.classList.remove('is-invalid');
+            emailInput.classList.add('is-valid');
+          }
+        } catch (error) {
+          console.error('Error al verificar email:', error);
+        } finally {
+          // Quitar indicador de carga
+          emailInput.classList.remove('is-loading');
+        }
+      }, 500);
+    });
+    
+    // Validar el formulario antes de enviarlo
+    registerForm.addEventListener('submit', function(event) {
+      if (emailInput.classList.contains('is-invalid')) {
+        event.preventDefault();
+        event.stopPropagation();
+        // Hacer scroll al elemento con error
+        emailInput.focus();
+      }
+    });
+  });
+</script>

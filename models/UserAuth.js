@@ -25,6 +25,21 @@ class UserAuth {
 
       if (authError) {
         console.error('Error en registro de usuario:', authError);
+        
+        // Verificar si el error es debido a un correo ya existente
+        if (authError.message && (
+            authError.message.includes('already registered') || 
+            authError.message.includes('already exists') ||
+            authError.message.includes('ya existe') ||
+            authError.message.includes('ya registrado') ||
+            authError.code === '23505' // Código de error de violación de unicidad en PostgreSQL
+          )) {
+          return { 
+            success: false, 
+            error: 'Ya existe una cuenta con este correo electrónico' 
+          };
+        }
+        
         return { 
           success: false, 
           error: getAuthErrorMessage(authError.code, authError.message)
@@ -199,6 +214,42 @@ class UserAuth {
         success: false, 
         error: error.message || 'Error al actualizar datos del usuario'
       };
+    }
+  }
+
+  // Verificar si ya existe un usuario con el correo electrónico dado
+  static async checkEmailExists(email) {
+    try {
+      // Intento de inicio de sesión con OTP (mensaje único)
+      // Esta es una forma de comprobar si el email existe sin exponer información sensible
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: false // Solo verificar, no crear usuario
+        }
+      });
+      
+      // Si no hay error o el error no es de tipo "usuario no existe"
+      // entonces el correo ya está registrado
+      if (!error) {
+        return { exists: true };
+      }
+      
+      // Comprobar códigos de error específicos que indican usuario no existe
+      // Códigos comunes: "user_not_found", 400 (con mensaje "User not found")
+      if (error.status === 400 && 
+          (error.message.includes('not found') || 
+           error.message.includes('no encontrado'))) {
+        return { exists: false };
+      }
+      
+      // Otros errores podrían sugerir que el usuario existe
+      // pero por seguridad es mejor ser conservador
+      console.log('Error al verificar email:', error);
+      return { exists: true, uncertain: true };
+    } catch (error) {
+      console.error('Error inesperado al verificar email:', error);
+      return { exists: false, error: error.message };
     }
   }
 }
