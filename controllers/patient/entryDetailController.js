@@ -30,7 +30,7 @@ exports.getEntryDetail = async (req, res) => {
     res.render('patient/entry-detail', {
       title: 'Detalle de Comida',
       entry,
-      user: req.user,
+      user: req.session.user,
       moment
     });
   } catch (error) {
@@ -45,27 +45,90 @@ exports.getEntryDetail = async (req, res) => {
  */
 exports.getEditForm = async (req, res) => {
   try {
-    // La entrada ya debe estar en req.foodEntry gracias al middleware
+    console.log('Iniciando getEditForm para entrada ID:', req.params.id);
     const entry = req.foodEntry;
-    
+
     if (!entry) {
+      console.log('Entrada no encontrada en req.foodEntry');
       req.flash('error_msg', 'Entrada no encontrada');
       return res.redirect('/patient/history');
     }
-    
-    // Si no hay imagen_data, usamos una imagen por defecto
-    if (!entry.image_data) {
-      entry.image_url = '/img/empty-plate.svg'; // Default
+
+    console.log('Entrada encontrada:', entry.id);
+    console.log('Datos de entrada originales:', entry); // Log adicional para depurar
+
+    // --- Preparación de datos para la plantilla ---
+
+    // Imagen
+
+    entry.image_url = entry.image_data
+      ? entry.image_data // Ya es base64
+      : '/img/empty-plate.svg'; // Default
+    console.log('URL de imagen preparada:', entry.image_url.substring(0, 50) + '...'); // Log corto de la URL
+
+    // Asegurar valores por defecto para campos de texto y tipo
+    entry.name = entry.name || '';
+    entry.description = entry.description || '';
+    entry.meal_type = entry.meal_type || 'other';
+
+    // Formateo seguro de fecha de creación para mostrar
+    let formattedCreatedAt = 'No disponible';
+    if (entry.created_at) {
+      try {
+        formattedCreatedAt = moment(entry.created_at).locale('es').format('LLL'); // Formato localized
+        console.log('Fecha creación formateada:', formattedCreatedAt);
+      } catch (e) {
+        console.error('Error formateando created_at:', entry.created_at, e);
+      }
     } else {
-      // La imagen ya está en formato base64 en entry.image_data
-      entry.image_url = entry.image_data;
+      console.log('entry.created_at no está definida.');
     }
-    
-    // Renderizar formulario de edición
+
+    // Formateo seguro de fecha de comida para input datetime-local
+    let formattedMealDate = '';
+    const dateToFormat = entry.meal_date || entry.created_at; // Priorizar meal_date
+    if (dateToFormat) {
+      try {
+        const mDate = moment(dateToFormat);
+        if (mDate.isValid()) {
+          // Formato requerido por datetime-local: YYYY-MM-DDTHH:mm
+          formattedMealDate = mDate.format('YYYY-MM-DDTHH:mm');
+          console.log('Fecha comida formateada para input:', formattedMealDate);
+        } else {
+          console.log('Fecha a formatear inválida:', dateToFormat);
+        }
+      } catch (e) {
+        console.error('Error formateando meal_date/created_at:', dateToFormat, e);
+      }
+    } else {
+       console.log('Ni entry.meal_date ni entry.created_at están definidas.');
+    }
+     // Si aún está vacío después de intentar formatear, usar la hora actual
+    if (!formattedMealDate) {
+        console.log('Usando fecha/hora actual como fallback para input mealDate');
+        formattedMealDate = moment().format('YYYY-MM-DDTHH:mm');
+    }
+
+
+    const user = req.session.user;
+    if (!user) {
+      console.log('Usuario no encontrado en la sesión');
+      req.flash('error_msg', 'Sesión inválida. Por favor, inicia sesión nuevamente.');
+      return res.redirect('/auth/login');
+    }
+
+    console.log('Renderizando plantilla edit-entry con datos preparados.');
+
+    // Renderizar formulario de edición pasando las fechas formateadas
     res.render('patient/edit-entry', {
       title: 'Editar Entrada',
-      entry,
-      user: req.user
+      entry, // Pasamos el objeto entry completo como antes
+      user: req.session.user,
+      formattedCreatedAt, // Nueva variable con la fecha de creación formateada
+      formattedMealDate,  // Nueva variable con la fecha para el input
+      moment, // Pasar moment si es necesario en otras partes (aunque ya no para fechas)
+      error_msg: req.flash('error_msg'),
+      success_msg: req.flash('success_msg')
     });
   } catch (error) {
     console.error('Error en getEditForm:', error);
@@ -81,7 +144,7 @@ exports.updateEntry = async (req, res) => {
   try {
     const entryId = req.params.id;
     const { name, description, mealType, mealDate } = req.body;
-    const userId = req.user.id;
+    const userId = req.session.user.id;
     const file = req.files?.food_photo;
     
     // Validar datos
@@ -142,7 +205,7 @@ exports.updateEntry = async (req, res) => {
 exports.deleteEntry = async (req, res) => {
   try {
     const entryId = req.params.id;
-    const userId = req.user.id;
+    const userId = req.session.user.id;
     
     // Eliminar la entrada usando el modelo
     const result = await FoodEntry.delete(entryId, userId);

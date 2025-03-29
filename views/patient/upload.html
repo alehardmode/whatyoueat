@@ -56,7 +56,7 @@
             <!-- Foto -->
             <div class="mb-4">
               <label for="food_photo" class="form-label fw-bold">Foto de la Comida <span class="text-danger">*</span></label>
-              <input type="file" class="form-control <%= typeof validationErrors !== 'undefined' && validationErrors.photo ? 'is-invalid' : '' %>" id="food_photo" name="food_photo" accept="image/*" required>
+              <input type="file" class="form-control <%= typeof validationErrors !== 'undefined' && validationErrors.photo ? 'is-invalid' : '' %>" id="food_photo" name="food_photo" accept="image/*" required autocomplete="off">
               <div class="form-text">Selecciona una foto clara de tu comida (máx. 10MB). La imagen será comprimida automáticamente.</div>
               <!-- Mensaje de error para la foto -->
               <div id="photo-error" class="invalid-feedback" <%= typeof validationErrors !== 'undefined' && validationErrors.photo ? 'style="display: block;"' : 'style="display: none;"' %>>
@@ -71,7 +71,7 @@
             <!-- Nombre de la comida -->
             <div class="mb-4">
               <label for="foodName" class="form-label fw-bold">Nombre de la comida <span class="text-danger">*</span></label>
-              <input type="text" class="form-control <%= typeof validationErrors !== 'undefined' && validationErrors.foodName ? 'is-invalid' : '' %>" id="foodName" name="foodName" placeholder="Ej: Ensalada mediterránea" required value="<%= typeof formData !== 'undefined' && formData.foodName ? formData.foodName : '' %>">
+              <input type="text" class="form-control <%= typeof validationErrors !== 'undefined' && validationErrors.foodName ? 'is-invalid' : '' %>" id="foodName" name="foodName" placeholder="Ej: Ensalada mediterránea" required value="<%= typeof formData !== 'undefined' && formData.foodName ? formData.foodName : '' %>" autocomplete="off">
               <div class="form-text">Nombre descriptivo de la comida.</div>
               <!-- Mensaje de error para nombre -->
               <div id="foodName-error" class="invalid-feedback" <%= typeof validationErrors !== 'undefined' && validationErrors.foodName ? 'style="display: block;"' : 'style="display: none;"' %>>
@@ -82,7 +82,7 @@
             <!-- Descripción -->
             <div class="mb-4">
               <label for="description" class="form-label fw-bold">Descripción <span class="text-danger">*</span></label>
-              <textarea class="form-control <%= typeof validationErrors !== 'undefined' && validationErrors.description ? 'is-invalid' : '' %>" id="description" name="description" rows="3" placeholder="Describe la comida..." required><%= typeof formData !== 'undefined' && formData.description ? formData.description : '' %></textarea>
+              <textarea class="form-control <%= typeof validationErrors !== 'undefined' && validationErrors.description ? 'is-invalid' : '' %>" id="description" name="description" rows="3" placeholder="Describe la comida..." required autocomplete="off"><%= typeof formData !== 'undefined' && formData.description ? formData.description : '' %></textarea>
               <!-- Mensaje de error para descripción -->
               <div id="description-error" class="invalid-feedback" <%= typeof validationErrors !== 'undefined' && validationErrors.description ? 'style="display: block;"' : 'style="display: none;"' %>>
                 <%= typeof validationErrors !== 'undefined' && validationErrors.description ? validationErrors.description : '' %>
@@ -92,7 +92,7 @@
             <!-- Tipo de comida -->
             <div class="mb-4">
               <label for="mealType" class="form-label fw-bold">Tipo de comida</label>
-              <select class="form-select" id="mealType" name="mealType">
+              <select class="form-select" id="mealType" name="mealType" autocomplete="off">
                 <option value="desayuno">Desayuno</option>
                 <option value="almuerzo">Almuerzo</option>
                 <option value="cena">Cena</option>
@@ -105,13 +105,13 @@
             <!-- Fecha y hora de la comida -->
             <div class="mb-4">
               <label for="mealDate" class="form-label fw-bold">Fecha y hora</label>
-              <input type="datetime-local" class="form-control" id="mealDate" name="mealDate">
+              <input type="datetime-local" class="form-control" id="mealDate" name="mealDate" autocomplete="off">
               <div class="form-text">Si se deja en blanco, se usará la fecha actual.</div>
             </div>
             
             <!-- Botón Guardar -->
             <div class="text-end mt-4">
-              <button type="submit" class="btn btn-primary btn-lg">
+              <button type="submit" class="btn btn-primary btn-lg" id="submitButton" name="submitButton">
                 <i class="fas fa-save me-2"></i>Guardar
               </button>
             </div>

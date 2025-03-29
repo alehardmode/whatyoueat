@@ -1,107 +1,106 @@
 <!-- Formulario para Editar Entradas de Comida -->
 <div class="container mb-5">
-<div class="card border-0 shadow">
-<div class="row mb-4">
-  <div class="col-md-12 animate-on-scroll">
-    <h1 class="mb-4 border-bottom pb-2">
-      <i class="fas fa-edit me-2"></i>Editar Entrada
-    </h1>
-    <nav aria-label="breadcrumb">
-      <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="/patient/dashboard">Dashboard</a></li>
-        <li class="breadcrumb-item"><a href="/patient/history">Historial</a></li>
-        <li class="breadcrumb-item active">Editar Entrada</li>
-      </ol>
-    </nav>
-  </div>
-</div>
-
-<div class="row">
-  <div class="col-md-8 mx-auto animate-on-scroll delay-1">
-    <div class="card shadow-lg">
-      <div class="card-header bg-primary text-white">
-        <h4 class="mb-0"><i class="fas fa-edit me-2"></i>Editar Detalles de la Comida</h4>
+  <div class="card border-0 shadow">
+    <div class="row mb-4">
+      <div class="col-md-12">
+        <h1 class="mb-4 border-bottom pb-2">
+          <i class="fas fa-edit me-2"></i>Editar Entrada
+        </h1>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/patient/dashboard">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="/patient/history">Historial</a></li>
+            <li class="breadcrumb-item active">Editar Entrada</li>
+          </ol>
+        </nav>
       </div>
-      <div class="card-body">
-        <!-- Botón Cancelar fuera del formulario -->
-        <div class="mb-3">
-          <a href="/patient/entry/<%= entry.id %>" class="btn btn-secondary" id="cancelButton">
-            <i class="fas fa-arrow-left me-1"></i>Volver a Detalles
-          </a>
-        </div>
-      
-        <form action="/patient/entry/<%= entry.id %>/update" method="POST" class="needs-validation" enctype="multipart/form-data" novalidate>
-          <!-- Vista previa de la imagen actual y opción para cambiarla -->
-          <div class="mb-4">
-            <label class="form-label">Imagen Actual</label>
-            <div class="text-center mb-3">
-              <img src="<%= entry.image_url %>" class="img-fluid img-thumbnail" style="max-height: 300px;" alt="Imagen de comida">
-            </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-8 mx-auto">
+        <div class="card shadow-lg">
+          <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-edit me-2"></i>Editar Detalles de la Comida</h4>
+          </div>
+          <div class="card-body">
+            <!-- Botón Cancelar fuera del formulario -->
             <div class="mb-3">
-              <label for="food_photo" class="form-label">Cambiar imagen (opcional)</label>
-              <input type="file" class="form-control" id="food_photo" name="food_photo" accept="image/*">
-              <div class="form-text">Si no seleccionas una nueva imagen, se mantendrá la actual.</div>
-              <!-- Vista previa de nueva imagen -->
-              <div class="mt-3 text-center d-none" id="previewContainer">
-                <p>Vista previa de la nueva imagen:</p>
-                <img id="preview" class="img-thumbnail" style="max-height: 250px;" alt="Vista previa">
-              </div>
+              <a href="/patient/entry/<%= entry.id %>" class="btn btn-secondary" id="cancelButton">
+                <i class="fas fa-arrow-left me-1"></i>Volver a Detalles
+              </a>
             </div>
-          </div>
           
-          <!-- Nombre de la comida -->
-          <div class="mb-4">
-            <label for="name" class="form-label">Nombre de la comida <span class="text-danger">*</span></label>
-            <input type="text" class="form-control" id="name" name="name" placeholder="Ej: Ensalada mediterránea" value="<%= entry.name || '' %>" required>
-            <div class="invalid-feedback">Por favor introduce un nombre para la comida.</div>
+            <form action="/patient/entry/<%= entry.id %>/update" method="POST" class="needs-validation" enctype="multipart/form-data" novalidate>
+              <!-- Vista previa de la imagen actual y opción para cambiarla -->
+              <div class="mb-4">
+                <label class="form-label">Imagen Actual</label>
+                <div class="text-center mb-3">
+                  <img id="current_image" src="<%= entry.image_url %>" class="img-fluid img-thumbnail" style="max-height: 300px;" alt="Imagen de comida">
+                </div>
+                <div class="mb-3">
+                  <label for="food_photo" class="form-label">Cambiar imagen (opcional)</label>
+                  <input type="file" class="form-control" id="food_photo" name="food_photo" accept="image/*" autocomplete="off">
+                  <div class="form-text">Si no seleccionas una nueva imagen, se mantendrá la actual.</div>
+                  <div class="mt-3 text-center d-none" id="previewContainer">
+                    <p>Vista previa de la nueva imagen:</p>
+                    <img id="preview" class="img-thumbnail" style="max-height: 250px;" alt="Vista previa">
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Nombre de la comida -->
+              <div class="mb-4">
+                <label for="name" class="form-label">Nombre de la comida <span class="text-danger">*</span></label>
+                <input type="text" class="form-control" id="name" name="name" placeholder="Ej: Ensalada mediterránea" value="<%= entry.name || '' %>" autocomplete="off">
+                <div class="invalid-feedback">Por favor introduce un nombre para la comida.</div>
+              </div>
+              
+              <!-- Descripción -->
+              <div class="mb-4">
+                <label for="description" class="form-label">Descripción <span class="text-danger">*</span></label>
+                <textarea class="form-control" id="description" name="description" rows="3" placeholder="Describe la comida..." autocomplete="off"><%= entry.description || '' %></textarea>
+                <div class="invalid-feedback">Por favor añade una descripción sobre esta comida.</div>
+              </div>
+              
+              <!-- Tipo de comida -->
+              <div class="mb-4">
+                <label for="mealType" class="form-label">Tipo de comida</label>
+                <select class="form-select" id="mealType" name="mealType" autocomplete="off">
+                  <option value="desayuno" <%= entry.meal_type === 'desayuno' ? 'selected' : '' %>>Desayuno</option>
+                  <option value="almuerzo" <%= entry.meal_type === 'almuerzo' ? 'selected' : '' %>>Almuerzo</option>
+                  <option value="cena" <%= entry.meal_type === 'cena' ? 'selected' : '' %>>Cena</option>
+                  <option value="merienda" <%= entry.meal_type === 'merienda' ? 'selected' : '' %>>Merienda</option>
+                  <option value="snack" <%= entry.meal_type === 'snack' ? 'selected' : '' %>>Snack</option>
+                  <option value="other" <%= (!entry.meal_type || entry.meal_type === 'other') ? 'selected' : '' %>>Otro</option>
+                </select>
+              </div>
+              
+              <!-- Fecha y hora de la comida -->
+              <div class="mb-4">
+                <label for="mealDate" class="form-label">Fecha y hora</label>
+                <input type="datetime-local" class="form-control" id="mealDate" name="mealDate" value="<%= formattedMealDate %>" autocomplete="off">
+                <div class="form-text">Fecha y hora en que se consumió la comida.</div>
+              </div>
+              
+              <!-- Fecha de creación (solo informativo) -->
+              <div class="mb-4">
+                <label for="creationDate" class="form-label">Fecha de Creación</label>
+                <input type="text" class="form-control" id="creationDate" name="creationDate" value="<%= formattedCreatedAt %>" readonly disabled autocomplete="off">
+                <div class="form-text">Esta información no se puede modificar.</div>
+              </div>
+              
+              <!-- Botones -->
+              <div class="d-flex justify-content-end mt-4">
+                <button type="submit" class="btn btn-primary" id="saveButton" name="saveButton">
+                  <i class="fas fa-save me-1"></i>Guardar Cambios
+                </button>
+              </div>
+            </form>
           </div>
-          
-          <!-- Descripción -->
-          <div class="mb-4">
-            <label for="description" class="form-label">Descripción <span class="text-danger">*</span></label>
-            <textarea class="form-control" id="description" name="description" rows="3" placeholder="Describe la comida..." required><%= entry.description || '' %></textarea>
-            <div class="invalid-feedback">Por favor añade una descripción sobre esta comida.</div>
-          </div>
-          
-          <!-- Tipo de comida -->
-          <div class="mb-4">
-            <label for="mealType" class="form-label">Tipo de comida</label>
-            <select class="form-select" id="mealType" name="mealType">
-              <option value="desayuno" <%= entry.meal_type === 'desayuno' ? 'selected' : '' %>>Desayuno</option>
-              <option value="almuerzo" <%= entry.meal_type === 'almuerzo' ? 'selected' : '' %>>Almuerzo</option>
-              <option value="cena" <%= entry.meal_type === 'cena' ? 'selected' : '' %>>Cena</option>
-              <option value="merienda" <%= entry.meal_type === 'merienda' ? 'selected' : '' %>>Merienda</option>
-              <option value="snack" <%= entry.meal_type === 'snack' ? 'selected' : '' %>>Snack</option>
-              <option value="other" <%= (!entry.meal_type || entry.meal_type === 'other') ? 'selected' : '' %>>Otro</option>
-            </select>
-          </div>
-          
-          <!-- Fecha y hora de la comida -->
-          <div class="mb-4">
-            <label for="mealDate" class="form-label">Fecha y hora</label>
-            <input type="datetime-local" class="form-control" id="mealDate" name="mealDate">
-            <div class="form-text">Fecha y hora en que se consumió la comida.</div>
-          </div>
-          
-          <!-- Fecha de creación (solo informativo) -->
-          <div class="mb-4">
-            <label class="form-label">Fecha de Creación</label>
-            <input type="text" class="form-control" value="<%= new Date(entry.created_at).toLocaleString() %>" readonly disabled>
-            <div class="form-text">Esta información no se puede modificar.</div>
-          </div>
-          
-          <!-- Botones -->
-          <div class="d-flex justify-content-end mt-4">
-            <button type="submit" class="btn btn-primary">
-              <i class="fas fa-save me-1"></i>Guardar Cambios
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   </div>
-</div>
-</div>
 </div>
 
 <!-- JavaScript para validación del formulario y vista previa de imagen -->
@@ -147,21 +146,59 @@
       });
     }
     
-    // Formatear la fecha inicial para el campo mealDate
-    const mealDateInput = document.getElementById('mealDate');
-    if (mealDateInput) {
-      // Obtener la fecha de la entrada (meal_date o created_at)
-      const entryDate = new Date('<%= entry.meal_date || entry.created_at %>');
+    // Verificar que se hayan realizado cambios antes de enviar el formulario
+    const form = document.querySelector('form.needs-validation');
+    if (form) {
+      // Guardar los valores originales al cargar la página
+      const originalValues = {
+        name: document.getElementById('name').value,
+        description: document.getElementById('description').value,
+        mealType: document.getElementById('mealType').value,
+        mealDate: document.getElementById('mealDate').value
+      };
       
-      // Formatear en ISO para datetime-local
-      const year = entryDate.getFullYear();
-      const month = String(entryDate.getMonth() + 1).padStart(2, '0');
-      const day = String(entryDate.getDate()).padStart(2, '0');
-      const hours = String(entryDate.getHours()).padStart(2, '0');
-      const minutes = String(entryDate.getMinutes()).padStart(2, '0');
+      // Agregar mensaje de error al formulario (inicialmente oculto)
+      const alertDiv = document.createElement('div');
+      alertDiv.className = 'alert alert-warning mt-3 d-none';
+      alertDiv.id = 'noChangesAlert';
+      alertDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>No se han realizado cambios. Por favor modifica al menos un campo.';
+      form.insertBefore(alertDiv, form.firstChild);
       
-      // Establecer el valor del input
-      mealDateInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+      // Interceptar envío de formulario
+      form.addEventListener('submit', function(event) {
+        // Verificar si hay una imagen nueva
+        const hasNewImage = fileInput && fileInput.files && fileInput.files.length > 0;
+        
+        // Verificar si algún campo ha cambiado
+        const currentValues = {
+          name: document.getElementById('name').value,
+          description: document.getElementById('description').value,
+          mealType: document.getElementById('mealType').value,
+          mealDate: document.getElementById('mealDate').value
+        };
+        
+        // Comparar valores
+        const hasChanges = hasNewImage || 
+          currentValues.name !== originalValues.name ||
+          currentValues.description !== originalValues.description ||
+          currentValues.mealType !== originalValues.mealType ||
+          currentValues.mealDate !== originalValues.mealDate;
+        
+        // Si no hay cambios, prevenir envío y mostrar alerta
+        if (!hasChanges) {
+          event.preventDefault();
+          const alertElement = document.getElementById('noChangesAlert');
+          alertElement.classList.remove('d-none');
+          
+          // Desplazar a la alerta para que sea visible
+          alertElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          
+          // Ocultar la alerta después de 5 segundos
+          setTimeout(function() {
+            alertElement.classList.add('d-none');
+          }, 5000);
+        }
+      });
     }
   });
 </script>

@@ -9,7 +9,7 @@ const FoodEntry = require('../../models/FoodEntry');
 module.exports = async (req, res, next) => {
   try {
     const entryId = req.params.id;
-    const userId = req.user.id;
+    const userId = req.session.user.id;
     
     if (!entryId) {
       req.flash('error_msg', 'ID de entrada no proporcionado');
