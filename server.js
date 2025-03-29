@@ -80,7 +80,7 @@ if (!process.env.SESSION_SECRET || process.env.SESSION_SECRET === 'tu_secreto_pa
 app.use(session({
   secret: process.env.SESSION_SECRET || 'secreto-temporal',
   resave: false,
-  saveUninitialized: false,
+  saveUninitialized: true,
   cookie: { 
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -179,6 +179,58 @@ app.get('/api/check-email', async (req, res) => {
   } catch (error) {
     console.error('Error en endpoint check-email:', error);
     return res.status(500).json({ error: 'Error al verificar correo electrónico' });
+  }
+});
+
+// Ruta para reenviar correo de confirmación
+app.post('/api/resend-confirmation', async (req, res) => {
+  try {
+    // Solo usuarios autenticados pueden solicitar un reenvío
+    if (!req.session.isLoggedIn || !req.session.user) {
+      return res.status(401).json({ 
+        success: false, 
+        message: 'Debes iniciar sesión para realizar esta acción'
+      });
+    }
+    
+    // Obtener el email del usuario de la sesión
+    const email = req.session.user.email;
+    
+    // Solicitar reenvío de email de confirmación a través de Supabase
+    const UserAuth = require('./models/UserAuth');
+    const result = await UserAuth.resendConfirmationEmail(email);
+    
+    if (!result.success) {
+      return res.status(400).json({ 
+        success: false, 
+        message: result.error || 'No se pudo reenviar el correo de confirmación',
+        code: result.errorCode // Incluir el código de error para que el cliente pueda identificarlo
+      });
+    }
+    
+    return res.json({ 
+      success: true, 
+      message: 'Correo de confirmación reenviado. Por favor, revisa tu bandeja de entrada.'
+    });
+  } catch (error) {
+    console.error('Error al reenviar correo de confirmación:', error);
+    
+    // Capturar código de error específico para limitación de tasa
+    let errorMessage = 'Error al reenviar el correo de confirmación';
+    let errorCode = null;
+    
+    if (error.__isAuthError && error.code) {
+      errorCode = error.code;
+      if (error.message) {
+        errorMessage = error.message;
+      }
+    }
+    
+    return res.status(500).json({ 
+      success: false, 
+      message: errorMessage,
+      code: errorCode
+    });
   }
 });
 
