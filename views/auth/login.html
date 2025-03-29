@@ -1,15 +1,7 @@
 <!-- Página de Inicio de Sesión -->
 <div class="row justify-content-center animate-fade-in py-5">
   <div class="col-lg-5 col-md-7 col-sm-10">
-    <!-- Mensaje de registro exitoso -->
-    <% if (typeof registered !== 'undefined' && registered) { %>
-      <div class="alert alert-success alert-dismissible fade show mb-4" role="alert" id="registrationAlert">
-        <i class="fas fa-check-circle me-2"></i>¡Registro completado con éxito! Por favor, inicia sesión con tus nuevas credenciales.
-        <button type="button" class="close-alert" aria-label="Close" onclick="document.getElementById('registrationAlert').style.display='none';">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
-    <% } %>
+    <!-- Eliminamos el mensaje de registro exitoso ya que se muestra a través de flash_messages -->
     
     <div class="text-center mb-4">
       <img src="/img/logo.png" alt="WhatYouEat Logo" width="80" class="mb-3">
