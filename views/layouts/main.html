@@ -84,18 +84,36 @@
   <div class="flash-messages container mt-3">
     <% if (typeof success_msg !== 'undefined' && success_msg && success_msg.length > 0) { %>
       <div class="alert alert-success fade show" role="alert">
-        <div class="d-flex align-items-center">
-          <i class="fas fa-check-circle me-2"></i>
-          <%= success_msg %>
+        <div class="position-relative">
+          <div class="mb-2">
+            <i class="fas fa-check-circle me-2"></i>
+            <strong><%= success_msg %></strong>
+          </div>
+          <button type="button" class="btn-close position-absolute top-0 end-0" aria-label="Cerrar"></button>
         </div>
       </div>
     <% } %>
     
     <% if (typeof error_msg !== 'undefined' && error_msg && error_msg.length > 0) { %>
       <div class="alert alert-danger fade show" role="alert">
-        <div class="d-flex align-items-center">
-          <i class="fas fa-exclamation-circle me-2"></i>
-          <%= error_msg %>
+        <div class="position-relative">
+          <div class="mb-2">
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <%= error_msg %>
+          </div>
+          <button type="button" class="btn-close position-absolute top-0 end-0" aria-label="Cerrar"></button>
+        </div>
+      </div>
+    <% } %>
+    
+    <% if (typeof warning_msg !== 'undefined' && warning_msg && warning_msg.length > 0) { %>
+      <div class="alert alert-warning fade show persistent-alert" role="alert">
+        <div class="position-relative">
+          <div class="mb-2">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <%= warning_msg %>
+          </div>
+          <button type="button" class="btn-close position-absolute top-0 end-0" aria-label="Cerrar"></button>
         </div>
       </div>
     <% } %>
@@ -196,8 +214,8 @@
     (function() {
       console.log("Script flash inmediato ejecutado");
       
-      // Verificar si hay mensajes flash
-      const flashMessages = document.querySelectorAll('.flash-messages .alert');
+      // Verificar si hay mensajes flash (excluir los persistentes)
+      const flashMessages = document.querySelectorAll('.flash-messages .alert:not(.persistent-alert)');
       if (flashMessages.length > 0) {
         console.log("Mensajes flash encontrados:", flashMessages.length);
         
@@ -221,8 +239,35 @@
           });
         }, 7000);
       } else {
-        console.log("No se encontraron mensajes flash");
+        console.log("No se encontraron mensajes flash automáticos");
       }
+      
+      // Configurar botones de cierre manual para todos los mensajes (incluyendo persistent-alert)
+      document.querySelectorAll('.alert .btn-close, .alert .close-alert').forEach(btn => {
+        btn.addEventListener('click', function() {
+          const alert = this.closest('.alert');
+          if (alert) {
+            alert.style.opacity = '0';
+            setTimeout(() => {
+              if (document.body.contains(alert)) {
+                alert.remove();
+              }
+            }, 300);
+          }
+        });
+      });
+      
+      // Configuración específica para alertas de correo no confirmado
+      document.querySelectorAll('#emailConfirmationAlert .btn-close').forEach(btn => {
+        console.log('Configurando botón de cierre para alerta de correo');
+        btn.addEventListener('click', function() {
+          const alert = this.closest('.alert');
+          if (alert) {
+            alert.style.opacity = '0';
+            setTimeout(() => alert.remove(), 300);
+          }
+        });
+      });
     })();
   </script>
 </body>

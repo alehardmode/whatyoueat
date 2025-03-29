@@ -20,7 +20,8 @@ exports.getDashboard = async (req, res) => {
       title: 'Dashboard del Médico',
       user: req.session.user,
       patients: result.patients,
-      moment
+      moment,
+      emailConfirmed: req.session.emailConfirmed
     });
   } catch (error) {
     console.error('Error al cargar dashboard:', error);
@@ -28,7 +29,8 @@ exports.getDashboard = async (req, res) => {
       title: 'Dashboard del Médico',
       user: req.session.user,
       patients: [],
-      error: 'Error al cargar la información del dashboard'
+      error: 'Error al cargar la información del dashboard',
+      emailConfirmed: req.session.emailConfirmed
     });
   }
 };

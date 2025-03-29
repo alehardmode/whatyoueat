@@ -55,7 +55,9 @@ exports.getDashboard = async (req, res) => {
       recentEntries: recentEntries || [],
       stats: {
         totalEntries
-      }
+      },
+      // Pasar la información de confirmación de correo desde la sesión
+      emailConfirmed: req.session.emailConfirmed
     });
   } catch (error) {
     console.error('Error en el dashboard:', error);
@@ -66,7 +68,9 @@ exports.getDashboard = async (req, res) => {
       title: 'Dashboard del Paciente',
       user: req.user,
       recentEntries: [],
-      stats: { totalEntries: 0 }
+      stats: { totalEntries: 0 },
+      // Pasar la información de confirmación de correo incluso en caso de error
+      emailConfirmed: req.session.emailConfirmed
     });
   }
 };
