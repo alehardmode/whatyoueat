@@ -1,6 +1,6 @@
 // controllers/patient/dashboardController.js
-const { supabase } = require('../../config/supabase');
 const FoodEntry = require('../../models/FoodEntry');
+const { supabase } = require('../../config/supabase');
 const moment = require('moment');
 
 /**
@@ -8,19 +8,16 @@ const moment = require('moment');
  */
 exports.getDashboard = async (req, res) => {
   try {
-    // Obtener últimas 3 entradas para mostrar en el dashboard
-    const { data: recentEntries, error: recentEntriesError } = await supabase
-      .from('food_entries')
-      .select('id, user_id, name, description, meal_date, meal_type, created_at, updated_at')
-      .eq('user_id', req.user.id)
-      .order('created_at', { ascending: false })
-      .limit(3);
-      
-    if (recentEntriesError) {
-      console.error('Error al obtener entradas recientes:', recentEntriesError);
-      // No fatal, podemos continuar con 0 entradas recientes
-    }
+    // Usar el modelo FoodEntry para obtener entradas recientes
+    const result = await FoodEntry.getHistoryByUserId(
+      req.user.id,
+      null,
+      1,  // Página 1
+      3   // Límite de 3 entradas
+    );
     
+    const recentEntries = result.success ? result.entries : [];
+      
     // Si hay entradas, obtener las imágenes de cada una
     if (recentEntries && recentEntries.length > 0) {
       await Promise.all(recentEntries.map(async (entry) => {
@@ -39,17 +36,17 @@ exports.getDashboard = async (req, res) => {
       }));
     }
     
-    // Obtener estadísticas básicas de manera eficiente
-    const { count, error: statsError } = await supabase
+    // Realizar una consulta específica para obtener estadísticas precisas
+    const { count, error: countError } = await supabase
       .from('food_entries')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', req.user.id);
-      
-    if (statsError) {
-      console.error('Error al obtener estadísticas:', statsError);
+    
+    if (countError) {
+      console.error('Error al obtener conteo de entradas:', countError);
     }
     
-    const totalEntries = count || 0;
+    const totalEntries = count !== null ? count : 0;
     
     // Renderizar dashboard
     res.render('patient/dashboard', {

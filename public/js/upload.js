@@ -1,59 +1,6 @@
 // Script para manejar la subida de fotos de manera optimizada
 console.log('Upload.js cargado (versión optimizada)');
 
-// Cargar la biblioteca de compresión de manera dinámica solo cuando sea necesaria
-let imageCompressionLoaded = false;
-let imageCompression = null;
-
-async function loadImageCompressionLibrary() {
-  if (imageCompressionLoaded) return imageCompression;
-  
-  try {
-    console.log('Cargando biblioteca de compresión de imágenes...');
-    const moduleUrl = 'https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.0/dist/browser-image-compression.mjs';
-    const imageCompressionModule = await import(moduleUrl);
-    imageCompression = imageCompressionModule.default;
-    imageCompressionLoaded = true;
-    console.log('Biblioteca de compresión cargada correctamente');
-    return imageCompression;
-  } catch (error) {
-    console.error('Error al cargar la biblioteca de compresión:', error);
-    return null;
-  }
-}
-
-// Función para comprimir imágenes antes de la subida
-async function compressImage(imageFile) {
-  try {
-    // Cargar la biblioteca bajo demanda
-    const compression = await loadImageCompressionLibrary();
-    if (!compression) {
-      console.warn('No se pudo cargar la biblioteca de compresión, utilizando imagen original');
-      return imageFile;
-    }
-    
-    // Opciones para la compresión
-    const options = {
-      maxSizeMB: 1,              // Comprimir a 1MB máximo
-      maxWidthOrHeight: 1200,    // Redimensionar a 1200px máximo
-      useWebWorker: false,       // Desactivar Web Worker por problemas de CSP
-      initialQuality: 0.8        // Calidad inicial 80%
-    };
-    
-    // Intenta comprimir
-    const compressedFile = await compression(imageFile, options);
-    console.log('Compresión de imagen:', 
-      (imageFile.size / 1024 / 1024).toFixed(2) + 'MB →', 
-      (compressedFile.size / 1024 / 1024).toFixed(2) + 'MB');
-    
-    return compressedFile;
-  } catch (error) {
-    console.error('Error al comprimir la imagen:', error);
-    // En caso de error, retornar la imagen original
-    return imageFile;
-  }
-}
-
 // Función para manejar la redirección después de la subida
 function handleSuccessfulUpload() {
   // Detectar errores de redirección SSL
@@ -180,7 +127,8 @@ function initUploadFunctions() {
     if (!uploadForm.hasAttribute('data-form-configured')) {
       uploadForm.setAttribute('data-form-configured', 'true');
       uploadForm.addEventListener('submit', async function(e) {
-        e.preventDefault(); // Prevenir envío normal del formulario
+        // No prevenir envío para permitir que el backend procese la imagen
+        
         let isValid = true;
         
         // Validar archivo de foto
@@ -216,144 +164,23 @@ function initUploadFunctions() {
           }
         }
         
-        if (isValid) {
-          console.log('Formulario válido, procesando...');
-          // Mostrar indicador de carga
-          const submitBtn = uploadForm.querySelector('button[type="submit"]');
-          if (submitBtn) {
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Comprimiendo...';
-          }
-          
-          try {
-            // Comprimir la imagen antes de subir
-            const file = photoInput.files[0];
-            const compressedFile = await compressImage(file);
-            
-            // Usar forma tradicional de envío para evitar problemas de AJAX/SSL
-            const useForm = false; // Si true: envío tradicional, si false: envío con fetch+FormData
-
-            if (useForm) {
-              // Opción 1: Envío tradicional (no soporta compresión pero es más confiable)
-              if (submitBtn) {
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Subiendo...';
-              }
-              uploadForm.submit(); // Envío tradicional del formulario
-            } else {
-              // Opción 2: Envío con fetch (soporta compresión)
-              // Crear FormData con la imagen comprimida
-              const formData = new FormData();
-              // Añadir todos los campos del formulario
-              const formElements = uploadForm.elements;
-              for (let i = 0; i < formElements.length; i++) {
-                const element = formElements[i];
-                if (element.name && element.name !== 'food_photo') {
-                  formData.append(element.name, element.value);
-                }
-              }
-              // Añadir la imagen comprimida
-              formData.append('food_photo', compressedFile, compressedFile.name || 'compressed_image.jpg');
-              
-              // Actualizar botón de envío
-              if (submitBtn) {
-                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Subiendo...';
-              }
-              
-              try {
-                // Usar POST normal con formData (evitar configuraciones complejas)
-                const response = await fetch(uploadForm.action, {
-                  method: 'POST',
-                  body: formData,
-                  redirect: 'follow',
-                  cache: 'no-cache'
-                });
-                
-                // Verificar si la subida fue exitosa
-                if (response.ok) {
-                  console.log('Subida exitosa');
-                  
-                  // Manejar redirección segura
-                  handleSuccessfulUpload();
-                } else {
-                  console.error('Error en respuesta del servidor:', response.status);
-                  showUploadError(submitBtn);
-                }
-              } catch (fetchError) {
-                console.error('Error de red en fetch:', fetchError);
-                
-                // Intentar subir por método alternativo (usar método simple pero confiable)
-                try {
-                  const simulateSuccessfulUpload = true; // Simular éxito para pruebas
-                  
-                  if (simulateSuccessfulUpload) {
-                    // Subida exitosa a pesar del error de fetch
-                    handleSuccessfulUpload();
-                  } else {
-                    showUploadError(submitBtn);
-                  }
-                } catch (finalError) {
-                  console.error('Error final en subida:', finalError);
-                  showUploadError(submitBtn);
-                }
-              }
-            }
-          } catch (error) {
-            console.error('Error al procesar la imagen:', error);
-            showUploadError(submitBtn);
-          }
-        } else {
-          console.log('Formulario con errores, deteniendo envío');
+        if (!isValid) {
+          e.preventDefault(); // Solo prevenir envío si hay error de validación
+          return;
+        }
+        
+        // Mostrar indicador de carga en el botón
+        const submitBtn = uploadForm.querySelector('button[type="submit"]');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Subiendo...';
         }
       });
     }
   } else {
-    console.log('ADVERTENCIA: Formulario de subida no encontrado');
-  }
-
-  // Manejar el botón cancelar (se mantiene)
-  const cancelButton = document.getElementById('cancelButton');
-  if (cancelButton) {
-    console.log('Botón cancelar encontrado');
-    if (!cancelButton.hasAttribute('data-configured')) {
-      cancelButton.setAttribute('data-configured', 'true');
-      cancelButton.addEventListener('click', function(e) {
-        console.log('Clic en botón cancelar');
-        e.preventDefault();
-        const destination = this.getAttribute('href');
-        window.location.href = destination;
-      });
-    }
-  } else {
-    console.log('ADVERTENCIA: Botón cancelar no encontrado');
+    console.log('ERROR: Formulario de subida no encontrado');
   }
 }
 
-// Función para mostrar error de subida
-function showUploadError(submitBtn) {
-  if (submitBtn) {
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = '<i class="fas fa-save me-2"></i>Guardar';
-  }
-  
-  // Mostrar opciones al usuario
-  if (confirm('Error al subir la imagen. ¿Deseas intentar una subida alternativa?')) {
-    // Si el usuario confirma, intentar envío tradicional como fallback
-    const uploadForm = document.getElementById('uploadForm');
-    if (uploadForm) {
-      uploadForm.submit();
-    }
-  } else {
-    alert('Por favor, inténtalo de nuevo o regresa al dashboard.');
-  }
-}
-
-// Listeners para inicialización
+// Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', initUploadFunctions);
-if (document.readyState === 'complete') {
-  console.log('Documento ya cargado, inicializando');
-  // Asegurarse de no inicializar dos veces si DOMContentLoaded ya disparó
-  if (!document.body.hasAttribute('data-upload-init')) {
-      document.body.setAttribute('data-upload-init', 'true');
-      initUploadFunctions();
-  }
-}

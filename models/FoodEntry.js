@@ -141,9 +141,10 @@ class FoodEntry {
         }
       }
 
+      // Construir la consulta base
       let query = supabase
         .from('food_entries')
-        .select('id, user_id, name, description, meal_date, meal_type, created_at, updated_at') // No seleccionamos image_data directamente para optimizar
+        .select('id, user_id, name, description, meal_date, meal_type, created_at, updated_at', { count: 'exact' }) // Asegurarse de contar exactamente
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
       
@@ -166,14 +167,72 @@ class FoodEntry {
       
       query = query.range(from, to);
       
+      // Ejecutar la consulta
       const { data, error, count } = await query;
+      
       if (error) throw error;
       
+      // Verificar que tengamos un conteo válido
+      if (count === undefined || count === null) {
+        console.warn('Advertencia: No se pudo obtener el conteo exacto de entradas, realizando consulta adicional');
+        
+        // Si no tenemos conteo, hacer una consulta adicional para contar
+        const countQuery = supabase
+          .from('food_entries')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', userId);
+        
+        // Aplicar los mismos filtros de fecha
+        if (dateFilter) {
+          if (dateFilter.from) {
+            const startDate = moment(dateFilter.from).startOf('day').toISOString();
+            countQuery.gte('created_at', startDate);
+          }
+          
+          if (dateFilter.to) {
+            const endDate = moment(dateFilter.to).endOf('day').toISOString();
+            countQuery.lte('created_at', endDate);
+          }
+        }
+        
+        const { count: exactCount, error: countError } = await countQuery;
+        
+        if (countError) {
+          console.error('Error al obtener conteo exacto:', countError);
+          return { success: false, error: countError.message };
+        }
+        
+        const totalEntries = exactCount || 0;
+        const totalPages = Math.ceil(totalEntries / limit);
+        
+        const result = { 
+          success: true, 
+          entries: data || [],
+          pagination: {
+            page,
+            limit,
+            total: totalEntries,
+            totalPages
+          }
+        };
+        
+        // Guardar en caché para futuras consultas
+        if (process.env.NODE_ENV === 'production') {
+          entryCache.history.set(cacheKey, {
+            data: result,
+            timestamp: Date.now()
+          });
+        }
+        
+        return result;
+      }
+      
+      // Calcular páginas totales basado en el conteo exacto
       const totalPages = Math.ceil(count / limit);
       
       const result = { 
         success: true, 
-        entries: data,
+        entries: data || [],
         pagination: {
           page,
           limit,

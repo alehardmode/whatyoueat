@@ -57,7 +57,7 @@
             <div class="mb-4">
               <label for="food_photo" class="form-label fw-bold">Foto de la Comida <span class="text-danger">*</span></label>
               <input type="file" class="form-control <%= typeof validationErrors !== 'undefined' && validationErrors.photo ? 'is-invalid' : '' %>" id="food_photo" name="food_photo" accept="image/*" required autocomplete="off">
-              <div class="form-text">Selecciona una foto clara de tu comida (máx. 10MB). La imagen será comprimida automáticamente.</div>
+              <div class="form-text">Selecciona una foto clara de tu comida (máx. 10MB). La imagen será optimizada automáticamente en formato WebP.</div>
               <!-- Mensaje de error para la foto -->
               <div id="photo-error" class="invalid-feedback" <%= typeof validationErrors !== 'undefined' && validationErrors.photo ? 'style="display: block;"' : 'style="display: none;"' %>>
                 <%= typeof validationErrors !== 'undefined' && validationErrors.photo ? validationErrors.photo : '' %>
@@ -121,9 +121,6 @@
     </div>
   </div>
 </div>
-
-<!-- Incluir el script de upload.js -->
-<script src="/js/upload.js"></script>
 
 <!-- Script para inicializar la fecha y hora actual -->
 <script>

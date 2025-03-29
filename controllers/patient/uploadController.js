@@ -1,7 +1,8 @@
 // controllers/patient/uploadController.js
-const { supabase, checkSupabaseConnection } = require('../../config/supabase');
+const { checkSupabaseConnection } = require('../../config/supabase');
 const FoodEntry = require('../../models/FoodEntry');
 const { validateFoodEntry } = require('../../utils/validators/foodEntryValidator');
+const sharp = require('sharp');
 
 /**
  * Muestra el formulario para subir una nueva foto de comida
@@ -64,10 +65,36 @@ exports.postUpload = async (req, res) => {
         return res.redirect('/patient/upload');
       }
       
-      // Convertir imagen a base64
-      const imageData = `data:${file.mimetype};base64,${file.data.toString('base64')}`;
+      // Optimizar la imagen usando sharp
+      let optimizedImageBuffer;
+      try {
+        // Procesar la imagen con sharp para convertirla a WebP
+        optimizedImageBuffer = await sharp(file.data)
+          .resize({ 
+            width: 1200, 
+            height: 1200, 
+            fit: 'inside', 
+            withoutEnlargement: true 
+          })
+          .webp({ 
+            quality: 80,
+            lossless: false,
+            effort: 4 // Balance entre velocidad y compresión (0-6)
+          })
+          .toBuffer();
+          
+        console.log('Imagen optimizada: Original', Math.round(file.data.length/1024), 'KB →', 
+                    Math.round(optimizedImageBuffer.length/1024), 'KB (WebP)');
+      } catch (sharpError) {
+        console.error('Error al optimizar imagen con sharp:', sharpError);
+        // Si hay error en la optimización, usamos la imagen original
+        optimizedImageBuffer = file.data;
+      }
       
-      // Crear entrada en la base de datos con la imagen en base64
+      // Convertir imagen optimizada a base64
+      const imageData = `data:image/webp;base64,${optimizedImageBuffer.toString('base64')}`;
+      
+      // Crear entrada en la base de datos con la imagen optimizada en base64
       const result = await FoodEntry.create(userId, {
         name: foodName || 'Comida sin nombre',
         description: description || '',

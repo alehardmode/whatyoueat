@@ -1,8 +1,8 @@
 // controllers/patient/entryDetailController.js
-const { supabase } = require('../../config/supabase');
 const FoodEntry = require('../../models/FoodEntry');
 const { validateFoodEntryUpdate } = require('../../utils/validators/foodEntryValidator');
 const moment = require('moment');
+const sharp = require('sharp');
 
 /**
  * Muestra el detalle de una entrada de comida
@@ -171,8 +171,39 @@ exports.updateEntry = async (req, res) => {
         return res.redirect(`/patient/entry/${entryId}/edit`);
       }
       
-      // Convertir imagen a base64
-      updates.image_data = `data:${file.mimetype};base64,${file.data.toString('base64')}`;
+      // Optimizar la imagen usando sharp
+      let optimizedImageBuffer;
+      try {
+        // Procesar la imagen con sharp para convertirla a WebP
+        optimizedImageBuffer = await sharp(file.data)
+          .resize({ 
+            width: 1200, 
+            height: 1200, 
+            fit: 'inside', 
+            withoutEnlargement: true 
+          })
+          .webp({ 
+            quality: 80,
+            lossless: false,
+            effort: 4 // Balance entre velocidad y compresión (0-6)
+          })
+          .toBuffer();
+          
+        console.log('Imagen optimizada: Original', Math.round(file.data.length/1024), 'KB →', 
+                  Math.round(optimizedImageBuffer.length/1024), 'KB (WebP)');
+      } catch (sharpError) {
+        console.error('Error al optimizar imagen con sharp:', sharpError);
+        // Si hay error en la optimización, usamos la imagen original con el tipo original
+        optimizedImageBuffer = file.data;
+        updates.image_data = `data:${file.mimetype};base64,${file.data.toString('base64')}`;
+      }
+      
+      if (optimizedImageBuffer) {
+        // Convertir imagen optimizada a base64 solo si no se asignó en el bloque de error
+        if (!updates.image_data) {
+          updates.image_data = `data:image/webp;base64,${optimizedImageBuffer.toString('base64')}`;
+        }
+      }
     }
     
     // Actualizar la entrada usando el modelo
@@ -250,15 +281,19 @@ exports.getEntryImage = async (req, res) => {
     // Si la imagen está en formato base64, extraer el tipo y los datos
     if (entry.image_data.startsWith('data:')) {
       const matches = entry.image_data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-      
       if (matches && matches.length === 3) {
         const contentType = matches[1];
         const base64Data = matches[2];
         
-        // Convertir base64 a buffer y enviar con el tipo de contenido correcto
-        const buffer = Buffer.from(base64Data, 'base64');
-        res.set('Content-Type', contentType);
-        return res.send(buffer);
+        try {
+          // Configurar encabezados Content-Type según el tipo de imagen
+          res.set('Content-Type', contentType);
+          
+          // Enviar los datos decodificados
+          return res.send(Buffer.from(base64Data, 'base64'));
+        } catch (decodeError) {
+          console.error('Error al decodificar datos base64:', decodeError);
+        }
       }
     }
     

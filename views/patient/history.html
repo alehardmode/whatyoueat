@@ -14,6 +14,24 @@
     </div>
   </div>
 
+  <!-- Resumen de comidas registradas -->
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <div class="card bg-light">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Comidas registradas: <span class="badge bg-primary"><%= pagination.totalEntries || 0 %></span></h5>
+          </div>
+          <div>
+            <a href="/patient/upload" class="btn btn-success btn-sm">
+              <i class="fas fa-plus-circle me-1"></i>Registrar nueva comida
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Filtros de búsqueda -->
   <div class="card shadow mb-4">
     <div class="card-body">
@@ -55,13 +73,10 @@
                 data-src="<%= entry.image_url || entry.image_data || '/img/empty-plate.svg' %>"
                 class="card-img-top lazy-image" 
                 alt="<%= entry.name || 'Foto de comida' %>" 
-                loading="lazy"
-                style="width: 100%; height: 100%; object-fit: cover;"
+                fetchpriority="high"
+                decoding="async"
                 onerror="this.onerror=null; this.src='/img/empty-plate.svg'; this.alt='Imagen no disponible'; this.style.padding = '20px';"
               >
-              <div class="image-loading-spinner spinner-border text-primary" role="status" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                <span class="visually-hidden">Cargando...</span>
-              </div>
             </div>
             <div class="card-body">
               <h5 class="card-title"><%= entry.name || 'Comida sin nombre' %></h5>
@@ -104,10 +119,21 @@
     <% } %>
   </div>
 
-  <!-- Paginación -->
-  <% if (pagination.totalPages > 1) { %>
-    <div class="row">
-      <div class="col-12">
+  <!-- Paginación y resumen de registros -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="text-center mt-2 text-muted">
+        <p>
+          <i class="fas fa-info-circle me-1"></i>
+          <% if (pagination.totalEntries > 0) { %>
+            Mostrando comidas <%= pagination.offset + 1 %> a <%= Math.min(pagination.offset + pagination.limit, pagination.totalEntries) %> de <%= pagination.totalEntries %> entradas
+          <% } else { %>
+            No hay comidas registradas
+          <% } %>
+        </p>
+      </div>
+      
+      <% if (pagination.totalPages > 1) { %>
         <nav aria-label="Paginación de historial">
           <ul class="pagination justify-content-center">
             <!-- Botón anterior -->
@@ -132,9 +158,9 @@
             </li>
           </ul>
         </nav>
-      </div>
+      <% } %>
     </div>
-  <% } %>
+  </div>
 </div>
 
 <!-- Estilo para efecto de carga de imágenes -->
@@ -146,139 +172,130 @@
   .lazy-image.loaded {
     opacity: 1;
   }
-  .image-loading-spinner {
-    transition: opacity 0.3s ease-in-out;
-  }
-  .image-loading-spinner.hidden {
-    opacity: 0;
-  }
 </style>
 
 <!-- Script para implementar lazy loading avanzado y optimizado -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Control de concurrencia - limitar cargas simultáneas
-    const MAX_CONCURRENT_LOADS = 3;
-    let activeLoads = 0;
+    // Cola de imágenes para cargar secuencialmente
     const loadQueue = [];
+    let isLoading = false;
     
+    // Función para procesar la cola de carga
     function processQueue() {
-      if (loadQueue.length === 0 || activeLoads >= MAX_CONCURRENT_LOADS) return;
+      if (loadQueue.length === 0 || isLoading) return;
       
-      // Tomar la siguiente imagen de la cola
+      isLoading = true;
       const nextImg = loadQueue.shift();
-      activeLoads++;
+      if (!nextImg) {
+        isLoading = false;
+        return;
+      }
       
       const img = nextImg.element;
       const src = nextImg.src;
-      const spinner = nextImg.spinner;
       
-      // Precargar la imagen
       const newImg = new Image();
       
       newImg.onload = function() {
-        // Aplicar la imagen cuando se cargue
-        setTimeout(() => {
-          img.src = src;
-          img.classList.add('loaded');
-          if (spinner) spinner.style.display = 'none';
-          
-          // Liberar un espacio para otra carga
-          activeLoads--;
-          processQueue();
-        }, 50);
+        img.src = src;
+        img.classList.add('loaded');
+        
+        // Continuar con la siguiente imagen en la cola
+        isLoading = false;
+        setTimeout(processQueue, 50); // Pequeño retraso para evitar bloqueos
       };
       
       newImg.onerror = function() {
-        // Si hay error al cargar, cargar el placeholder
+        // Error: mostrar imagen por defecto
         img.src = '/img/empty-plate.svg';
         img.style.padding = '20px';
         img.classList.add('loaded');
-        if (spinner) spinner.style.display = 'none';
         
-        // Liberar un espacio para otra carga
-        activeLoads--;
-        processQueue();
+        // Continuar con la siguiente imagen
+        isLoading = false;
+        setTimeout(processQueue, 50);
       };
       
-      // Iniciar la carga real
-      setTimeout(() => {
-        newImg.src = src;
-      }, 20);
+      // Iniciar carga de la imagen
+      newImg.src = src;
     }
     
-    function queueImageLoad(imgElement, src, spinner) {
-      // Añadir a la cola
-      loadQueue.push({ element: imgElement, src: src, spinner: spinner });
-      // Intentar procesar la cola
-      processQueue();
+    // Agregar imagen a la cola de carga
+    function queueImageLoad(imgElement, src) {
+      // Solo agregar a la cola si no está ya cargada
+      loadQueue.push({ element: imgElement, src: src });
+      processQueue(); // Intentar procesar la cola
     }
     
     // Implementación de IntersectionObserver para lazy loading
-    if ('IntersectionObserver' in window) {
-      const imageObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const img = entry.target;
-            const src = img.getAttribute('data-src');
-            const spinner = img.parentNode.querySelector('.image-loading-spinner');
-            
-            // Solo cargar si src existe y es diferente al placeholder
-            if (src && src !== '/img/empty-plate.svg') {
-              queueImageLoad(img, src, spinner);
-            } else {
-              // Si es el placeholder, mostrarlo inmediatamente
-              img.classList.add('loaded');
-              if (spinner) spinner.style.display = 'none';
-            }
-            
-            // Dejar de observar esta imagen
-            observer.unobserve(img);
-          }
-        });
-      }, {
-        rootMargin: '150px 0px',
-        threshold: 0.01
-      });
-      
-      // Observar todas las imágenes con clase lazy-image
-      document.querySelectorAll('img.lazy-image').forEach(img => {
-        imageObserver.observe(img);
-      });
-    } else {
-      // Fallback para navegadores que no soportan IntersectionObserver
-      // Carga progresiva para no bloquear el navegador
-      const lazyImages = Array.from(document.querySelectorAll('img.lazy-image'));
-      let processed = 0;
-      
-      function processNextBatch() {
-        const batchSize = 3;
-        const end = Math.min(processed + batchSize, lazyImages.length);
+    const imageObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        // Solo procesar elementos visibles
+        if (!entry.isIntersecting) return;
         
-        for (let i = processed; i < end; i++) {
+        const img = entry.target;
+        const src = img.getAttribute('data-src');
+        
+        // Si hay un src y no es la imagen por defecto, cargar imagen
+        if (src && src !== '/img/empty-plate.svg') {
+          queueImageLoad(img, src);
+        } else {
+          // Si es la imagen por defecto, mostrarla directamente
+          img.classList.add('loaded');
+        }
+        
+        // Dejar de observar una vez cargada
+        observer.unobserve(img);
+      });
+    }, {
+      rootMargin: '100px 0px', // Margen para precargar cuando se acerca al viewport
+      threshold: 0.1 // 10% visible es suficiente para iniciar carga
+    });
+    
+    // Observar todas las imágenes con clase lazy-image
+    document.querySelectorAll('img.lazy-image').forEach(img => {
+      imageObserver.observe(img);
+    });
+    
+    // Fallback para navegadores sin soporte para IntersectionObserver
+    if (!('IntersectionObserver' in window)) {
+      console.log('IntersectionObserver no soportado, usando fallback');
+      const lazyImages = Array.from(document.querySelectorAll('img.lazy-image'));
+      
+      function lazyLoad() {
+        if (lazyImages.length === 0) {
+          document.removeEventListener('scroll', throttledLazyLoad);
+          window.removeEventListener('resize', throttledLazyLoad);
+          return;
+        }
+        
+        for (let i = 0; i < lazyImages.length; i++) {
           const img = lazyImages[i];
           const src = img.getAttribute('data-src');
-          const spinner = img.parentNode.querySelector('.image-loading-spinner');
           
           if (src && src !== '/img/empty-plate.svg') {
             img.src = src;
           }
           
+          // Eliminar esta imagen de la lista
+          lazyImages.splice(i, 1);
+          i--; // Ajustar índice
+          
           img.classList.add('loaded');
-          if (spinner) spinner.style.display = 'none';
-        }
-        
-        processed = end;
-        
-        if (processed < lazyImages.length) {
-          setTimeout(processNextBatch, 100);
         }
       }
       
-      // Iniciar procesamiento por lotes
-      if (lazyImages.length > 0) {
-        processNextBatch();
-      }
+      // Throttle para evitar demasiadas ejecuciones durante scroll
+      let throttleTimeout;
+      const throttledLazyLoad = function() {
+        if (throttleTimeout) clearTimeout(throttleTimeout);
+        throttleTimeout = setTimeout(lazyLoad, 200);
+      };
+      
+      document.addEventListener('scroll', throttledLazyLoad);
+      window.addEventListener('resize', throttledLazyLoad);
+      throttledLazyLoad(); // Ejecutar una vez al cargar
     }
   });
 </script>

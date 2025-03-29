@@ -75,10 +75,13 @@
                 <div class="col-md-4 mb-3">
                   <div class="card h-100">
                     <div class="card-img-top" style="height: 150px; overflow: hidden;">
-                      <img 
-                        src="<%= entry.image_data || '/img/empty-plate.svg' %>" 
-                        alt="Imagen de comida" 
-                        style="width: 100%; height: 100%; object-fit: cover;" 
+                      <img
+                        src="<%= entry.image_data || '/img/empty-plate.svg' %>"
+                        alt="<%= entry.name || 'Comida' %>"
+                        class="card-img-top"
+                        decoding="async"
+                        fetchpriority="high"
+                        style="width: 100%; height: 100%; object-fit: cover;"
                         onerror="this.src='/img/empty-plate.svg'; this.style.padding='10px';"
                       >
                     </div>

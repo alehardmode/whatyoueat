@@ -1,5 +1,4 @@
 // controllers/patient/foodHistoryController.js
-const { supabase } = require('../../config/supabase');
 const FoodEntry = require('../../models/FoodEntry');
 const moment = require('moment');
 

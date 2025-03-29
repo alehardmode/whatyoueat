@@ -32,17 +32,13 @@
             <div class="card">
               <div class="card-body text-center">
                 <div class="image-container" style="min-height: 300px; display: flex; align-items: center; justify-content: center; position: relative;">
-                  <!-- Placeholder mientras carga la imagen -->
-                  <div class="image-loading-spinner spinner-border text-primary" role="status" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                    <span class="visually-hidden">Cargando...</span>
-                  </div>
                   <img 
                     src="/img/empty-plate.svg"
-                    data-src="<%= entry.image_url || entry.image_data %>" 
-                    class="img-fluid rounded shadow lazy-image" 
-                    alt="<%= entry.name || 'Imagen de comida' %>" 
-                    loading="lazy"
-                    style="max-height: 400px; object-fit: contain; width: auto; max-width: 100%; opacity: 0; transition: opacity 0.3s ease-in-out;"
+                    data-src="<%= entry.image_url %>"
+                    class="img-fluid rounded shadow lazy-image"
+                    alt="<%= entry.name %>"
+                    decoding="async"
+                    fetchpriority="high"
                     onerror="this.onerror=null; this.src='/img/empty-plate.svg'; this.alt='Imagen no disponible'; this.style.padding = '20px'; this.style.background = '#f8f9fa'; this.style.opacity = '1';">
                 </div>
               </div>
@@ -144,39 +140,28 @@
 <!-- Script para implementar lazy loading de la imagen de detalle -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    const lazyImage = document.querySelector('.lazy-image');
-    if (lazyImage) {
-      const src = lazyImage.getAttribute('data-src');
-      const spinner = document.querySelector('.image-loading-spinner');
+    const img = document.querySelector('.lazy-image');
+    const src = img.getAttribute('data-src');
+    
+    // Cargar la imagen real si no es la imagen por defecto
+    if (src && src !== '/img/empty-plate.svg') {
+      // Precargar la imagen
+      const newImg = new Image();
       
-      // Si tenemos el atributo data-src y es diferente del placeholder
-      if (src && src !== '/img/empty-plate.svg') {
-        // Crear una nueva imagen para precargar
-        const newImg = new Image();
-        
-        newImg.onload = function() {
-          // Cuando la imagen se carga completamente
-          lazyImage.src = src;
-          lazyImage.style.opacity = '1';
-          if (spinner) spinner.style.display = 'none'; // Más eficiente que cambiar opacity
-        };
-        
-        newImg.onerror = function() {
-          // Si hay error al cargar la imagen
-          if (spinner) spinner.style.display = 'none';
-          // Empty-plate ya está cargado, solo ajustamos el estilo
-          lazyImage.style.padding = '20px';
-          lazyImage.style.background = '#f8f9fa';
-          lazyImage.style.opacity = '1';
-        };
-        
-        // Iniciar carga de la imagen real
-        newImg.src = src;
-      } else {
-        // Si no hay data-src o es igual al placeholder, sólo mostramos el placeholder
-        if (spinner) spinner.style.display = 'none';
-        lazyImage.style.opacity = '1';
-      }
+      newImg.onload = function() {
+        img.src = src;
+        img.classList.add('loaded');
+      };
+      
+      newImg.onerror = function() {
+        // En caso de error, mostrar la imagen por defecto
+        img.src = '/img/empty-plate.svg';
+        img.style.padding = '20px';
+        img.style.background = '#f8f9fa';
+      };
+      
+      // Iniciar carga
+      newImg.src = src;
     }
   });
 </script>
