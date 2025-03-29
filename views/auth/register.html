@@ -25,7 +25,7 @@
             <div class="input-group has-validation">
               <span class="input-group-text"><i class="fas fa-envelope"></i></span>
               <input type="email" class="form-control" id="email" name="email" value="<%= typeof email != 'undefined' ? email : '' %>" required placeholder="tu@email.com">
-              <div class="invalid-feedback" id="email-feedback">Por favor ingresa un correo electrónico válido</div>
+              <div class="invalid-feedback d-none" id="email-feedback">Por favor ingresa un correo electrónico válido</div>
             </div>
           </div>
           <!-- elemento rol formulario -->
@@ -98,6 +98,15 @@
     const registerForm = document.getElementById('registerForm');
     let emailTimeout;
     
+    // Caché para almacenar resultados de verificación (evitar peticiones repetidas)
+    const emailCache = new Map();
+    // Bandera para controlar si estamos en período de cooldown
+    let isRateLimited = false;
+    let rateLimitResetTime = 0;
+    
+    // Ocultar el feedback por defecto
+    emailFeedback.classList.add('d-none');
+    
     // Comprobar si el correo ya existe cuando el usuario deja de escribir
     emailInput.addEventListener('input', function() {
       clearTimeout(emailTimeout);
@@ -105,52 +114,130 @@
       // Limpiar estados de validación cada vez que el usuario escribe
       emailInput.classList.remove('is-invalid');
       emailInput.classList.remove('is-valid');
+      emailFeedback.classList.add('d-none');
       
-      // Validar formato de correo electrónico
-      if (!emailInput.checkValidity()) {
-        emailInput.classList.add('is-invalid');
-        emailFeedback.textContent = 'Por favor ingresa un correo electrónico válido';
-        return;
+      // Validar solo si el campo no está vacío
+      if (emailInput.value.trim() !== '') {
+        // Validar formato de correo electrónico
+        if (!emailInput.checkValidity()) {
+          emailInput.classList.add('is-invalid');
+          emailFeedback.textContent = 'Por favor ingresa un correo electrónico válido';
+          emailFeedback.classList.remove('d-none');
+          return;
+        }
       }
       
-      // Esperar 500ms después de que el usuario deje de escribir
+      // Esperar 800ms después de que el usuario deje de escribir (debounce más largo)
       emailTimeout = setTimeout(async function() {
-        if (emailInput.value.trim() === '') return;
+        const email = emailInput.value.trim();
+        if (email === '') return;
+        
+        // Si estamos en rate-limit, no hacer la petición
+        if (isRateLimited) {
+          const waitTimeRemaining = Math.ceil((rateLimitResetTime - Date.now()) / 1000);
+          if (waitTimeRemaining > 0) {
+            console.log(`Esperando ${waitTimeRemaining}s antes de verificar email (límite de tasa)`);
+            return;
+          } else {
+            isRateLimited = false;
+          }
+        }
+        
+        // Verificar si este email ya está en nuestra caché
+        if (emailCache.has(email)) {
+          const cachedResult = emailCache.get(email);
+          handleEmailVerificationResult(cachedResult);
+          return;
+        }
         
         try {
           // Mostrar indicador de carga
           emailInput.classList.add('is-loading');
           
           // Consultar si el correo ya existe
-          const response = await fetch(`/api/check-email?email=${encodeURIComponent(emailInput.value)}`);
-          const data = await response.json();
+          const response = await fetch(`/api/check-email?email=${encodeURIComponent(email)}`);
           
-          // Validar resultado
-          if (data.exists) {
-            emailInput.classList.remove('is-valid'); // Asegurarse de quitar cualquier indicador de válido
-            emailInput.classList.add('is-invalid');
-            emailFeedback.textContent = 'Este correo electrónico ya está registrado';
-          } else {
+          if (response.ok) {
+            const data = await response.json();
+            // Guardar en caché para futuros usos
+            emailCache.set(email, data);
+            handleEmailVerificationResult(data);
+          } else if (response.status === 429) {
+            // Manejar límite de tasa (rate limit)
+            isRateLimited = true;
+            // Establecer un tiempo de espera de 40 segundos (un poco más que los 38 indicados)
+            rateLimitResetTime = Date.now() + 40000;
+            console.warn('Límite de verificaciones alcanzado, se reanudará en 40 segundos');
+            // Permitir al usuario continuar sin validación
             emailInput.classList.remove('is-invalid');
-            emailInput.classList.add('is-valid');
+          } else {
+            console.warn('No se pudo verificar el email, error de servidor:', response.status);
+            // No bloquear al usuario por problemas del servidor
+            emailInput.classList.remove('is-invalid');
           }
         } catch (error) {
           console.error('Error al verificar email:', error);
+          // No bloquear al usuario por problemas técnicos
+          emailInput.classList.remove('is-invalid');
         } finally {
           // Quitar indicador de carga
           emailInput.classList.remove('is-loading');
         }
-      }, 500);
+      }, 800);
     });
+    
+    // Función auxiliar para manejar el resultado de verificación de email
+    function handleEmailVerificationResult(data) {
+      if (data.exists && !data.uncertain) {
+        emailInput.classList.remove('is-valid');
+        emailInput.classList.add('is-invalid');
+        emailFeedback.textContent = 'Este correo electrónico ya está registrado';
+        emailFeedback.classList.remove('d-none');
+      } else {
+        // Considerar válido si no existe o si no estamos seguros
+        emailInput.classList.remove('is-invalid');
+        emailInput.classList.add('is-valid');
+        emailFeedback.classList.add('d-none');
+      }
+    }
     
     // Validar el formulario antes de enviarlo
     registerForm.addEventListener('submit', function(event) {
-      if (emailInput.classList.contains('is-invalid')) {
+      const email = emailInput.value.trim();
+      
+      // Validar si el email está vacío
+      if (email === '') {
         event.preventDefault();
         event.stopPropagation();
-        // Hacer scroll al elemento con error
+        emailInput.classList.add('is-invalid');
+        emailFeedback.textContent = 'Por favor ingresa un correo electrónico';
+        emailFeedback.classList.remove('d-none');
+        emailInput.focus();
+        return;
+      }
+      
+      // Validar formato básico de email
+      if (!emailInput.checkValidity()) {
+        event.preventDefault();
+        event.stopPropagation();
+        emailInput.classList.add('is-invalid');
+        emailFeedback.textContent = 'Por favor ingresa un correo electrónico válido';
+        emailFeedback.classList.remove('d-none');
+        emailInput.focus();
+        return;
+      }
+      
+      // Si el email está marcado como inválido por ya existir
+      if (emailInput.classList.contains('is-invalid') && 
+          emailFeedback.textContent.includes('ya está registrado')) {
+        event.preventDefault();
+        event.stopPropagation();
+        emailFeedback.classList.remove('d-none');
         emailInput.focus();
       }
+      
+      // Si estamos en rate-limit, permitir el envío incluso sin verificación
+      // El servidor hará una verificación final
     });
   });
 </script>
