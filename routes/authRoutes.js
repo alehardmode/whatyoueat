@@ -20,6 +20,12 @@ router.post('/forgot-password', isNotAuthenticated, authController.postForgotPas
 router.get('/reset-password/:token', isNotAuthenticated, authController.getResetPassword);
 router.post('/reset-password/:token', isNotAuthenticated, authController.postResetPassword);
 
+// Ruta para reenviar correo de confirmación
+router.post('/resend-confirmation', isAuthenticated, authController.resendConfirmation);
+
+// Ruta de callback para la confirmación de correo electrónico
+router.get('/callback', authController.handleAuthCallback);
+
 // Ruta protegida (requiere autenticación)
 // Ruta de cierre de sesión
 router.get('/logout', isAuthenticated, authController.logout);
