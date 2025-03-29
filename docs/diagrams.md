@@ -228,8 +228,9 @@ graph TD
     JS --> History[history.js]
     JS --> Main[main.js]
     JS --> Upload[upload.js]
-    JS --> ValForm[valForm/]
-    ValForm --> ContactFormVal[contactFormVal.js]
+    JS --> Validators[validators/]
+    Validators --> ContactFormValidator[contactFormValidator.js]
+    Validators --> RegisterFormValidator[registerFormValidator.js]
     
     Raiz --> Routes[routes/]
     Routes --> AuthRoutes[authRoutes.js]

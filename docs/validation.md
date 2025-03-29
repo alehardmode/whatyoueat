@@ -54,7 +54,7 @@ Se ha validado el código JavaScript utilizando ESLint con la configuración rec
 - **Archivos validados**:
   - `public/js/main.js`
   - `public/js/auth.js`
-  - `public/js/valForm/contactFormVal.js`
+  - `public/js/validators/contactFormValidator.js`
 - **Observaciones**: 
   - Código correctamente estructurado y documentado
   - Se han seguido las mejores prácticas para JavaScript moderno
