@@ -17,6 +17,7 @@
             <div class="input-group">
               <span class="input-group-text"><i class="fas fa-user"></i></span>
               <input type="text" class="form-control" id="name" name="name" value="<%= typeof name != 'undefined' ? name : '' %>" required placeholder="Tu nombre completo" autofocus>
+              <div class="invalid-feedback d-none">Por favor ingresa tu nombre completo</div>
             </div>
           </div>
           <!-- elemento email formulario -->
@@ -38,6 +39,7 @@
                 <option value="paciente" <%= typeof role != 'undefined' && role === 'paciente' ? 'selected' : '' %>>Paciente</option>
                 <option value="medico" <%= typeof role != 'undefined' && role === 'medico' ? 'selected' : '' %>>Médico</option>
               </select>
+              <div class="invalid-feedback d-none">Por favor selecciona un rol</div>
             </div>
             <div class="form-text">
               <i class="fas fa-info-circle me-1"></i> Los pacientes suben fotos de comidas, los médicos monitorean a pacientes
@@ -48,11 +50,12 @@
             <label for="password" class="form-label">Contraseña</label>
             <div class="input-group">
               <span class="input-group-text"><i class="fas fa-lock"></i></span>
-              <input type="password" class="form-control" id="password" name="password" required placeholder="Crea una contraseña segura">
+              <input type="password" class="form-control" id="password" name="password" required placeholder="Crea una contraseña segura" minlength="6">
               <!-- boton para mostrar contraseña -->
               <button class="btn btn-outline-secondary" type="button" id="togglePassword1" tabindex="-1" aria-label="Mostrar u ocultar contraseña">
                 <i class="fas fa-eye" id="toggleIcon1"></i>
               </button>
+              <div class="invalid-feedback d-none">La contraseña debe tener al menos 6 caracteres</div>
             </div>
             <div class="form-text">La contraseña debe tener al menos 6 caracteres</div>
           </div>
@@ -66,6 +69,7 @@
               <button class="btn btn-outline-secondary" type="button" id="togglePassword2" tabindex="-1" aria-label="Mostrar u ocultar contraseña">
                 <i class="fas fa-eye" id="toggleIcon2"></i>
               </button>
+              <div class="invalid-feedback d-none">Las contraseñas no coinciden</div>
             </div>
           </div>
           <!-- elemento checkbox formulario -->
@@ -74,6 +78,7 @@
             <label class="form-check-label" for="terms">
               Acepto los <a href="#">Términos de servicio</a> y la <a href="#">Política de privacidad</a>
             </label>
+            <div class="invalid-feedback d-none">Debes aceptar los términos para continuar</div>
           </div>
           <!-- enlace a nuevo registro -->
           <div class="d-grid gap-2 mb-4">
@@ -91,153 +96,6 @@
   </div>
 </div>
 
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    const emailInput = document.getElementById('email');
-    const emailFeedback = document.getElementById('email-feedback');
-    const registerForm = document.getElementById('registerForm');
-    let emailTimeout;
-    
-    // Caché para almacenar resultados de verificación (evitar peticiones repetidas)
-    const emailCache = new Map();
-    // Bandera para controlar si estamos en período de cooldown
-    let isRateLimited = false;
-    let rateLimitResetTime = 0;
-    
-    // Ocultar el feedback por defecto
-    emailFeedback.classList.add('d-none');
-    
-    // Comprobar si el correo ya existe cuando el usuario deja de escribir
-    emailInput.addEventListener('input', function() {
-      clearTimeout(emailTimeout);
-      
-      // Limpiar estados de validación cada vez que el usuario escribe
-      emailInput.classList.remove('is-invalid');
-      emailInput.classList.remove('is-valid');
-      emailFeedback.classList.add('d-none');
-      
-      // Validar solo si el campo no está vacío
-      if (emailInput.value.trim() !== '') {
-        // Validar formato de correo electrónico
-        if (!emailInput.checkValidity()) {
-          emailInput.classList.add('is-invalid');
-          emailFeedback.textContent = 'Por favor ingresa un correo electrónico válido';
-          emailFeedback.classList.remove('d-none');
-          return;
-        }
-      }
-      
-      // Esperar 800ms después de que el usuario deje de escribir (debounce más largo)
-      emailTimeout = setTimeout(async function() {
-        const email = emailInput.value.trim();
-        if (email === '') return;
-        
-        // Si estamos en rate-limit, no hacer la petición
-        if (isRateLimited) {
-          const waitTimeRemaining = Math.ceil((rateLimitResetTime - Date.now()) / 1000);
-          if (waitTimeRemaining > 0) {
-            console.log(`Esperando ${waitTimeRemaining}s antes de verificar email (límite de tasa)`);
-            return;
-          } else {
-            isRateLimited = false;
-          }
-        }
-        
-        // Verificar si este email ya está en nuestra caché
-        if (emailCache.has(email)) {
-          const cachedResult = emailCache.get(email);
-          handleEmailVerificationResult(cachedResult);
-          return;
-        }
-        
-        try {
-          // Mostrar indicador de carga
-          emailInput.classList.add('is-loading');
-          
-          // Consultar si el correo ya existe
-          const response = await fetch(`/api/check-email?email=${encodeURIComponent(email)}`);
-          
-          if (response.ok) {
-            const data = await response.json();
-            // Guardar en caché para futuros usos
-            emailCache.set(email, data);
-            handleEmailVerificationResult(data);
-          } else if (response.status === 429) {
-            // Manejar límite de tasa (rate limit)
-            isRateLimited = true;
-            // Establecer un tiempo de espera de 40 segundos (un poco más que los 38 indicados)
-            rateLimitResetTime = Date.now() + 40000;
-            console.warn('Límite de verificaciones alcanzado, se reanudará en 40 segundos');
-            // Permitir al usuario continuar sin validación
-            emailInput.classList.remove('is-invalid');
-          } else {
-            console.warn('No se pudo verificar el email, error de servidor:', response.status);
-            // No bloquear al usuario por problemas del servidor
-            emailInput.classList.remove('is-invalid');
-          }
-        } catch (error) {
-          console.error('Error al verificar email:', error);
-          // No bloquear al usuario por problemas técnicos
-          emailInput.classList.remove('is-invalid');
-        } finally {
-          // Quitar indicador de carga
-          emailInput.classList.remove('is-loading');
-        }
-      }, 800);
-    });
-    
-    // Función auxiliar para manejar el resultado de verificación de email
-    function handleEmailVerificationResult(data) {
-      if (data.exists && !data.uncertain) {
-        emailInput.classList.remove('is-valid');
-        emailInput.classList.add('is-invalid');
-        emailFeedback.textContent = 'Este correo electrónico ya está registrado';
-        emailFeedback.classList.remove('d-none');
-      } else {
-        // Considerar válido si no existe o si no estamos seguros
-        emailInput.classList.remove('is-invalid');
-        emailInput.classList.add('is-valid');
-        emailFeedback.classList.add('d-none');
-      }
-    }
-    
-    // Validar el formulario antes de enviarlo
-    registerForm.addEventListener('submit', function(event) {
-      const email = emailInput.value.trim();
-      
-      // Validar si el email está vacío
-      if (email === '') {
-        event.preventDefault();
-        event.stopPropagation();
-        emailInput.classList.add('is-invalid');
-        emailFeedback.textContent = 'Por favor ingresa un correo electrónico';
-        emailFeedback.classList.remove('d-none');
-        emailInput.focus();
-        return;
-      }
-      
-      // Validar formato básico de email
-      if (!emailInput.checkValidity()) {
-        event.preventDefault();
-        event.stopPropagation();
-        emailInput.classList.add('is-invalid');
-        emailFeedback.textContent = 'Por favor ingresa un correo electrónico válido';
-        emailFeedback.classList.remove('d-none');
-        emailInput.focus();
-        return;
-      }
-      
-      // Si el email está marcado como inválido por ya existir
-      if (emailInput.classList.contains('is-invalid') && 
-          emailFeedback.textContent.includes('ya está registrado')) {
-        event.preventDefault();
-        event.stopPropagation();
-        emailFeedback.classList.remove('d-none');
-        emailInput.focus();
-      }
-      
-      // Si estamos en rate-limit, permitir el envío incluso sin verificación
-      // El servidor hará una verificación final
-    });
-  });
-</script>
+<!-- Incluir scripts necesarios -->
+<script src="/js/auth.js"></script>
+<script src="/js/validators/registerFormValidator.js"></script>
