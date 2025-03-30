@@ -54,7 +54,20 @@ app.use(
 // Middlewares para parseo de datos
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(methodOverride('_method'));
+// Configuración mejorada de method-override para soportar _method en body, query o headers
+app.use(methodOverride(function (req, res) {
+  if (req.body && typeof req.body === 'object' && '_method' in req.body) {
+    // Guardar el método original
+    const method = req.body._method;
+    // Eliminar _method del body para no interferir con otras operaciones
+    delete req.body._method;
+    return method;
+  }
+  // También comprobar en query params
+  if (req.query && '_method' in req.query) {
+    return req.query._method;
+  }
+}));
 
 // Middleware para CORS
 app.use(cors({
@@ -64,6 +77,14 @@ app.use(cors({
 
 // Logging
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
+
+// Middleware de depuración para method-override
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`[DEBUG] Método HTTP: ${req.method}, Ruta: ${req.path}`);
+  }
+  next();
+});
 
 // Middleware para subida de archivos
 app.use(fileUpload({

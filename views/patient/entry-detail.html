@@ -97,9 +97,13 @@
               <a href="/patient/entry/<%= entry.id %>/edit" class="btn btn-primary">
                 <i class="fas fa-edit me-1"></i>Editar
               </a>
-              <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
-                <i class="fas fa-trash-alt me-1"></i>Eliminar
-              </button>
+              <!-- Botón de eliminar entrada -->
+              <form action="/patient/entry/<%= entry.id %>" method="POST" class="d-inline" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta entrada de alimento? Esta acción no se puede deshacer.')">
+                <input type="hidden" name="_method" value="DELETE">
+                <button type="submit" class="btn btn-danger" id="deleteButton">
+                  <i class="fas fa-trash-alt me-1"></i>Eliminar
+                </button>
+              </form>
             </div>
           </div>
         </div>
@@ -107,27 +111,6 @@
       <div class="card-footer bg-white">
         <a href="/patient/history" class="btn btn-secondary">
           <i class="fas fa-arrow-left me-1"></i>Volver al Historial
-        </a>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal de confirmación para eliminar -->
-<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header bg-danger text-white">
-        <h5 class="modal-title" id="deleteModalLabel">¿Eliminar esta entrada?</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <p>¿Estás seguro de que deseas eliminar esta entrada? Esta acción no se puede deshacer.</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <a href="/patient/entry/<%= entry.id %>/delete" class="btn btn-danger">
-          <i class="fas fa-trash-alt me-1"></i>Eliminar
         </a>
       </div>
     </div>
