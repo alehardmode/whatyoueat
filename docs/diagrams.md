@@ -220,7 +220,7 @@ graph TD
     CSS --> Styles[styles.css]
     Public --> Img[img/]
     Img --> EmptyPlate[empty-plate.svg]
-    Img --> HeroImage[hero-image.png]
+    Img --> HeroImage[hero.webp]
     Img --> Logo[logo.webp]
     Public --> JS[js/]
     JS --> Auth[auth.js]
