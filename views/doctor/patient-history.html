@@ -69,8 +69,15 @@
         <div class="col-md-6 col-lg-4 mb-4 animate-on-scroll">
           <div class="card h-100 shadow border-0 entry-card">
             <div class="card-img-container" style="height: 200px; overflow: hidden;">
-              <img src="<%= entry.image_url %>" class="card-img-top" alt="Imagen de comida" 
-                   style="object-fit: cover; height: 100%; width: 100%;">
+              <img 
+                src="<%= entry.image_url %>" 
+                class="card-img-top" 
+                alt="Imagen de comida"
+                decoding="async"
+                fetchpriority="high"
+                style="width: 100%; height: 100%; object-fit: cover;"
+                onerror="this.onerror=null; this.src='/img/empty-plate.svg'; this.style.padding='10px';"
+              >
             </div>
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-center mb-3">

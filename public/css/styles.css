@@ -118,7 +118,7 @@ a:hover {
 }
 
 .btn:hover {
-  transform: translateY(-1px);
+  /* transform: translateY(-1px); */ /* Removed transform */
   box-shadow: var(--shadow);
 }
 
@@ -202,7 +202,7 @@ a:hover {
 
 .card:hover {
   box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+  /* transform: translateY(-2px); */ /* Removed transform */
 }
 
 /* Secciones */
@@ -244,51 +244,98 @@ section {
 
 /* Validación de formularios */
 .is-valid {
-  border-color: var(--secondary);
+  border-color: var(--secondary) !important;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='%2310b981' d='M2.3 6.73L.6 4.53c-.4-1.04.46-1.4 1.1-.8l1.1 1.4 3.4-3.8c.6-.63 1.6-.27 1.2.7l-4 4.6c-.43.5-.8.4-1.1.1z'/%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right calc(0.375em + 0.1875rem) center !important;
+  background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem) !important;
+  padding-right: calc(1.5em + 0.75rem) !important;
 }
 
 .is-invalid {
-  border-color: var(--danger);
+  border-color: var(--danger) !important;
+  border-width: 2px !important;
+  background-color: rgba(239, 68, 68, 0.05) !important;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12' width='12' height='12' fill='none' stroke='%23ef4444'%3e%3ccircle cx='6' cy='6' r='4.5'/%3e%3cpath stroke-linejoin='round' d='M5.8 3.6h.4L6 6.5z'/%3e%3ccircle cx='6' cy='8.2' r='.6' fill='%23ef4444' stroke='none'/%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right calc(0.375em + 0.1875rem) center !important;
+  background-size: calc(0.75em + 0.375rem) calc(0.75em + 0.375rem) !important;
+  padding-right: calc(1.5em + 0.75rem) !important;
+}
+
+.invalid-feedback {
+  display: block !important;
+  width: 100%;
+  margin-top: 0.25rem;
+  font-size: 0.875em;
+  color: var(--danger);
+  font-weight: 500;
 }
 
 /* Estilos para las alertas */
 .alert {
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   position: relative;
-  opacity: 1;
-  transition: opacity 0.3s ease;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  animation: fadeIn 0.3s ease-in-out;
+  transition: opacity 0.3s ease-in-out;
 }
 
 .alert-dismissible {
-  padding-right: 3rem;
+  padding-right: 4rem;
 }
 
 .alert .btn-close {
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: 0.85rem;
+  right: 1rem;
+  background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e") center/1em auto no-repeat;
+  border: 0;
+  font-size: 1rem;
   cursor: pointer;
-  opacity: 0.7;
+  padding: 0.3rem;
+  width: 1rem;
+  height: 1rem;
+  color: rgba(0, 0, 0, 0.7);
+  opacity: 0.8;
 }
 
 .alert .btn-close:hover {
   opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Alertas persistentes */
+.persistent-alert {
+  border-left-width: 4px;
+}
+
+.persistent-alert.alert-warning {
+  border-left-color: #f8c146;
+}
+
+.persistent-alert.alert-info {
+  border-left-color: #0dcaf0;
+}
+
+.persistent-alert.alert-success {
+  border-left-color: #20c997;
+}
+
+.persistent-alert.alert-danger {
+  border-left-color: #dc3545;
 }
 
 .flash-messages {
-  position: relative;
-  z-index: 1000;
+  margin-bottom: 1.5rem;
 }
 
-/* Animación para alertas */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.alert-success, .alert-danger, .alert-warning, .alert-info {
-  animation: fadeIn 0.3s ease forwards;
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 /* Spinner de carga */
@@ -400,7 +447,7 @@ section {
 }
 
 .food-entry-card:hover {
-  transform: translateY(-4px);
+  /* transform: translateY(-4px); */ /* Removed transform */
   box-shadow: var(--shadow-lg);
 }
 
@@ -449,13 +496,15 @@ li {
 }
 
 .entry-card:hover {
-  transform: translateY(-5px);
+  /* transform: translateY(-5px); */ /* Removed transform */
   box-shadow: 0 10px 20px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06) !important;
 }
 
+/* 
 .entry-card:hover .card-img-container img {
-  transform: scale(1.05);
+transform: scale(1.05); 
 }
+*/ /* Removed transform */
 
 .entry-card:hover .image-overlay {
   background: rgba(0,0,0,0.3);
@@ -487,7 +536,7 @@ li {
 /* Animación suave para carga de imágenes */
 .card-img-top {
   opacity: 1;
-  animation: fadeIn 0.5s;
+  /* animation: fadeIn 0.5s; */ /* Removed animation */
 }
 
 @keyframes fadeIn {
@@ -502,7 +551,7 @@ li {
 }
 
 .img-fluid.rounded:hover {
-  transform: scale(1.02);
+  /* transform: scale(1.02); */ /* Removed transform */
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
 }
 
@@ -567,13 +616,7 @@ li {
   box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
 }
 
-/* Prevenir cualquier manipulación del modal por JavaScript de terceros */
-.modal,
-.modal-dialog,
-.modal-backdrop {
-  /* Sobrescribir solo lo esencial */
-  transition: opacity 0.15s linear !important;
-}
+/* Removed conflicting modal transition override */
 
 /* Estilo para la sección de información detallada */
 #informacion-detallada {
@@ -589,4 +632,13 @@ li {
 /* Efecto de desplazamiento suave para toda la página */
 html {
   scroll-behavior: smooth;
+}
+
+/* Estilos para el indicador de carga */
+.is-loading {
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid"><circle cx="50" cy="50" fill="none" stroke="%236f42c1" stroke-width="10" r="35" stroke-dasharray="164.93361431346415 56.97787143782138"><animateTransform attributeName="transform" type="rotate" repeatCount="indefinite" dur="1s" values="0 50 50;360 50 50" keyTimes="0;1"></animateTransform></circle></svg>');
+  background-position: right 10px center;
+  background-repeat: no-repeat;
+  background-size: 20px;
+  transition: background 0.3s ease-in-out;
 }

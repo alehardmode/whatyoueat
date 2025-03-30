@@ -1,108 +1,186 @@
-// Script para manejar la subida de fotos
-console.log('Upload.js se está cargando');
+// Script para manejar la subida de fotos de manera optimizada
+console.log('Upload.js cargado (versión optimizada)');
+
+// Función para manejar la redirección después de la subida
+function handleSuccessfulUpload() {
+  // Detectar errores de redirección SSL
+  const useForm = true; // Cambiar a true para usar envío de formulario tradicional
+
+  if (useForm) {
+    // Crear un formulario invisible y enviarlo (método más compatible)
+    console.log('Redireccionando mediante formulario tradicional...');
+    const form = document.createElement('form');
+    form.method = 'GET';
+    form.action = '/patient/dashboard';
+    document.body.appendChild(form);
+    form.submit();
+  } else {
+    // Usar redirección segura con timeout
+    try {
+      console.log('Redireccionando vía location.replace...');
+      setTimeout(() => {
+        // Forzar HTTP en lugar de HTTPS para evitar SSL_PROTOCOL_ERROR
+        const currentUrl = window.location.href;
+        const baseUrl = currentUrl.split('/').slice(0, 3).join('/');
+        const dashboardUrl = baseUrl + '/patient/dashboard';
+        
+        // Usar protocolo relativo para evitar mezcla HTTP/HTTPS
+        const relativeUrl = dashboardUrl.replace(/^https?:/, '');
+        window.location.replace(relativeUrl);
+      }, 800); // Aumentar tiempo de espera
+    } catch (error) {
+      console.error('Error en redirección:', error);
+      alert('Imagen subida correctamente. Por favor, regresa manualmente al dashboard.');
+    }
+  }
+}
 
 // Función de inicialización que se ejecutará cuando el DOM esté listo
 function initUploadFunctions() {
   console.log('Script de subida cargado e inicializado correctamente');
-  
-  // Asegurar que las alertas no se cierran automáticamente
-  const disableAutoClose = function() {
-    // Buscar todas las alertas con clase .alert
-    document.querySelectorAll('.alert').forEach(alert => {
-      // Eliminar clases que podrían hacer que se cierre automáticamente
-      alert.classList.remove('fade', 'show');
-      
-      // Asegurar que tenga la clase custom-alert
-      alert.classList.add('custom-alert');
-      
-      // Configurar los botones de cierre para cerrar manualmente
-      const allCloseButtons = alert.querySelectorAll('.btn-close, .alert-close');
-      allCloseButtons.forEach(button => {
-        // Evitar múltiples event listeners
-        if (!button.hasAttribute('data-manual-close-configured')) {
-          button.setAttribute('data-manual-close-configured', 'true');
-          
-          // Añadir evento click para cerrar manualmente
-          button.addEventListener('click', function() {
-            const parentAlert = this.closest('.alert');
-            if (parentAlert) {
-              // Animación suave de cierre
-              parentAlert.style.opacity = '0';
-              parentAlert.style.transition = 'opacity 0.3s ease';
-              
-              // Ocultar después de la transición
-              setTimeout(() => {
-                parentAlert.style.display = 'none';
-              }, 300);
-            }
-          });
-        }
-      });
+
+  // Configurar el cierre de alertas
+  document.querySelectorAll('.alert-close').forEach(button => {
+    console.log('Botón de cierre de alerta encontrado');
+    button.addEventListener('click', function() {
+      console.log('Clic en botón de cierre de alerta');
+      const alert = this.closest('.alert');
+      if (alert) {
+        alert.style.opacity = '0';
+        setTimeout(() => {
+          alert.remove();
+        }, 300);
+      }
     });
-  };
-  
-  // Ejecutar al inicio
-  disableAutoClose();
-  
-  // También ejecutar después de un pequeño retraso para asegurar que funciona después de que Bootstrap inicialice
-  setTimeout(disableAutoClose, 500);
-  
+  });
+
   // Manejar la vista previa de la imagen
-  const photoInput = document.getElementById('photo');
+  const photoInput = document.getElementById('food_photo');
   const preview = document.getElementById('preview');
   const previewContainer = document.getElementById('previewContainer');
-  
+
   if (photoInput && preview && previewContainer) {
     console.log('Input de foto encontrado');
-    
-    // Evitar múltiples event listeners
     if (!photoInput.hasAttribute('data-preview-configured')) {
       photoInput.setAttribute('data-preview-configured', 'true');
-      
       photoInput.addEventListener('change', function(e) {
         console.log('Cambio detectado en input de foto');
         const file = this.files[0];
         if (file) {
+          console.log('Archivo seleccionado:', file.name, 'Tamaño:', file.size, 'Tipo:', file.type);
+          
+          // Validar que sea una imagen
+          if (!file.type.startsWith('image/')) {
+            console.error('El archivo no es una imagen válida');
+            const errorMsg = document.getElementById('photo-error');
+            if (errorMsg) {
+              errorMsg.textContent = 'Por favor, selecciona un archivo de imagen válido (jpg, png, etc.)';
+              errorMsg.style.display = 'block';
+            }
+            photoInput.value = '';
+            return;
+          }
+          
+          // Validar tamaño máximo (10MB)
+          const maxSize = 10 * 1024 * 1024;
+          if (file.size > maxSize) {
+            console.error('El archivo excede el tamaño máximo permitido');
+            const errorMsg = document.getElementById('photo-error');
+            if (errorMsg) {
+              errorMsg.textContent = 'La imagen es demasiado grande. El tamaño máximo es 10MB.';
+              errorMsg.style.display = 'block';
+            }
+            photoInput.value = '';
+            return;
+          }
+          
+          // Mostrar vista previa
           const reader = new FileReader();
           reader.onload = function(e) {
             preview.src = e.target.result;
             previewContainer.classList.remove('d-none');
-            previewContainer.style.display = 'block';
+          }
+          reader.onerror = function() {
+            console.error('Error al leer el archivo');
+            const errorMsg = document.getElementById('photo-error');
+            if (errorMsg) {
+              errorMsg.textContent = 'Error al procesar la imagen. Inténtalo con otra imagen.';
+              errorMsg.style.display = 'block';
+            }
           }
           reader.readAsDataURL(file);
+        } else {
+          // Ocultar preview si se deselecciona el archivo
+          preview.src = '#';
+          previewContainer.classList.add('d-none');
         }
       });
     }
   } else {
-    console.log('ADVERTENCIA: Algún elemento necesario para la vista previa no fue encontrado');
+    console.log('ADVERTENCIA: Elementos para vista previa no encontrados');
   }
-  
-  // Manejar el botón cancelar
-  const cancelButton = document.getElementById('cancelButton');
-  if (cancelButton) {
-    console.log('Botón cancelar encontrado');
-    
-    // Evitar múltiples event listeners
-    if (!cancelButton.hasAttribute('data-configured')) {
-      cancelButton.setAttribute('data-configured', 'true');
-      
-      cancelButton.addEventListener('click', function(e) {
-        console.log('Clic en botón cancelar');
-        e.preventDefault();
-        const destination = this.getAttribute('href');
-        window.location.href = destination;
+
+  // Configurar validación del formulario
+  const uploadForm = document.getElementById('uploadForm');
+  if (uploadForm) {
+    console.log('Formulario de subida encontrado');
+    if (!uploadForm.hasAttribute('data-form-configured')) {
+      uploadForm.setAttribute('data-form-configured', 'true');
+      uploadForm.addEventListener('submit', async function(e) {
+        // No prevenir envío para permitir que el backend procese la imagen
+        
+        let isValid = true;
+        
+        // Validar archivo de foto
+        const photoInput = document.getElementById('food_photo');
+        if (!photoInput || !photoInput.files || photoInput.files.length === 0) {
+          isValid = false;
+          const errorMsg = document.getElementById('photo-error');
+          if (errorMsg) {
+            errorMsg.textContent = 'Por favor, selecciona una imagen';
+            errorMsg.style.display = 'block';
+          }
+        }
+        
+        // Validar nombre de la comida
+        const foodName = document.getElementById('foodName');
+        if (!foodName || !foodName.value.trim()) {
+          isValid = false;
+          const errorMsg = document.getElementById('foodName-error');
+          if (errorMsg) {
+            errorMsg.textContent = 'Por favor, indica el nombre de la comida';
+            errorMsg.style.display = 'block';
+          }
+        }
+        
+        // Validar descripción
+        const description = document.getElementById('description');
+        if (!description || !description.value.trim()) {
+          isValid = false;
+          const errorMsg = document.getElementById('description-error');
+          if (errorMsg) {
+            errorMsg.textContent = 'Por favor, añade una descripción de la comida';
+            errorMsg.style.display = 'block';
+          }
+        }
+        
+        if (!isValid) {
+          e.preventDefault(); // Solo prevenir envío si hay error de validación
+          return;
+        }
+        
+        // Mostrar indicador de carga en el botón
+        const submitBtn = uploadForm.querySelector('button[type="submit"]');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Subiendo...';
+        }
       });
     }
   } else {
-    console.log('ADVERTENCIA: Botón cancelar no encontrado');
+    console.log('ERROR: Formulario de subida no encontrado');
   }
 }
 
-// Intentar inicializar cuando el DOM esté listo
+// Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', initUploadFunctions);
-
-// Backup: Si la página ya está cargada cuando este script se ejecuta
-if (document.readyState === 'complete') {
-  console.log('Documento ya cargado, inicializando inmediatamente');
-  initUploadFunctions();
-} 

@@ -14,6 +14,24 @@
     </div>
   </div>
 
+  <!-- Resumen de comidas registradas -->
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <div class="card bg-light">
+        <div class="card-body d-flex justify-content-between align-items-center">
+          <div>
+            <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Comidas registradas: <span class="badge bg-primary"><%= pagination.totalEntries || 0 %></span></h5>
+          </div>
+          <div>
+            <a href="/patient/upload" class="btn btn-success btn-sm">
+              <i class="fas fa-plus-circle me-1"></i>Registrar nueva comida
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Filtros de búsqueda -->
   <div class="card shadow mb-4">
     <div class="card-body">
@@ -51,37 +69,33 @@
           <div class="card h-100 shadow-sm food-entry-card">
             <div class="card-img-container" style="height: 200px; overflow: hidden; position: relative; background-color: #f8f9fa;">
               <img 
-                src="<%= entry.image_url %>" 
-                class="card-img-top" 
-                alt="Foto de comida" 
-                style="width: 100%; height: 100%; object-fit: cover;"
-                onerror="this.onerror=null; this.src='/img/empty-plate.svg'; this.alt='Imagen no disponible'; console.error('Error al cargar imagen:', this.src); this.style.padding = '20px';"
-                onload="this.parentElement.querySelector('.loading-indicator')?.remove();"
+                src="/img/empty-plate.svg"
+                data-src="<%= entry.image_url || entry.image_data || '/img/empty-plate.svg' %>"
+                class="card-img-top lazy-image" 
+                alt="<%= entry.name || 'Foto de comida' %>" 
+                fetchpriority="high"
+                decoding="async"
+                onerror="this.onerror=null; this.src='/img/empty-plate.svg'; this.alt='Imagen no disponible'; this.style.padding = '20px';"
               >
-              <!-- Indicador de carga -->
-              <div class="loading-indicator" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                <div class="spinner-border text-primary" role="status">
-                  <span class="visually-hidden">Cargando...</span>
-                </div>
-              </div>
             </div>
             <div class="card-body">
-              <h5 class="card-title">Entrada #<%= entry.entryNumber || index + 1 %></h5>
-              <p class="card-text text-muted small">
-                <i class="fas fa-calendar-alt"></i> 
-                <%= new Date(entry.created_at).toLocaleDateString('es-ES', { 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                }) %>
-              </p>
+              <h5 class="card-title"><%= entry.name || 'Comida sin nombre' %></h5>
+              <div class="d-flex justify-content-between mb-2">
+                <span class="badge bg-info"><%= entry.meal_type || 'Otro' %></span>
+                <small class="text-muted">
+                  <i class="fas fa-calendar-alt"></i> 
+                  <%= new Date(entry.meal_date || entry.created_at).toLocaleDateString('es-ES', { 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric'
+                  }) %>
+                </small>
+              </div>
               <p class="card-text">
-                <% if (entry.comments && entry.comments.length > 50) { %>
-                  <%= entry.comments.substring(0, 50) %>...
+                <% if (entry.description && entry.description.length > 50) { %>
+                  <%= entry.description.substring(0, 50) %>...
                 <% } else { %>
-                  <%= entry.comments || 'Sin comentarios' %>
+                  <%= entry.description || 'Sin descripción' %>
                 <% } %>
               </p>
               <a href="/patient/entry/<%= entry.id %>" class="btn btn-sm btn-primary">Ver detalles</a>
@@ -105,54 +119,183 @@
     <% } %>
   </div>
 
-  <!-- Paginación -->
-  <% if (totalPages > 1) { %>
-    <div class="row">
-      <div class="col-12">
+  <!-- Paginación y resumen de registros -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="text-center mt-2 text-muted">
+        <p>
+          <i class="fas fa-info-circle me-1"></i>
+          <% if (pagination.totalEntries > 0) { %>
+            Mostrando comidas <%= pagination.offset + 1 %> a <%= Math.min(pagination.offset + pagination.limit, pagination.totalEntries) %> de <%= pagination.totalEntries %> entradas
+          <% } else { %>
+            No hay comidas registradas
+          <% } %>
+        </p>
+      </div>
+      
+      <% if (pagination.totalPages > 1) { %>
         <nav aria-label="Paginación de historial">
           <ul class="pagination justify-content-center">
             <!-- Botón anterior -->
-            <li class="page-item <%= currentPage <= 1 ? 'disabled' : '' %>">
-              <a class="page-link" href="/patient/history?page=<%= currentPage - 1 %>" tabindex="-1" aria-disabled="<%= currentPage <= 1 %>">
+            <li class="page-item <%= pagination.currentPage <= 1 ? 'disabled' : '' %>">
+              <a class="page-link" href="/patient/history?page=<%= pagination.currentPage - 1 %><%= filters.date_from ? '&date_from='+filters.date_from : '' %><%= filters.date_to ? '&date_to='+filters.date_to : '' %>" tabindex="-1" aria-disabled="<%= pagination.currentPage <= 1 %>">
                 <i class="fas fa-chevron-left"></i> Anterior
               </a>
             </li>
             
             <!-- Páginas -->
-            <% for(let i = 1; i <= totalPages; i++) { %>
-              <li class="page-item <%= currentPage == i ? 'active' : '' %>">
-                <a class="page-link" href="/patient/history?page=<%= i %>"><%= i %></a>
+            <% for(let i = 1; i <= pagination.totalPages; i++) { %>
+              <li class="page-item <%= pagination.currentPage == i ? 'active' : '' %>">
+                <a class="page-link" href="/patient/history?page=<%= i %><%= filters.date_from ? '&date_from='+filters.date_from : '' %><%= filters.date_to ? '&date_to='+filters.date_to : '' %>"><%= i %></a>
               </li>
             <% } %>
             
             <!-- Botón siguiente -->
-            <li class="page-item <%= currentPage >= totalPages ? 'disabled' : '' %>">
-              <a class="page-link" href="/patient/history?page=<%= currentPage + 1 %>" aria-disabled="<%= currentPage >= totalPages %>">
+            <li class="page-item <%= pagination.currentPage >= pagination.totalPages ? 'disabled' : '' %>">
+              <a class="page-link" href="/patient/history?page=<%= pagination.currentPage + 1 %><%= filters.date_from ? '&date_from='+filters.date_from : '' %><%= filters.date_to ? '&date_to='+filters.date_to : '' %>" aria-disabled="<%= pagination.currentPage >= pagination.totalPages %>">
                 Siguiente <i class="fas fa-chevron-right"></i>
               </a>
             </li>
           </ul>
         </nav>
-      </div>
+      <% } %>
     </div>
-  <% } %>
+  </div>
 </div>
 
+<!-- Estilo para efecto de carga de imágenes -->
+<style>
+  .lazy-image {
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+  }
+  .lazy-image.loaded {
+    opacity: 1;
+  }
+</style>
+
+<!-- Script para implementar lazy loading avanzado y optimizado -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    // Iniciar precarga de imágenes
-    const images = document.querySelectorAll('.card-img-top');
-    images.forEach(img => {
-      // Solo para imágenes que aún no están cargadas
-      if (!img.complete) {
-        img.addEventListener('error', function() {
-          console.error('Error al cargar imagen:', img.src);
-        });
-      } else {
-        // Quitar indicador de carga si ya está cargada
-        const loadingIndicator = img.parentElement.querySelector('.loading-indicator');
-        if (loadingIndicator) loadingIndicator.remove();
+    // Cola de imágenes para cargar secuencialmente
+    const loadQueue = [];
+    let isLoading = false;
+    
+    // Función para procesar la cola de carga
+    function processQueue() {
+      if (loadQueue.length === 0 || isLoading) return;
+      
+      isLoading = true;
+      const nextImg = loadQueue.shift();
+      if (!nextImg) {
+        isLoading = false;
+        return;
       }
+      
+      const img = nextImg.element;
+      const src = nextImg.src;
+      
+      const newImg = new Image();
+      
+      newImg.onload = function() {
+        img.src = src;
+        img.classList.add('loaded');
+        
+        // Continuar con la siguiente imagen en la cola
+        isLoading = false;
+        setTimeout(processQueue, 50); // Pequeño retraso para evitar bloqueos
+      };
+      
+      newImg.onerror = function() {
+        // Error: mostrar imagen por defecto
+        img.src = '/img/empty-plate.svg';
+        img.style.padding = '20px';
+        img.classList.add('loaded');
+        
+        // Continuar con la siguiente imagen
+        isLoading = false;
+        setTimeout(processQueue, 50);
+      };
+      
+      // Iniciar carga de la imagen
+      newImg.src = src;
+    }
+    
+    // Agregar imagen a la cola de carga
+    function queueImageLoad(imgElement, src) {
+      // Solo agregar a la cola si no está ya cargada
+      loadQueue.push({ element: imgElement, src: src });
+      processQueue(); // Intentar procesar la cola
+    }
+    
+    // Implementación de IntersectionObserver para lazy loading
+    const imageObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        // Solo procesar elementos visibles
+        if (!entry.isIntersecting) return;
+        
+        const img = entry.target;
+        const src = img.getAttribute('data-src');
+        
+        // Si hay un src y no es la imagen por defecto, cargar imagen
+        if (src && src !== '/img/empty-plate.svg') {
+          queueImageLoad(img, src);
+        } else {
+          // Si es la imagen por defecto, mostrarla directamente
+          img.classList.add('loaded');
+        }
+        
+        // Dejar de observar una vez cargada
+        observer.unobserve(img);
+      });
+    }, {
+      rootMargin: '100px 0px', // Margen para precargar cuando se acerca al viewport
+      threshold: 0.1 // 10% visible es suficiente para iniciar carga
     });
+    
+    // Observar todas las imágenes con clase lazy-image
+    document.querySelectorAll('img.lazy-image').forEach(img => {
+      imageObserver.observe(img);
+    });
+    
+    // Fallback para navegadores sin soporte para IntersectionObserver
+    if (!('IntersectionObserver' in window)) {
+      console.log('IntersectionObserver no soportado, usando fallback');
+      const lazyImages = Array.from(document.querySelectorAll('img.lazy-image'));
+      
+      function lazyLoad() {
+        if (lazyImages.length === 0) {
+          document.removeEventListener('scroll', throttledLazyLoad);
+          window.removeEventListener('resize', throttledLazyLoad);
+          return;
+        }
+        
+        for (let i = 0; i < lazyImages.length; i++) {
+          const img = lazyImages[i];
+          const src = img.getAttribute('data-src');
+          
+          if (src && src !== '/img/empty-plate.svg') {
+            img.src = src;
+          }
+          
+          // Eliminar esta imagen de la lista
+          lazyImages.splice(i, 1);
+          i--; // Ajustar índice
+          
+          img.classList.add('loaded');
+        }
+      }
+      
+      // Throttle para evitar demasiadas ejecuciones durante scroll
+      let throttleTimeout;
+      const throttledLazyLoad = function() {
+        if (throttleTimeout) clearTimeout(throttleTimeout);
+        throttleTimeout = setTimeout(lazyLoad, 200);
+      };
+      
+      document.addEventListener('scroll', throttledLazyLoad);
+      window.addEventListener('resize', throttledLazyLoad);
+      throttledLazyLoad(); // Ejecutar una vez al cargar
+    }
   });
-</script> 
+</script>

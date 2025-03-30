@@ -1,6 +1,7 @@
 const Profile = require('../models/Profile');
 const FoodEntry = require('../models/FoodEntry');
 const DoctorPatient = require('../models/DoctorPatient');
+const { checkSupabaseConnection } = require('../config/supabase');
 const moment = require('moment');
 
 // Mostrar dashboard del médico
@@ -19,7 +20,8 @@ exports.getDashboard = async (req, res) => {
       title: 'Dashboard del Médico',
       user: req.session.user,
       patients: result.patients,
-      moment
+      moment,
+      emailConfirmed: req.session.emailConfirmed
     });
   } catch (error) {
     console.error('Error al cargar dashboard:', error);
@@ -27,7 +29,8 @@ exports.getDashboard = async (req, res) => {
       title: 'Dashboard del Médico',
       user: req.session.user,
       patients: [],
-      error: 'Error al cargar la información del dashboard'
+      error: 'Error al cargar la información del dashboard',
+      emailConfirmed: req.session.emailConfirmed
     });
   }
 };
@@ -136,6 +139,16 @@ exports.getPatientHistory = async (req, res) => {
     const page = parseInt(pageParam) || 1;
     const limit = parseInt(req.query.limit) || 10;
     
+    // Verificar la conexión a Supabase primero
+    const connectionCheck = await checkSupabaseConnection();
+    if (!connectionCheck.success) {
+      console.error('Error de conexión a Supabase al intentar ver historial del paciente:', connectionCheck.error);
+      let errorMsg = 'Error de conexión a la base de datos';
+      
+      // Notificar pero continuar, ya que queremos mostrar al menos los datos de texto
+      req.flash('error_msg', errorMsg);
+    }
+    
     // Crear objeto de filtros para pasar a la vista
     const filters = {
       date_from: date_from || '',
@@ -177,11 +190,31 @@ exports.getPatientHistory = async (req, res) => {
       dateFilter = { from: new Date(0), to: new Date(date_to) };
     }
     
-    // Obtener entradas del paciente
+    // Obtener entradas del paciente, incluyendo las imágenes
     const entriesResult = await FoodEntry.getHistoryByUserId(patientId, dateFilter, page, limit);
     
     if (!entriesResult.success) {
       throw new Error(entriesResult.error);
+    }
+    
+    // Para cada entrada, cargar la imagen completa si es necesario
+    if (entriesResult.entries.length > 0) {
+      await Promise.all(entriesResult.entries.map(async (entry) => {
+        // Si no hay imagen_data, obtener la entrada completa con la imagen
+        if (!entry.image_data) {
+          try {
+            const detailResult = await FoodEntry.getById(entry.id);
+            if (detailResult.success && detailResult.entry && detailResult.entry.image_data) {
+              entry.image_data = detailResult.entry.image_data;
+            } else {
+              entry.image_data = '/img/empty-plate.svg'; // Imagen por defecto
+            }
+          } catch (error) {
+            console.error(`Error al obtener imagen para entrada ${entry.id}:`, error);
+            entry.image_data = '/img/empty-plate.svg';
+          }
+        }
+      }));
     }
     
     res.render('doctor/patient-history', {
@@ -208,6 +241,14 @@ exports.getEntryDetail = async (req, res) => {
     const { patientId, entryId } = req.params;
     const doctorId = req.session.user.id;
     
+    // Verificar la conexión a Supabase primero
+    const connectionCheck = await checkSupabaseConnection();
+    if (!connectionCheck.success) {
+      console.error('Error de conexión a Supabase al intentar ver detalle de entrada:', connectionCheck.error);
+      // Notificar pero continuar, para mostrar al menos los datos de texto
+      req.flash('error_msg', 'Error de conexión a la base de datos. Se mostrará la información disponible.');
+    }
+    
     // Verificar que el paciente está asignado a este médico
     const assignedResult = await DoctorPatient.getPatientsByDoctor(doctorId);
     
@@ -229,7 +270,7 @@ exports.getEntryDetail = async (req, res) => {
       throw new Error(profileResult.error);
     }
     
-    // Obtener entrada específica
+    // Obtener entrada específica con imagen incluida
     const entryResult = await FoodEntry.getById(entryId);
     
     if (!entryResult.success) {
@@ -242,11 +283,20 @@ exports.getEntryDetail = async (req, res) => {
       return res.redirect(`/doctor/patient/${patientId}`);
     }
     
+    // Si no hay datos de imagen, usar imagen por defecto
+    const entry = entryResult.entry;
+    if (!entry.image_data) {
+      entry.image_url = '/img/empty-plate.svg'; // URL por defecto
+    } else {
+      // La imagen ya está en formato base64 en entry.image_data
+      entry.image_url = entry.image_data;
+    }
+    
     res.render('doctor/entry-detail', {
       title: 'Detalle de Comida',
       user: req.session.user,
       patient: profileResult.profile,
-      entry: entryResult.entry,
+      entry: entry,
       moment
     });
   } catch (error) {
@@ -254,4 +304,4 @@ exports.getEntryDetail = async (req, res) => {
     req.flash('error_msg', 'Error al cargar los detalles de la entrada');
     res.redirect('/doctor/dashboard');
   }
-}; 
+};

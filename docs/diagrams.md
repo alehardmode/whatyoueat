@@ -1,64 +1,39 @@
-# Diagramas de Interrelación de Ficheros
+# Diagramas de WhatYouEat
 
 ## Arquitectura General de la Aplicación
 
-```
-+----------------+     +----------------+     +----------------+
-|                |     |                |     |                |
-|     CLIENTE    |     |     SERVIDOR   |     |   BASE DATOS   |
-|  (Navegador)   |     |    (Node.js)   |     |   (Supabase)   |
-|                |     |                |     |                |
-+-------+--------+     +-------+--------+     +-------+--------+
-        |                      |                      |
-        | HTTP                 | API                  |
-        | Requests             | Requests             |
-        ↓                      ↓                      |
-+-------+------------------------+                    |
-|                                |                    |
-|          EXPRESS APP           |                    |
-+-+------------+------------+----+                    |
-  |            |            |                         |
-  |            |            |                         |
-  ↓            ↓            ↓                         |
-+-----+     +-----+     +-----+                       |
-|     |     |     |     |     |                       |
-|RUTAS|---->|CONTR|---->|MODEL|---------------------->+
-|     |     |     |     |     |
-+-----+     +--+--+     +-----+
-               |
-               ↓
-            +-----+
-            |     |
-            |VISTA|
-            |     |
-            +-----+
+```mermaid
+flowchart TB
+    Cliente["CLIENTE
+    (Navegador)"] ---|HTTP Requests| Express["EXPRESS APP"]
+    Servidor["SERVIDOR
+    (Node.js)"] ---|API Requests| Express
+    Express --> Rutas["RUTAS"]
+    Rutas --> Controladores["CONTROLADORES"]
+    Controladores --> Modelos["MODELOS"]
+    Controladores --> Vistas["VISTAS"]
+    Modelos ---|Consultas| BaseDatos["BASE DATOS
+    (Supabase)"]
 ```
 
 ## Diagrama de Flujo de Datos
 
-```
-+-------------+         +------------+         +-------------+
-|             |  HTTP   |            |  Rutas  |             |
-|  Navegador  +-------->+  Express   +-------->+  Middleware |
-|   Cliente   |         |   Server   |         |             |
-+-------------+         +------------+         +------+------+
-                                                     |
-                                                     | Autorización
-                                                     ↓
-+-------------+         +------------+         +-------------+
-|             |         |            |         |             |
-|    Vista    <---------+ Controlador<---------+  Solicitud  |
-|  (HTML+EJS) |  Render |            |  Validada    |
-+------+------+         +-----+------+         +-------------+
-       |                      |
-       | HTML, CSS, JS        | Manipulación
-       ↓                      | de datos
-+-------------+         +-------------+         +-------------+
-|             |         |             |         |             |
-|  Interfaz   |         |   Modelo    |         |  Supabase   |
-|  Usuario    |         |             +-------->+  Database   |
-+-------------+         +-------------+  CRUD   |  & Storage  |
-                                                +-------------+
+```mermaid
+flowchart TD
+    Cliente["Navegador
+    Cliente"] -->|HTTP| Express["Express
+    Server"]
+    Express -->|Rutas| Middleware["Middleware"]
+    Middleware -->|Autorización| Solicitud["Solicitud
+    Validada"]
+    Solicitud --> Controlador["Controlador"]
+    Controlador -->|Render| Vista["Vista
+    (HTML+EJS)"]
+    Controlador -->|Manipulación de datos| Modelo["Modelo"]
+    Modelo -->|CRUD| Supabase["Supabase
+    Database & Storage"]
+    Vista -->|HTML, CSS, JS| Interface["Interfaz
+    Usuario"]
 ```
 
 ## Diagrama de Clases (POO)
@@ -75,7 +50,6 @@ classDiagram
         Controller <|-- ContactCtrl : extends
         Controller <|-- DoctorCtrl : extends
         Model <|-- FoodEntryModel : extends
-
         class Server {
                 -app: Express
                 -port: number
@@ -83,51 +57,42 @@ classDiagram
                 +start()
                 +stop()
         }
-
         class Router {
                 -routes: Array
                 +registerRoute()
                 +getRoutes()
         }
-
         class AuthRouter {
                 +login()
                 +logout()
         }
-
         class MainRouter {
                 +home()
                 +about()
         }
-
         class Controller {
                 -model: Model
                 +handleRequest()
         }
-
         class AuthCtrl {
                 +login()
                 +register()
                 +logout()
         }
-
         class PatientCtrl {
                 +dashboard()
                 +upload()
                 +history()
         }
-
         class ContactCtrl {
                 +getContactForm()
                 +submitContact()
         }
-
         class DoctorCtrl {
                 +getDashboard()
                 +getPatient()
                 +getHistory()
         }
-
         class Model {
                 -db: SupabaseClient
                 +create()
@@ -135,7 +100,6 @@ classDiagram
                 +update()
                 +delete()
         }
-
         class FoodEntryModel {
                 +create()
                 +getHistoryById()
@@ -146,152 +110,173 @@ classDiagram
 
 ## Diagrama Entidad-Relación (Base de Datos)
 
-```
-+----------------------+       +-------------------------+
-|      auth.users      |       |        profiles         |
-+----------------------+       +-------------------------+
-| id (PK) UUID         |<----->| id (PK, FK) UUID        |
-| email VARCHAR        |       | name VARCHAR            |
-| encrypted_password   |       | role VARCHAR            |
-| email_confirmed_at   |       | created_at TIMESTAMP    |
-| last_sign_in_at      |       | updated_at TIMESTAMP    |
-| created_at TIMESTAMP |       +-------------------------+
-+----------+-----------+                 |
-           |                             |
-           |                             |
-           |                             |
-           |                             |
-           |                             v
-           |              +--------------------------------+
-           |              |          food_entries          |
-           |              +--------------------------------+
-           +------------->| id (PK) UUID                   |
-                          | user_id (FK) UUID              |
-                          | image_url VARCHAR              |
-                          | comments TEXT                  |
-                          | ingredients TEXT               |
-                          | created_at TIMESTAMP           |
-                          | updated_at TIMESTAMP           |
-                          +--------------------------------+
+```mermaid
+erDiagram
+    auth_users {
+        uuid id PK
+        varchar email
+        timestamp created_at
+    }
+    profiles {
+        uuid id PK,FK
+        varchar name
+        user_role role
+        timestamp created_at
+        timestamp updated_at
+    }
+    food_entries {
+        uuid id PK
+        uuid user_id FK
+        varchar name
+        text description
+        varchar meal_type
+        timestamp meal_date
+        text image_data
+        text image_storage_path
+        timestamp created_at
+        timestamp updated_at
+    }
+    doctor_patient_relationships {
+        uuid id PK
+        uuid doctor_id FK
+        uuid patient_id FK
+        relationship_status status
+        timestamp created_at
+        timestamp updated_at
+    }
+    auth_users ||--|| profiles : "ID referencia"
+    profiles ||--o{ food_entries : "Un usuario puede tener muchas entradas"
+    profiles ||--o{ doctor_patient_relationships : "Un médico puede tener muchos pacientes"
+    profiles ||--o{ doctor_patient_relationships : "Un paciente puede tener muchos médicos"
 ```
 
 ## Flujo de Usuario - Subida de Imagen de Comida
 
-```
-+-------------+     +---------------+     +-----------------+
-|             |     |               |     |                 |
-|  Paciente   +---->+  Formulario   +---->+  Controlador    |
-|  Dashboard  |     |  de Subida    |     |  patientCtrl    |
-+-------------+     +---------------+     +-------+---------+
-                                                 |
-                                                 v
-+-----------------+     +---------------+     +----------------+
-|                 |     |               |     |                |
-|   Supabase      <-----+   Modelo      <-----+    Multer     |
-|   Storage       |     |  FoodEntry    |     | (procesamiento)|
-+--------+--------+     +---------------+     +----------------+
-         |
-         v
-+-----------------+     +---------------+     +----------------+
-|                 |     |               |     |                |
-|  URL imagen     +---->+  Base de      +---->+  Historial de  |
-|  almacenada     |     |  datos        |     |  comidas       |
-+-----------------+     +---------------+     +----------------+
+```mermaid
+flowchart LR
+    Dashboard["Paciente
+    Dashboard"] --> FormSubida["Formulario
+    de Subida"]
+    FormSubida --> PatientCtrl["Controlador
+    patientCtrl"]
+    PatientCtrl --> Multer["Multer
+    (procesamiento)"]
+    Multer --> Modelo["Modelo
+    FoodEntry"]
+    Modelo --> Storage["Supabase
+    Storage"]
+    Storage --> URLImagen["URL imagen
+    almacenada"]
+    URLImagen --> BaseDatos["Base de
+    datos"]
+    BaseDatos --> Historial["Historial de
+    comidas"]
 ```
 
 ## Estructura de Archivos Detallada
 
-```
-whatyoueat/
-  ├── server.js                 # Punto de entrada de la aplicación
-  ├── package.json              # Dependencias y scripts
-  ├── LICENSE                   # Licencia del proyecto
-  ├── README.md                 # Documentación general
-  │
-  ├── config/                   # Configuraciones
-  │     └── supabase.js         # Configuración de la conexión a Supabase
-  │
-  ├── controllers/              # Controladores
-  │     ├── authController.js   # Manejo de autenticación
-  │     ├── contactController.js # Gestión del formulario de contacto
-  │     ├── doctorController.js # Funcionalidades específicas de médicos
-  │     └── patientController.js # Funcionalidades específicas de pacientes
-  │
-  ├── database/                 # Archivos relacionados con la BD
-  │     ├── init.sql           # Script SQL para inicializar la base de datos
-  │     └── testDB.js          # Pruebas de conexión a la BD
-  │
-  ├── docs/                     # Documentación técnica
-  │     ├── diagrams.md         # Diagramas de la arquitectura
-  │     ├── patterns.md         # Patrones de diseño implementados  
-  │     └── validation.md       # Validación de estándares web
-  │
-  ├── middleware/               # Middlewares
-  │     └── authMiddleware.js   # Middleware de autenticación y autorización
-  │
-  ├── models/                   # Modelos
-  │     ├── FoodEntry.js        # Modelo para gestión de entradas de comida
-  │     ├── Profile.js          # Modelo para gestión de perfiles de usuario
-  │     └── UserAuth.js         # Modelo para gestión de autenticación
-  │
-  ├── public/                   # Archivos estáticos
-  │     ├── css/
-  │     │     └── styles.css    # Estilos CSS principales
-  │     │
-  │     ├── img/                # Imágenes
-  │     │     ├── logo.png      # Logo de la aplicación
-  │     │     ├── demo/         # Imágenes de demostración
-  │     │     └── temp/         # Almacenamiento temporal
-  │     │
-  │     └── js/                 # JavaScript del cliente
-  │           ├── auth.js       # Funciones de autenticación
-  │           ├── main.js       # Funciones principales
-  │           └── valForm/
-  │                 └── contactFormVal.js # Validación del formulario de contacto
-  │
-  ├── routes/                   # Rutas
-  │     ├── authRoutes.js       # Rutas de autenticación
-  │     ├── doctorRoutes.js     # Rutas específicas para médicos
-  │     ├── mainRoutes.js       # Rutas principales/públicas
-  │     └── patientRoutes.js    # Rutas específicas para pacientes
-  │
-  ├── utils/                    # Utilidades
-  │     └── generateSecret.js   # Generador de secretos seguros para sesiones
-  │
-  └── views/                    # Vistas (archivos HTML procesados con EJS)
-        ├── 404.html            # Página de error 404
-        ├── contact.html        # Página de contacto
-        ├── index.html          # Página de inicio
-        │
-        ├── auth/               # Vistas de autenticación
-        │     ├── login.html    # Página de inicio de sesión
-        │     └── register.html # Página de registro
-        │
-        ├── doctor/             # Vistas para médicos
-        │     └── dashboard.html # Dashboard del médico
-        │
-        ├── layouts/            # Plantillas base
-        │     └── main.html     # Layout principal
-        │
-        └── patient/            # Vistas para pacientes
-              ├── dashboard.html # Dashboard del paciente
-              └── upload.html   # Formulario de subida de fotos
+```mermaid
+graph TD
+    Raiz[whatyoueat/] --> Server[server.js]
+    Raiz --> Package[package.json]
+    Raiz --> License[LICENSE]
+    Raiz --> Readme[README.md]
+    
+    Raiz --> Config[config/]
+    Config --> SupabaseConfig[supabase.js]
+    
+    Raiz --> Controllers[controllers/]
+    Controllers --> AuthController[authController.js]
+    Controllers --> ContactController[contactController.js]
+    Controllers --> DoctorController[doctorController.js]
+    Controllers --> PatientController[Patient/]
+    PatientController --> Dashboard[dashboardController.js]
+    PatientController --> EntryDetail[entryDetailController.js]
+    PatientController --> FoodHistory[foodHistoryController.js]
+    PatientController --> IndexCtrl[index.js]
+    PatientController --> UploadController[uploadController.js]
+    
+    Raiz --> Database[database/]
+    Database --> InitSQL[init.sql]
+    
+    Raiz --> Docs[docs/]
+    Docs --> Diagrams[diagrams.md]
+    Docs --> Patterns[patterns.md]
+    Docs --> Validation[validation.md]
+    
+    Raiz --> Middleware[middleware/]
+    Middleware --> AuthMiddleware[authMiddleware.js]
+    Middleware --> PatientMiddleware[patient/]
+    PatientMiddleware --> OwnerMiddleware[entryOwnershipMiddleware.js]
+    
+    Raiz --> Models[models/]
+    Models --> DoctorPatient[DoctorPatient.js]
+    Models --> FoodEntry[FoodEntry.js]
+    Models --> Profile[Profile.js]
+    Models --> UserAuth[UserAuth.js]
+    
+    Raiz --> Public[public/]
+    Public --> CSS[css/]
+    CSS --> Styles[styles.css]
+    Public --> Img[img/]
+    Img --> EmptyPlate[empty-plate.svg]
+    Img --> HeroImage[hero.webp]
+    Img --> Logo[logo.webp]
+    Public --> JS[js/]
+    JS --> Auth[auth.js]
+    JS --> EntryDetail[entry-detail.js]
+    JS --> History[history.js]
+    JS --> Main[main.js]
+    JS --> Upload[upload.js]
+    JS --> Validators[validators/]
+    Validators --> ContactFormValidator[contactFormValidator.js]
+    Validators --> RegisterFormValidator[registerFormValidator.js]
+    
+    Raiz --> Routes[routes/]
+    Routes --> AuthRoutes[authRoutes.js]
+    Routes --> DoctorRoutes[doctorRoutes.js]
+    Routes --> MainRoutes[mainRoutes.js]
+    Routes --> PatientRoutes[patientRoutes.js]
+    
+    Raiz --> Utils[utils/]
+    Utils --> ErrorHandler[errorHandler.js]
+    Utils --> GenerateSecret[generateSecret.js]
+    Utils --> Validators[validators/]
+    Validators --> FoodEntryValidator[foodEntryValidator.js]
+    
+    Raiz --> Views[views/]
+    Views --> Contact[contact.html]
+    Views --> Index[index.html]
+    Views --> Profile[profile.html]
+    Views --> Auth[auth/]
+    Auth --> Login[login.html]
+    Auth --> Register[register.html]
+    Views --> Doctor[doctor/]
+    Doctor --> DoctorDashboard[dashboard.html]
+    Doctor --> PatientHistory[patient-history.html]
+    Views --> Errors[errors/]
+    Errors --> Error404[404.html]
+    Errors --> Error500[500.html]
+    Views --> Layouts[layouts/]
+    Layouts --> ErrorLayout[error.html]
+    Layouts --> MainLayout[main.html]
+    Views --> Patient[patient/]
+    Patient --> PatientDashboard[dashboard.html]
+    Patient --> EditEntry[edit-entry.html]
+    Patient --> EntryDetail[entry-detail.html]
+    Patient --> History[history.html]
+    Patient --> Upload[upload.html]
 ```
 
 ## Flujo de Autenticación y Sesiones
 
-```
-+------------------+    +------------------+    +------------------+
-|                  |    |                  |    |                  |
-| Formulario Login +---->  authController  +---->  UserAuth Model  |
-|                  |    |                  |    |                  |
-+------------------+    +--------+---------+    +--------+---------+
-                                 |                       |
-                                 |                       |
-                                 v                       v
-                        +--------+---------+    +--------+---------+
-                        |                  |    |                  |
-                        | express-session  |    |    Supabase      |
-                        |                  |    |    Auth API      |
-                        +------------------+    +------------------+
+```mermaid
+flowchart LR
+    FormLogin["Formulario
+    Login"] --> AuthCtrl["authController"]
+    AuthCtrl --> UserAuth["UserAuth
+    Model"]
+    AuthCtrl --> Session["express-session"]
+    UserAuth --> SupabaseAuth["Supabase
+    Auth API"]
 ```

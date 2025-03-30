@@ -1,99 +1,69 @@
 const { supabase } = require('../config/supabase');
 const moment = require('moment');
+const { v4: uuidv4 } = require('uuid');
+const { getDatabaseErrorMessage } = require('../utils/errorHandler');
+
+// Caché para optimizar consultas frecuentes
+const entryCache = {
+  history: new Map(),    // Caché para historial de usuarios
+  entry: new Map(),      // Caché para entradas individuales
+  invalidate: (userId) => {
+    // Invalida todas las entradas de caché para un usuario específico
+    entryCache.history.delete(userId);
+    // También podríamos invalidar las entradas individuales, pero
+    // sería más complejo identificar cuáles pertenecen al usuario
+  },
+  getCacheKey: (userId, page, limit, filters) => {
+    // Crear una clave única para la consulta de historial
+    return `${userId}_${page}_${limit}_${filters?.from || ''}_${filters?.to || ''}`;
+  }
+};
 
 class FoodEntry {
-  // Crear nueva entrada de comida
-  static async create(userId, imageUrl, comments, ingredients) {
+  // Crear nueva entrada de comida con imagen almacenada en base64
+  static async create(userId, { name, description, date, mealType, imageData }) {
     try {
-      console.log('Modelo FoodEntry: Creando nueva entrada', { 
-        userId, 
-        tieneUrl: !!imageUrl,
-        tieneComentarios: !!comments,
-        tieneIngredientes: !!ingredients
-      });
-      
-      if (!userId || !imageUrl || !comments || !ingredients) {
+      // Validar datos obligatorios
+      if (!userId || !imageData) {
         console.error('Error: Datos incompletos para crear entrada', { 
           userId: !!userId, 
-          imageUrl: !!imageUrl, 
-          comments: !!comments, 
-          ingredients: !!ingredients 
+          imageData: !!imageData 
         });
-        return { success: false, error: 'Todos los campos son obligatorios' };
+        return { success: false, error: 'Usuario e imagen son obligatorios' };
       }
       
-      // Agregar validación para URL de imagen
-      if (!imageUrl.startsWith('http')) {
-        console.error('Error: URL de imagen inválida', imageUrl.substring(0, 30) + '...');
-        return { success: false, error: 'URL de imagen inválida' };
+      // Verificar acceso a la tabla food_entries
+      const { error: tableError } = await supabase
+        .from('food_entries')
+        .select('id')
+        .limit(1);
+        
+      if (tableError) {
+        console.error('Error al acceder a tabla food_entries:', tableError);
+        return { 
+          success: false, 
+          error: getDatabaseErrorMessage(tableError.code, tableError.message)
+        };
       }
       
-      // Verificar si la tabla food_entries existe y es accesible
-      try {
-        console.log('Verificando si la tabla food_entries es accesible...');
-        const { error: tableError } = await supabase
-          .from('food_entries')
-          .select('id')
-          .limit(1);
-          
-        if (tableError) {
-          console.error('Error al acceder a tabla food_entries:', tableError);
-          
-          // Si la tabla no existe, podemos intentar crearla
-          if (tableError.message?.includes('does not exist') || tableError.code === '42P01') {
-            console.log('La tabla food_entries no existe, intentando crearla...');
-            
-            try {
-              // Intentar crear la tabla
-              const { error: createError } = await supabase.rpc('create_food_entries_table');
-              
-              if (createError) {
-                console.error('Error al intentar crear la tabla:', createError);
-                return { 
-                  success: false, 
-                  error: 'La tabla food_entries no existe y no se pudo crear automáticamente. Contacta al administrador.' 
-                };
-              }
-              
-              console.log('Tabla food_entries creada correctamente');
-            } catch (rpcError) {
-              console.error('Error al llamar a RPC para crear tabla:', rpcError);
-              return { 
-                success: false, 
-                error: 'Error al intentar crear la tabla food_entries. Es necesario crearla manualmente.' 
-              };
-            }
-          } else {
-            return { 
-              success: false, 
-              error: `Error de acceso a la tabla food_entries: ${tableError.message}` 
-            };
-          }
-        }
-      } catch (structError) {
-        console.error('Error al verificar estructura de tabla:', structError);
-      }
-      
-      // Preparar objeto de entrada
+      // Datos a insertar
       const entryData = { 
-        user_id: userId, 
-        image_url: imageUrl, 
-        comments,
-        ingredients,
-        created_at: new Date()
+        id: uuidv4(),
+        user_id: userId,
+        name: name || 'Comida sin nombre',
+        description: description || '',
+        meal_date: date || new Date().toISOString(),
+        meal_type: mealType || 'other',
+        image_data: imageData, // Imagen en base64
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
       
-      console.log('Datos a insertar:', entryData);
-      
-      // Intentar la inserción con múltiples reintentos
-      let attemptCount = 0;
+      // Intentar inserción con reintentos limitados
       const maxAttempts = 3;
       let lastError = null;
       
-      while (attemptCount < maxAttempts) {
-        attemptCount++;
-        console.log(`Intentando insertar en base de datos (intento ${attemptCount}/${maxAttempts})...`);
-        
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         try {
           const { data, error } = await supabase
             .from('food_entries')
@@ -101,113 +71,80 @@ class FoodEntry {
             .select();
     
           if (error) {
-            console.error(`Error Supabase al insertar (intento ${attemptCount}):`, error);
+            console.error(`Error Supabase (intento ${attempt}):`, error);
             lastError = error;
             
-            // Análisis detallado del error
-            if (error.code === '23502') {
-              // Error de restricción not-null
-              const columnMatch = error.message.match(/column "(.*?)"/);
-              const columnName = columnMatch ? columnMatch[1] : 'desconocida';
+            // Para ciertos errores, no tiene sentido reintentar
+            if (['23502', '23503', '23505', '42501', '42P01'].includes(error.code)) {
               return { 
                 success: false, 
-                error: `El campo ${columnName} no puede estar vacío` 
-              };
-            } else if (error.code === '23503') {
-              // Error de restricción de clave foránea
-              return { 
-                success: false, 
-                error: 'El usuario no existe en la base de datos' 
-              };
-            } else if (error.code === '23505') {
-              // Error de unicidad
-              return { 
-                success: false, 
-                error: 'Ya existe una entrada idéntica' 
-              };
-            } else if (error.code === '42501') {
-              // Error de permisos
-              return { 
-                success: false, 
-                error: 'No tienes permisos para insertar datos' 
-              };
-            } else if (error.code === '42P01') {
-              // Tabla no existe - no deberíamos llegar aquí porque ya verificamos
-              return {
-                success: false,
-                error: 'La tabla food_entries no existe. Contacta al administrador.'
+                error: getDatabaseErrorMessage(error.code, error.message)
               };
             }
             
-            // Esperar un poco antes del siguiente intento (exponential backoff)
-            await new Promise(resolve => setTimeout(resolve, 500 * attemptCount));
-            continue; // Intentar de nuevo
+            // Esperar antes del siguiente intento con backoff exponencial
+            if (attempt < maxAttempts) {
+              await new Promise(resolve => setTimeout(resolve, 500 * attempt));
+              continue;
+            }
           }
           
-          // Éxito! Salir del bucle
+          // Éxito en la inserción
           if (!data || data.length === 0) {
-            console.warn('No se devolvieron datos después de la inserción exitosa');
+            console.warn('Inserción exitosa pero sin datos retornados');
+            entryCache.invalidate(userId);
             return { 
               success: true, 
-              entry: { ...entryData, id: 'unknown' } 
+              entry: { ...entryData, id: entryData.id } 
             };
           }
           
-          console.log('Entrada creada con éxito:', { id: data[0].id });
+          entryCache.invalidate(userId);
           return { success: true, entry: data[0] };
         } catch (insertError) {
-          console.error(`Error al intentar insertar (intento ${attemptCount}):`, insertError);
+          console.error(`Error general (intento ${attempt}):`, insertError);
           lastError = insertError;
-          // Esperar un poco antes del siguiente intento
-          await new Promise(resolve => setTimeout(resolve, 500 * attemptCount));
+          
+          // Esperar antes del siguiente intento
+          if (attempt < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 500 * attempt));
+          }
         }
       }
       
       // Si llegamos aquí, todos los intentos fallaron
-      console.error('Todos los intentos de inserción fallaron');
-      
-      // Mensajes de error específicos según el tipo de error
-      let errorMessage = 'Error al crear entrada de comida después de múltiples intentos';
-      if (lastError?.message?.includes('foreign key')) {
-        errorMessage = 'Usuario no válido';
-      } else if (lastError?.message?.includes('not-null')) {
-        errorMessage = 'Faltan campos obligatorios';
-      } else if (lastError?.message?.includes('auth')) {
-        errorMessage = 'Error de autenticación con la base de datos';
-      } else if (lastError?.message?.includes('duplicate')) {
-        errorMessage = 'Entrada duplicada';
-      } else if (lastError?.message?.includes('permission')) {
-        errorMessage = 'No tienes permisos suficientes';
-      }
-      
-      return { success: false, error: errorMessage };
+      return { 
+        success: false, 
+        error: getDatabaseErrorMessage(lastError?.code, lastError?.message)
+      };
     } catch (error) {
       console.error('Error al crear entrada de comida:', error);
-      
-      // Mensajes de error específicos según el tipo de error
-      let errorMessage = 'Error al crear entrada de comida';
-      if (error.message?.includes('foreign key')) {
-        errorMessage = 'Usuario no válido';
-      } else if (error.message?.includes('not-null')) {
-        errorMessage = 'Faltan campos obligatorios';
-      } else if (error.message?.includes('auth')) {
-        errorMessage = 'Error de autenticación con la base de datos';
-      } else if (error.message?.includes('duplicate')) {
-        errorMessage = 'Entrada duplicada';
-      } else if (error.message?.includes('permission')) {
-        errorMessage = 'No tienes permisos suficientes';
-      }
-      
-      return { success: false, error: errorMessage };
+      return { 
+        success: false, 
+        error: getDatabaseErrorMessage(error.code, error.message)
+      };
     }
   }
 
   // Obtener historial de comida para un usuario específico
   static async getHistoryByUserId(userId, dateFilter = null, page = 1, limit = 10) {
     try {
+      // Generar clave de caché
+      const cacheKey = entryCache.getCacheKey(userId, page, limit, dateFilter);
+      
+      // Verificar si tenemos resultados en caché (solo en producción)
+      if (process.env.NODE_ENV === 'production' && entryCache.history.has(cacheKey)) {
+        const cachedResult = entryCache.history.get(cacheKey);
+        // Verificar si el caché aún es válido (menos de 5 minutos)
+        if (Date.now() - cachedResult.timestamp < 5 * 60 * 1000) {
+          return cachedResult.data;
+        }
+      }
+
+      // Construir la consulta base
       let query = supabase
         .from('food_entries')
-        .select('*', { count: 'exact' })
+        .select('id, user_id, name, description, meal_date, meal_type, created_at, updated_at', { count: 'exact' }) // Asegurarse de contar exactamente
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
       
@@ -230,15 +167,72 @@ class FoodEntry {
       
       query = query.range(from, to);
       
+      // Ejecutar la consulta
       const { data, error, count } = await query;
-
+      
       if (error) throw error;
       
+      // Verificar que tengamos un conteo válido
+      if (count === undefined || count === null) {
+        console.warn('Advertencia: No se pudo obtener el conteo exacto de entradas, realizando consulta adicional');
+        
+        // Si no tenemos conteo, hacer una consulta adicional para contar
+        const countQuery = supabase
+          .from('food_entries')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', userId);
+        
+        // Aplicar los mismos filtros de fecha
+        if (dateFilter) {
+          if (dateFilter.from) {
+            const startDate = moment(dateFilter.from).startOf('day').toISOString();
+            countQuery.gte('created_at', startDate);
+          }
+          
+          if (dateFilter.to) {
+            const endDate = moment(dateFilter.to).endOf('day').toISOString();
+            countQuery.lte('created_at', endDate);
+          }
+        }
+        
+        const { count: exactCount, error: countError } = await countQuery;
+        
+        if (countError) {
+          console.error('Error al obtener conteo exacto:', countError);
+          return { success: false, error: countError.message };
+        }
+        
+        const totalEntries = exactCount || 0;
+        const totalPages = Math.ceil(totalEntries / limit);
+        
+        const result = { 
+          success: true, 
+          entries: data || [],
+          pagination: {
+            page,
+            limit,
+            total: totalEntries,
+            totalPages
+          }
+        };
+        
+        // Guardar en caché para futuras consultas
+        if (process.env.NODE_ENV === 'production') {
+          entryCache.history.set(cacheKey, {
+            data: result,
+            timestamp: Date.now()
+          });
+        }
+        
+        return result;
+      }
+      
+      // Calcular páginas totales basado en el conteo exacto
       const totalPages = Math.ceil(count / limit);
       
-      return { 
+      const result = { 
         success: true, 
-        entries: data,
+        entries: data || [],
         pagination: {
           page,
           limit,
@@ -246,24 +240,58 @@ class FoodEntry {
           totalPages
         }
       };
+      
+      // Guardar en caché para futuras consultas
+      if (process.env.NODE_ENV === 'production') {
+        entryCache.history.set(cacheKey, {
+          data: result,
+          timestamp: Date.now()
+        });
+      }
+      
+      return result;
     } catch (error) {
       console.error('Error al obtener historial de comida:', error);
       return { success: false, error: error.message };
     }
   }
 
-  // Obtener entrada por ID
-  static async getById(id) {
+  // Obtener entrada por ID, incluyendo la imagen
+  static async getById(id, includeImage = true) {
     try {
+      // Verificar caché para entradas individuales
+      if (process.env.NODE_ENV === 'production' && entryCache.entry.has(id) && includeImage === entryCache.entry.get(id).includeImage) {
+        const cachedEntry = entryCache.entry.get(id);
+        // Verificar si el caché aún es válido (menos de 10 minutos)
+        if (Date.now() - cachedEntry.timestamp < 10 * 60 * 1000) {
+          return cachedEntry.data;
+        }
+      }
+
+      let fields = '*';
+      if (!includeImage) {
+        fields = 'id, user_id, name, description, meal_date, meal_type, created_at, updated_at';
+      }
+
       const { data, error } = await supabase
         .from('food_entries')
-        .select('*')
+        .select(fields)
         .eq('id', id)
         .single();
-
       if (error) throw error;
       
-      return { success: true, entry: data };
+      const result = { success: true, entry: data };
+      
+      // Guardar en caché
+      if (process.env.NODE_ENV === 'production') {
+        entryCache.entry.set(id, {
+          data: result,
+          timestamp: Date.now(),
+          includeImage
+        });
+      }
+      
+      return result;
     } catch (error) {
       console.error('Error al obtener entrada de comida:', error);
       return { success: false, error: error.message };
@@ -276,22 +304,23 @@ class FoodEntry {
       // Verificar que la entrada pertenezca al usuario
       const { data: entry, error: findError } = await supabase
         .from('food_entries')
-        .select('*')
+        .select('id, user_id')
         .eq('id', id)
         .eq('user_id', userId)
         .single();
-
       if (findError || !entry) {
         return { success: false, error: 'Entrada no encontrada o no autorizada' };
       }
-
       // Eliminar entrada
       const { error } = await supabase
         .from('food_entries')
         .delete()
         .eq('id', id);
-
       if (error) throw error;
+      
+      // Invalidar caché
+      entryCache.invalidate(userId);
+      entryCache.entry.delete(id);
       
       return { success: true };
     } catch (error) {
@@ -306,23 +335,28 @@ class FoodEntry {
       // Verificar que la entrada pertenezca al usuario
       const { data: entry, error: findError } = await supabase
         .from('food_entries')
-        .select('*')
+        .select('id, user_id')
         .eq('id', id)
         .eq('user_id', userId)
         .single();
-
       if (findError || !entry) {
         return { success: false, error: 'Entrada no encontrada o no autorizada' };
       }
-
+      
+      // Añadir updated_at
+      updates.updated_at = new Date().toISOString();
+      
       // Actualizar entrada
       const { data, error } = await supabase
         .from('food_entries')
         .update(updates)
         .eq('id', id)
         .select();
-
       if (error) throw error;
+      
+      // Invalidar caché
+      entryCache.invalidate(userId);
+      entryCache.entry.delete(id);
       
       return { success: true, entry: data[0] };
     } catch (error) {
@@ -408,4 +442,4 @@ class FoodEntry {
   }
 }
 
-module.exports = FoodEntry; 
+module.exports = FoodEntry;

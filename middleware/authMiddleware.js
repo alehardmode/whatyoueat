@@ -5,6 +5,8 @@
 exports.isAuthenticated = (req, res, next) => {
   // Verificar si el usuario está autenticado mediante la sesión
   if (req.session.user) {
+    // Asignar req.session.user a req.user para mantener consistencia
+    req.user = req.session.user;
     return next();
   }
   
@@ -17,19 +19,20 @@ exports.isAuthenticated = (req, res, next) => {
 };
 
 /**
- * Middleware para verificar si un usuario es paciente
- * Protege rutas específicas para pacientes
+ * Middleware para verificar si un usuario tiene un rol específico
+ * @param {String} role - Rol requerido ('paciente' o 'medico')
+ * @returns {Function} Middleware
  */
-exports.isPatient = (req, res, next) => {
+const checkRole = (role) => (req, res, next) => {
   // Primero verificar si está autenticado
   if (!req.session.user) {
+    req.session.returnTo = req.originalUrl;
     req.flash('error_msg', 'Por favor inicia sesión para acceder a esta página');
     return res.redirect('/auth/login');
   }
   
-  // Luego verificar si es paciente
-  if (req.session.user.role === 'paciente') {
-    // Asignar req.session.user a req.user para mantener consistencia en controladores
+  // Luego verificar si tiene el rol requerido
+  if (req.session.user.role === role) {
     req.user = req.session.user;
     return next();
   }
@@ -40,27 +43,16 @@ exports.isPatient = (req, res, next) => {
 };
 
 /**
+ * Middleware para verificar si un usuario es paciente
+ * Protege rutas específicas para pacientes
+ */
+exports.isPatient = checkRole('paciente');
+
+/**
  * Middleware para verificar si un usuario es médico
  * Protege rutas específicas para médicos
  */
-exports.isDoctor = (req, res, next) => {
-  // Primero verificar si está autenticado
-  if (!req.session.user) {
-    req.flash('error_msg', 'Por favor inicia sesión para acceder a esta página');
-    return res.redirect('/auth/login');
-  }
-  
-  // Luego verificar si es médico
-  if (req.session.user.role === 'medico') {
-    // Asignar req.session.user a req.user para mantener consistencia en controladores
-    req.user = req.session.user;
-    return next();
-  }
-  
-  // Usuario no autorizado
-  req.flash('error_msg', 'No tienes permiso para acceder a esta página');
-  res.redirect('/');
-};
+exports.isDoctor = checkRole('medico');
 
 /**
  * Middleware para verificar si un usuario ya está autenticado
@@ -68,14 +60,13 @@ exports.isDoctor = (req, res, next) => {
  */
 exports.isNotAuthenticated = (req, res, next) => {
   if (req.session.user) {
-    // Si ya está autenticado, redirigir según rol
-    if (req.session.user.role === 'paciente') {
-      return res.redirect('/patient/dashboard');
-    } else if (req.session.user.role === 'medico') {
-      return res.redirect('/doctor/dashboard');
-    } else {
-      return res.redirect('/');
-    }
+    // Si ya está autenticado, redirigir según rol o a la página guardada en returnTo
+    const returnUrl = req.session.returnTo || 
+      (req.session.user.role === 'paciente' ? '/patient/dashboard' : 
+       req.session.user.role === 'medico' ? '/doctor/dashboard' : '/');
+    
+    delete req.session.returnTo;
+    return res.redirect(returnUrl);
   }
   
   // No está autenticado, continuar

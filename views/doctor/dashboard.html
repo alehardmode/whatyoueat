@@ -12,6 +12,21 @@
       <h4 class="alert-heading">¡Bienvenido, Dr. <%= user.name %>!</h4>
       <p>Esta es tu área personal para gestionar y ver los registros de tus pacientes.</p>
     </div>
+    
+    <% if (typeof emailConfirmed !== 'undefined' && !emailConfirmed) { %>
+    <div class="alert alert-warning fade show mb-4 persistent-alert" role="alert" id="emailConfirmationAlert">
+      <div class="position-relative">
+        <div class="mb-2">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <strong>¡Tu correo no está verificado!</strong> Por favor, verifica tu cuenta de correo electrónico para acceder a todas las funcionalidades.
+        </div>
+        <div class="mt-2">
+          <button id="resendConfirmationBtn" class="btn btn-sm btn-outline-dark">Reenviar correo de confirmación</button>
+        </div>
+        <button type="button" class="btn-close position-absolute top-0 end-0" aria-label="Cerrar"></button>
+      </div>
+    </div>
+    <% } %>
   </div>
 </div>
 
@@ -23,16 +38,21 @@
         <h5 class="mb-0"><i class="fas fa-search me-2"></i>Buscar Pacientes</h5>
       </div>
       <div class="card-body">
-        <form action="/doctor/search" method="GET" class="row g-3 align-items-end">
-          <div class="col-md-8">
-            <label for="name" class="form-label">Nombre del Paciente</label>
-            <input type="text" class="form-control" id="name" name="name" placeholder="Buscar por nombre..." value="<%= typeof searchTerm != 'undefined' ? searchTerm : '' %>">
+        <form action="/doctor/search" method="GET" class="row g-3 align-items-center">
+          <div class="col-md-6">
+            <label for="name" class="form-label visually-hidden">Nombre del Paciente</label>
+            <input type="text" class="form-control" id="name" name="name" placeholder="Buscar paciente existente por nombre..." value="<%= typeof searchTerm != 'undefined' ? searchTerm : '' %>">
           </div>
-          <div class="col-md-4">
+          <div class="col-md-3">
             <button type="submit" class="btn btn-primary w-100">
               <i class="fas fa-search me-1"></i>Buscar
             </button>
           </div>
+           <div class="col-md-3">
+             <a href="/doctor/search" class="btn btn-success w-100">
+               <i class="fas fa-user-plus me-1"></i>Añadir Paciente
+             </a>
+           </div>
         </form>
       </div>
     </div>
@@ -65,11 +85,18 @@
                     <th scope="row"><%= index + 1 %></th>
                     <td><%= patient.name %></td>
                     <td><%= patient.email %></td>
-                    <td><%= new Date(patient.created_at).toLocaleDateString() %></td>
-                    <td>
-                      <a href="/doctor/patient/<%= patient.id %>/history" class="btn btn-sm btn-primary">
-                        <i class="fas fa-book me-1"></i>Ver Diario
+                    <td><%= new Date(patient.created_at).toLocaleDateString('es-ES') %></td>
+                    <td class="d-flex gap-2">
+                      <a href="/doctor/patient/<%= patient.id %>/history" class="btn btn-sm btn-primary" title="Ver Diario">
+                        <i class="fas fa-book"></i> <span class="d-none d-md-inline">Ver Diario</span>
                       </a>
+                      <!-- Formulario para eliminar paciente -->
+                      <form action="/doctor/patient/<%= patient.relationId %>/remove" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres desvincular a este paciente?');" style="display: inline;">
+                        <input type="hidden" name="_method" value="DELETE"> <!-- Si se usa method-override -->
+                        <button type="submit" class="btn btn-sm btn-danger" title="Desvincular Paciente">
+                          <i class="fas fa-user-minus"></i> <span class="d-none d-md-inline">Desvincular</span>
+                        </button>
+                      </form>
                     </td>
                   </tr>
                 <% }); %>
