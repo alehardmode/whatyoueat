@@ -57,7 +57,7 @@ npm start
 
 ## Licencia
 
-MIT - Ver archivo LICENSE para más detalles
+MIT - Ver archivo [LICENSE](LICENSE) para más detalles
 
 ## Contacto
 
