@@ -1,5 +1,6 @@
 const { supabase } = require('../config/supabase');
 const { getAuthErrorMessage } = require('../utils/errorHandler');
+const { v4: uuidv4 } = require('uuid');
 
 class UserAuth {
   // Registrar un nuevo usuario usando el servicio de autenticación de Supabase
@@ -25,24 +26,17 @@ class UserAuth {
 
       if (authError) {
         console.error('Error en registro de usuario:', authError);
-        
-        // Verificar si el error es debido a un correo ya existente
-        if (authError.message && (
-            authError.message.includes('already registered') || 
-            authError.message.includes('already exists') ||
-            authError.message.includes('ya existe') ||
-            authError.message.includes('ya registrado') ||
-            authError.code === '23505' // Código de error de violación de unicidad en PostgreSQL
-          )) {
-          return { 
-            success: false, 
-            error: 'Ya existe una cuenta con este correo electrónico' 
-          };
-        }
-        
         return { 
           success: false, 
           error: getAuthErrorMessage(authError.code, authError.message)
+        };
+      }
+      
+      // Verificar si el usuario existe en identities (email ya registrado)
+      if (authData && authData.user && authData.user.identities && authData.user.identities.length === 0) {
+        return {
+          success: false,
+          error: 'Este correo ya está registrado'
         };
       }
       
@@ -75,14 +69,64 @@ class UserAuth {
   // Iniciar sesión
   static async login(email, password) {
     try {
-      // Iniciar sesión a través del servicio de autenticación de Supabase
+      // Intentar iniciar sesión directamente
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
       if (authError) {
-        console.error('Error en inicio de sesión:', authError);
+        // Para errores de autenticación, mostrar mensaje adecuado
+        console.log('Error de autenticación:', authError);
+        
+        // Usar mensajes específicos según el tipo de error
+        if (authError.message.includes('Invalid login credentials')) {
+          return { 
+            success: false, 
+            error: 'Credenciales incorrectas',
+            errorCode: 'invalid_credentials'
+          };
+        } else if (authError.message.includes('Email not confirmed')) {
+          // Obtener el usuario aunque el email no esté confirmado
+          // En lugar de usar auth.admin que no está disponible, usamos una alternativa
+          // Creamos un objeto de usuario basado en la información de error
+
+          // Extraemos el ID de usuario si está disponible en el error
+          let userId = null;
+          if (authError.message && authError.message.includes('user_id')) {
+            try {
+              // Intentar extraer el ID del mensaje de error
+              const userIdMatch = authError.message.match(/user_id: ([0-9a-f-]+)/i);
+              if (userIdMatch && userIdMatch[1]) {
+                userId = userIdMatch[1];
+              }
+            } catch (e) {
+              console.error('Error al extraer ID de usuario del mensaje:', e);
+            }
+          }
+
+          // Si tenemos el email, podemos construir un objeto de usuario básico
+          return {
+            success: true,
+            user: {
+              id: userId || uuidv4(), // Usar UUID si no podemos obtener el ID real
+              email: email,
+              name: email.split('@')[0], // Usar parte del email como nombre provisional
+              role: 'paciente', // Rol por defecto
+              email_confirmed_at: null
+            },
+            emailNotConfirmed: true,
+            errorCode: 'email_not_confirmed'
+          };
+        } else if (authError.message.includes('User not found')) {
+          return { 
+            success: false, 
+            error: 'No existe ninguna cuenta con ese correo electrónico',
+            errorCode: 'user_not_found'
+          };
+        }
+        
+        // Mensaje genérico para otros errores
         return { 
           success: false, 
           error: getAuthErrorMessage(authError.code, authError.message)
@@ -107,14 +151,15 @@ class UserAuth {
           id: authData.user.id,
           email: authData.user.email,
           name: name,
-          role: role
+          role: role,
+          email_confirmed_at: authData.user.email_confirmed_at
         } 
       };
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
       return { 
         success: false, 
-        error: error.message || 'Error en el inicio de sesión'
+        error: error.message || 'Error al iniciar sesión'
       };
     }
   }
@@ -142,9 +187,61 @@ class UserAuth {
     }
   }
 
+  // Verificar si ya existe un usuario con el correo electrónico dado
+  static async checkEmailExists(email) {
+    try {
+      // Intentar hacer login con una contraseña incorrecta
+      // Esta técnica es recomendada cuando OTP no está disponible
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: 'contraseña_incorrecta_para_verificacion_12345'
+      });
+      
+      // Analizar el tipo de error para determinar si el usuario existe
+      if (error) {
+        // Si el error es de credenciales inválidas, significa que el usuario existe
+        if (error.message.includes('Invalid login credentials') || 
+            error.code === 'invalid_credentials') {
+          console.log('Email verificado: el usuario existe (credenciales inválidas)');
+          return { exists: true };
+        }
+        
+        // Si indica explícitamente que el usuario no existe
+        if (error.message.includes('user not found') || 
+            error.message.includes('No user found') ||
+            error.code === 'user_not_found') {
+          console.log('Email verificado: el usuario NO existe');
+          return { exists: false };
+        }
+        
+        // Para otros tipos de error, asumir que el usuario podría existir por seguridad
+        console.log('No se pudo determinar con certeza si el email existe. Error:', error);
+        return { exists: true, uncertain: true };
+      }
+      
+      // Si no hay error (login exitoso), el usuario definitivamente existe
+      // Esto no debería ocurrir ya que usamos una contraseña incorrecta
+      console.log('Email verificado: el usuario existe (inicio de sesión inesperadamente exitoso)');
+      return { exists: true };
+    } catch (error) {
+      console.error('Error inesperado al verificar email:', error);
+      // Por seguridad, asumimos que existe en caso de error para evitar registros duplicados
+      return { exists: true, uncertain: true, error: error.message };
+    }
+  }
+
   // Recuperación de contraseña
   static async resetPassword(email) {
     try {
+      // Primero verificar si el usuario existe
+      const { exists } = await this.checkEmailExists(email);
+      if (!exists) {
+        return { 
+          success: false, 
+          error: 'No existe ninguna cuenta con ese correo electrónico'
+        };
+      }
+
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${process.env.APP_URL || 'http://localhost:3000'}/auth/update-password`,
       });
@@ -217,39 +314,45 @@ class UserAuth {
     }
   }
 
-  // Verificar si ya existe un usuario con el correo electrónico dado
-  static async checkEmailExists(email) {
+  // Reenviar correo de confirmación de email
+  static async resendConfirmationEmail(email) {
     try {
-      // Intento de inicio de sesión con OTP (mensaje único)
-      // Esta es una forma de comprobar si el email existe sin exponer información sensible
-      const { data, error } = await supabase.auth.signInWithOtp({
-        email,
+      // Verificar primero si el usuario existe
+      const { exists } = await this.checkEmailExists(email);
+      if (!exists) {
+        return { 
+          success: false, 
+          error: 'No existe ninguna cuenta con ese correo electrónico',
+          errorCode: 'user_not_found'
+        };
+      }
+
+      // Solicitar reenvío de email de confirmación
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
         options: {
-          shouldCreateUser: false // Solo verificar, no crear usuario
+          emailRedirectTo: `${process.env.APP_URL || 'http://localhost:3000'}/auth/callback`
         }
       });
       
-      // Si no hay error o el error no es de tipo "usuario no existe"
-      // entonces el correo ya está registrado
-      if (!error) {
-        return { exists: true };
+      if (error) {
+        console.error('Error al reenviar correo de confirmación:', error);
+        return { 
+          success: false, 
+          error: getAuthErrorMessage(error.code, error.message),
+          errorCode: error.code
+        };
       }
       
-      // Comprobar códigos de error específicos que indican usuario no existe
-      // Códigos comunes: "user_not_found", 400 (con mensaje "User not found")
-      if (error.status === 400 && 
-          (error.message.includes('not found') || 
-           error.message.includes('no encontrado'))) {
-        return { exists: false };
-      }
-      
-      // Otros errores podrían sugerir que el usuario existe
-      // pero por seguridad es mejor ser conservador
-      console.log('Error al verificar email:', error);
-      return { exists: true, uncertain: true };
+      return { success: true };
     } catch (error) {
-      console.error('Error inesperado al verificar email:', error);
-      return { exists: false, error: error.message };
+      console.error('Error inesperado al reenviar correo de confirmación:', error);
+      return { 
+        success: false, 
+        error: error.message || 'Error al reenviar correo de confirmación',
+        errorCode: error.code
+      };
     }
   }
 }
