@@ -23,7 +23,6 @@ Aplicación web que permite a pacientes registrar su alimentación mediante foto
 
 - **Frontend**: HTML5, CSS3, JavaScript, Bootstrap 5, EJS
 - **Backend**: Node.js, Express.js, Supabase (PostgreSQL)
-- **Seguridad**: bcrypt, express-session, middleware por roles
 
 ## Instalación Rápida
 
