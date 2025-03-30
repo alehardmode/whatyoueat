@@ -51,9 +51,26 @@ npm start
 
 ## Uso
 
-1. **Registro/Acceso**: Regístrate como paciente o médico
-2. **Pacientes**: Sube fotos de comidas con detalles e ingredientes
-3. **Médicos**: Asigna pacientes y visualiza su historial alimenticio
+1. **Registro y Acceso**:
+   - Regístrate como paciente o médico proporcionando datos personales
+   - Confirma tu correo electrónico para acceder a todas las funcionalidades
+   - Inicia sesión con tus credenciales
+
+2. **Pacientes**:
+   - **Dashboard**: Visualiza un resumen de tu actividad y estadísticas alimenticias
+   - **Registro de Comidas**: Sube fotos de tus alimentos incluyendo nombre, descripción, tipo de comida y fecha
+   - **Historial Alimenticio**: Visualiza y filtra tu historial completo por fechas
+   - **Gestión de Entradas**: Edita o elimina tus registros alimenticios anteriores
+   - **Perfil**: Actualiza tus datos personales y preferencias
+
+3. **Médicos**:
+   - **Dashboard**: Administra tu lista de pacientes asignados
+   - **Búsqueda de Pacientes**: Encuentra y asigna nuevos pacientes por nombre
+   - **Seguimiento Nutricional**: Accede al historial alimenticio completo de tus pacientes
+   - **Análisis Detallado**: Examina cada entrada alimenticia con todos sus detalles e imágenes
+   - **Gestión de Relaciones**: Añade o elimina pacientes de tu lista de seguimiento
+
+4. **Contacto**: Utiliza el formulario de contacto para reportar problemas o solicitar asistencia
 
 ## Licencia
 
