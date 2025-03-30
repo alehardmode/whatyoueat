@@ -4,15 +4,20 @@ Aplicación web que permite a pacientes registrar su alimentación mediante foto
 
 ## Características
 
-### Pacientes
-- Registro de comidas mediante fotografías
-- Visualización del historial con filtrado por fechas
-- Gestión completa (crear, ver, editar, eliminar) de entradas
+### Plataforma Integral
+- Sistema dual para pacientes y profesionales de la salud
+- Interfaz intuitiva adaptada a cada tipo de usuario
+- Diseño responsivo accesible desde cualquier dispositivo
 
-### Médicos
-- Búsqueda y asignación de pacientes
-- Visualización del historial alimenticio de pacientes asignados
-- Acceso a detalles de cada entrada alimenticia
+### Gestión de Datos
+- Almacenamiento seguro de imágenes en formato optimizado
+- Organización cronológica de registros alimenticios
+- Sistema de relaciones médico-paciente con permisos específicos
+
+### Rendimiento y Seguridad
+- Optimización de imágenes mediante conversión a WebP
+- Autenticación segura con verificación de correo electrónico
+- Protección de rutas mediante middleware por roles
 
 ## Tecnologías
 
