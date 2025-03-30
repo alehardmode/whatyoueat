@@ -118,26 +118,50 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Validar todo el formulario al enviar
   form.addEventListener('submit', function(event) {
+    // Prevenir el envío por defecto para validar primero
+    event.preventDefault();
+    
     let isValid = true;
     
     // Validar todos los campos
     this.querySelectorAll('input, select').forEach(field => {
       validateField(field);
       
+      // Si el campo no es válido, marcar el formulario como inválido
       if (!field.checkValidity()) {
+        console.log(`Campo inválido: ${field.name} - Valor: "${field.value}"`);
         isValid = false;
+      } else {
+        console.log(`Campo válido: ${field.name} - Valor: "${field.value}"`);
       }
     });
     
     // Validar coincidencia de contraseñas
     if (!validatePasswordMatch()) {
       isValid = false;
+      console.log('Las contraseñas no coinciden');
     }
     
-    // Si no es válido, detener el envío
-    if (!isValid) {
-      event.preventDefault();
-      event.stopPropagation();
+    // Validar checkbox de términos
+    const termsCheckbox = document.getElementById('terms');
+    if (termsCheckbox && !termsCheckbox.checked) {
+      isValid = false;
+      console.log('Términos no aceptados');
+      
+      // Mostrar mensaje de error para el checkbox
+      const feedback = termsCheckbox.parentElement.querySelector('.invalid-feedback');
+      if (feedback) {
+        feedback.classList.remove('d-none');
+      }
+      termsCheckbox.classList.add('is-invalid');
+    }
+    
+    console.log('Formulario válido:', isValid);
+    
+    // Si es válido, enviar el formulario
+    if (isValid) {
+      console.log('Enviando formulario...');
+      this.submit();
     }
   });
 }); 

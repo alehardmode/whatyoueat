@@ -26,6 +26,9 @@ router.post('/resend-confirmation', isAuthenticated, authController.resendConfir
 // Ruta de callback para la confirmación de correo electrónico
 router.get('/callback', authController.handleAuthCallback);
 
+// Ruta para mostrar la página de correo confirmado
+router.get('/email-confirmed', authController.getEmailConfirmed);
+
 // Ruta protegida (requiere autenticación)
 // Ruta de cierre de sesión
 router.get('/logout', isAuthenticated, authController.logout);

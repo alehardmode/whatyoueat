@@ -23,6 +23,12 @@ const authRoutes = require('./routes/authRoutes');
 const patientRoutes = require('./routes/patientRoutes');
 const doctorRoutes = require('./routes/doctorRoutes');
 
+// Importar middleware de autenticación
+const { isAuthenticated, isNotAuthenticated } = require('./middleware/authMiddleware');
+
+// Importar modelo de autenticación
+const UserAuth = require('./models/UserAuth');
+
 // ===== MIDDLEWARES =====
 
 // Configuración de seguridad mejorada con Helmet
@@ -173,53 +179,40 @@ app.use('/doctor', doctorRoutes);
 
 // ===== API ROUTES =====
 // Ruta para reenviar correo de confirmación
-app.post('/api/resend-confirmation', async (req, res) => {
+app.post('/auth/resend-confirmation', isAuthenticated, async (req, res) => {
   try {
-    // Solo usuarios autenticados pueden solicitar un reenvío
-    if (!req.session.isLoggedIn || !req.session.user) {
-      return res.status(401).json({ 
-        success: false, 
-        message: 'Debes iniciar sesión para realizar esta acción'
+    // Obtener el email de la sesión del usuario
+    const email = req.session.user?.email;
+    
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'No se pudo determinar el email'
       });
     }
     
-    // Obtener el email del usuario de la sesión
-    const email = req.session.user.email;
-    
-    // Solicitar reenvío de email de confirmación a través de Supabase
-    const UserAuth = require('./models/UserAuth');
+    // Reenviar correo de confirmación
     const result = await UserAuth.resendConfirmationEmail(email);
     
     if (!result.success) {
-      return res.status(400).json({ 
-        success: false, 
+      return res.status(400).json({
+        success: false,
         message: result.error || 'No se pudo reenviar el correo de confirmación',
-        code: result.errorCode // Incluir el código de error para que el cliente pueda identificarlo
+        errorCode: result.errorCode
       });
     }
     
-    return res.json({ 
-      success: true, 
+    // Devolver respuesta exitosa
+    return res.json({
+      success: true,
       message: 'Correo de confirmación reenviado. Por favor, revisa tu bandeja de entrada.'
     });
   } catch (error) {
     console.error('Error al reenviar correo de confirmación:', error);
-    
-    // Capturar código de error específico para limitación de tasa
-    let errorMessage = 'Error al reenviar el correo de confirmación';
-    let errorCode = null;
-    
-    if (error.__isAuthError && error.code) {
-      errorCode = error.code;
-      if (error.message) {
-        errorMessage = error.message;
-      }
-    }
-    
-    return res.status(500).json({ 
-      success: false, 
-      message: errorMessage,
-      code: errorCode
+    return res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor',
+      errorCode: 'server_error'
     });
   }
 });

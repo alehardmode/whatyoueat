@@ -10,13 +10,13 @@
     <!-- Formulario de registro -->
     <div class="card border-0 shadow">
       <div class="card-body p-4 p-lg-5">
-        <form action="/auth/register" method="POST" class="needs-validation" novalidate id="registerForm">
+        <form action="/auth/register" method="POST" class="needs-validation" novalidate id="registerForm" onsubmit="return validateAndSubmitForm(this);">
           <!-- elemento nombre formulario -->
           <div class="mb-4">
             <label for="name" class="form-label">Nombre Completo</label>
             <div class="input-group">
               <span class="input-group-text"><i class="fas fa-user"></i></span>
-              <input type="text" class="form-control" id="name" name="name" value="<%= typeof name != 'undefined' ? name : '' %>" required placeholder="Tu nombre completo" autofocus>
+              <input type="text" class="form-control" id="name" name="name" autocomplete="name" value="<%= typeof name != 'undefined' ? name : '' %>" required placeholder="Tu nombre completo" autofocus>
               <div class="invalid-feedback d-none">Por favor ingresa tu nombre completo</div>
             </div>
           </div>
@@ -25,7 +25,7 @@
             <label for="email" class="form-label">Correo Electrónico</label>
             <div class="input-group has-validation">
               <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-              <input type="email" class="form-control" id="email" name="email" value="<%= typeof email != 'undefined' ? email : '' %>" required placeholder="tu@email.com">
+              <input type="email" class="form-control" id="email" name="email" autocomplete="email" value="<%= typeof email != 'undefined' ? email : '' %>" required placeholder="tu@email.com">
               <div class="invalid-feedback d-none" id="email-feedback">Por favor ingresa un correo electrónico válido</div>
             </div>
           </div>
@@ -34,7 +34,7 @@
             <label for="role" class="form-label">Rol</label>
             <div class="input-group">
               <span class="input-group-text"><i class="fas fa-user-tag"></i></span>
-              <select class="form-select" id="role" name="role" required>
+              <select class="form-select" id="role" name="role" autocomplete="off" required>
                 <option value="" selected disabled>Selecciona un rol</option>
                 <option value="paciente" <%= typeof role != 'undefined' && role === 'paciente' ? 'selected' : '' %>>Paciente</option>
                 <option value="medico" <%= typeof role != 'undefined' && role === 'medico' ? 'selected' : '' %>>Médico</option>
@@ -50,7 +50,7 @@
             <label for="password" class="form-label">Contraseña</label>
             <div class="input-group">
               <span class="input-group-text"><i class="fas fa-lock"></i></span>
-              <input type="password" class="form-control" id="password" name="password" required placeholder="Crea una contraseña segura" minlength="6">
+              <input type="password" class="form-control" id="password" name="password" autocomplete="new-password" required placeholder="Crea una contraseña segura" minlength="6">
               <!-- boton para mostrar contraseña -->
               <button class="btn btn-outline-secondary" type="button" id="togglePassword1" tabindex="-1" aria-label="Mostrar u ocultar contraseña">
                 <i class="fas fa-eye" id="toggleIcon1"></i>
@@ -64,7 +64,7 @@
             <label for="password2" class="form-label">Confirmar Contraseña</label>
             <div class="input-group">
               <span class="input-group-text"><i class="fas fa-lock"></i></span>
-              <input type="password" class="form-control" id="password2" name="password2" required placeholder="Repite tu contraseña">
+              <input type="password" class="form-control" id="password2" name="password2" autocomplete="new-password" required placeholder="Repite tu contraseña">
               <!-- boton2 para mostrar confirmacion de contraseña -->
               <button class="btn btn-outline-secondary" type="button" id="togglePassword2" tabindex="-1" aria-label="Mostrar u ocultar contraseña">
                 <i class="fas fa-eye" id="toggleIcon2"></i>
@@ -74,7 +74,7 @@
           </div>
           <!-- elemento checkbox formulario -->
           <div class="form-check mb-4">
-            <input class="form-check-input" type="checkbox" id="terms" required>
+            <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
             <label class="form-check-label" for="terms">
               Acepto los <a href="#">Términos de servicio</a> y la <a href="#">Política de privacidad</a>
             </label>
@@ -99,3 +99,81 @@
 <!-- Incluir scripts necesarios -->
 <script src="/js/auth.js"></script>
 <script src="/js/validators/registerFormValidator.js"></script>
+
+<script>
+// Función para validar y enviar el formulario manualmente
+function validateAndSubmitForm(form) {
+  // Evitar validación normal de HTML5
+  event.preventDefault();
+  
+  // Validar manualmente todos los campos
+  let isValid = true;
+  let errorMessage = "";
+  
+  // Comprobar que todos los campos obligatorios están completados
+  const name = form.name.value.trim();
+  const email = form.email.value.trim();
+  const password = form.password.value;
+  const password2 = form.password2.value;
+  const role = form.role.value;
+  const terms = form.terms.checked;
+  
+  console.log("Validando formulario con valores:");
+  console.log("Nombre:", name);
+  console.log("Email:", email);
+  console.log("Contraseña:", password ? "PRESENTE" : "FALTA");
+  console.log("Confirmación:", password2 ? "PRESENTE" : "FALTA");
+  console.log("Rol:", role);
+  console.log("Términos:", terms);
+  
+  // Comprobar campos obligatorios
+  if (!name) {
+    isValid = false;
+    errorMessage += "- Nombre es obligatorio\n";
+  }
+  
+  if (!email) {
+    isValid = false;
+    errorMessage += "- Email es obligatorio\n";
+  }
+  
+  if (!password) {
+    isValid = false;
+    errorMessage += "- Contraseña es obligatoria\n";
+  }
+  
+  if (!password2) {
+    isValid = false;
+    errorMessage += "- Confirmar contraseña es obligatorio\n";
+  }
+  
+  if (!role) {
+    isValid = false;
+    errorMessage += "- Debes seleccionar un rol\n";
+  }
+  
+  if (!terms) {
+    isValid = false;
+    errorMessage += "- Debes aceptar los términos y condiciones\n";
+  }
+  
+  // Verificar que las contraseñas coinciden
+  if (password && password2 && password !== password2) {
+    isValid = false;
+    errorMessage += "- Las contraseñas no coinciden\n";
+  }
+  
+  // Si hay errores, mostrarlos
+  if (!isValid) {
+    console.error("Errores de validación:");
+    console.error(errorMessage);
+    alert("Por favor corrige los siguientes errores:\n" + errorMessage);
+    return false;
+  }
+  
+  // Si todo está bien, enviar el formulario
+  console.log("Formulario válido, enviando...");
+  form.submit();
+  return true;
+}
+</script>

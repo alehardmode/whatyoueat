@@ -16,7 +16,7 @@
             <label for="email" class="form-label">Correo Electrónico</label>
             <div class="input-group">
               <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-              <input type="email" class="form-control" id="email" name="email" required autofocus placeholder="tu@email.com">
+              <input type="email" class="form-control" id="email" name="email" autocomplete="email" required autofocus placeholder="tu@email.com">
             </div>
           </div>
           
@@ -27,7 +27,7 @@
             </div>
             <div class="input-group">
               <span class="input-group-text"><i class="fas fa-lock"></i></span>
-              <input type="password" class="form-control" id="password" name="password" required placeholder="Tu contraseña">
+              <input type="password" class="form-control" id="password" name="password" autocomplete="current-password" required placeholder="Tu contraseña">
               <!-- boton para mostrar contraseña -->
               <button class="btn btn-outline-secondary" type="button" id="togglePassword1" tabindex="-1" aria-label="Mostrar u ocultar contraseña">
                 <i class="fas fa-eye" id="toggleIcon1"></i>

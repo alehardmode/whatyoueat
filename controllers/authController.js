@@ -103,48 +103,59 @@ exports.getRegister = (req, res) => {
 // Procesar registro
 exports.postRegister = async (req, res) => {
   try {
+    // Depuración - Mostrar todos los campos recibidos
+    console.log('Datos recibidos en el registro:');
+    console.log('req.body:', req.body);
+    console.log('Campos presentes:', Object.keys(req.body));
+    
+    // Destructuring para obtener datos del cuerpo de la petición
     const { name, email, password, password2, role } = req.body;
-    const errors = [];
     
-    // Validación
+    // Mostrar valores individuales
+    console.log('name:', name);
+    console.log('email:', email);
+    console.log('password:', password ? 'PRESENT' : 'MISSING');
+    console.log('password2:', password2 ? 'PRESENT' : 'MISSING');
+    console.log('role:', role);
+    
+    // Validar entradas
     if (!name || !email || !password || !password2 || !role) {
-      errors.push({ msg: 'Por favor rellena todos los campos' });
-    }
-    
-    if (password !== password2) {
-      errors.push({ msg: 'Las contraseñas no coinciden' });
-    }
-    
-    if (password.length < 6) {
-      errors.push({ msg: 'La contraseña debe tener al menos 6 caracteres' });
-    }
-    
-    if (errors.length > 0) {
-      return res.render('auth/register', {
-        title: 'Registrarse',
-        errors,
-        name,
-        email,
-        role
-      });
-    }
-    
-    // Intentar registrar usando el modelo UserAuth
-    const result = await UserAuth.register(name, email, password, role);
-    
-    if (!result.success) {
-      req.flash('error_msg', result.error);
+      console.log('Campos faltantes:');
+      if (!name) console.log('- Falta name');
+      if (!email) console.log('- Falta email');
+      if (!password) console.log('- Falta password');
+      if (!password2) console.log('- Falta password2');
+      if (!role) console.log('- Falta role');
+      
+      req.flash('error_msg', 'Por favor rellena todos los campos');
       return res.redirect('/auth/register');
     }
     
-    // Almacenar el mensaje flash antes de redirigir
-    req.flash('success_msg', '¡Registro completado con éxito! Te hemos enviado un correo de confirmación. Por favor, verifica tu bandeja de entrada.');
+    if (password !== password2) {
+      req.flash('error_msg', 'Las contraseñas no coinciden');
+      return res.redirect('/auth/register');
+    }
     
-    // Redirigir a la página de login
-    return res.redirect('/auth/login');
+    // Validar role
+    if (role !== 'paciente' && role !== 'medico') {
+      req.flash('error_msg', 'Rol no válido');
+      return res.redirect('/auth/register');
+    }
+    
+    // Registrar usuario a través del servicio de autenticación
+    const result = await UserAuth.register(name, email, password, role);
+    
+    if (!result.success) {
+      req.flash('error_msg', result.error || 'Error al registrar el usuario');
+      return res.redirect('/auth/register');
+    }
+    
+    // Registro exitoso, redirigir al login
+    req.flash('success_msg', '¡Registro completado con éxito! Te hemos enviado un correo de confirmación. Por favor, verifica tu bandeja de entrada.');
+    res.redirect('/auth/login');
   } catch (error) {
-    console.error('Error en registro:', error);
-    req.flash('error_msg', 'Error al registrarse');
+    console.error('Error al registrar usuario:', error);
+    req.flash('error_msg', error.message || 'Error al registrar el usuario');
     res.redirect('/auth/register');
   }
 };
@@ -382,50 +393,26 @@ exports.handleAuthCallback = async (req, res) => {
         const userEmail = userData.user.email;
         const emailConfirmedAt = userData.user.email_confirmed_at;
         
-        // Establecer mensaje flash antes de regenerar la sesión
-        req.flash('success_msg', '¡Tu correo electrónico ha sido verificado correctamente!');
+        // Actualizar la sesión con los datos confirmados
+        req.session.user = {
+          id: userId,
+          email: userEmail,
+          name: name,
+          role: role,
+          email_confirmed_at: emailConfirmedAt
+        };
         
-        // Regenerar la sesión
-        req.session.regenerate((err) => {
+        req.session.userId = userId;
+        req.session.isLoggedIn = true;
+        req.session.userRole = role;
+        req.session.emailConfirmed = true;
+        
+        // Guardar la sesión y redirigir a la página de confirmación
+        req.session.save((err) => {
           if (err) {
-            console.error('Error al regenerar sesión:', err);
-            req.flash('error_msg', 'Error al procesar la sesión');
-            return res.redirect('/auth/login');
+            console.error('Error al guardar sesión:', err);
           }
-          
-          // Reconstruir la sesión con los datos del usuario
-          req.session.user = {
-            id: userId,
-            email: userEmail,
-            name: name,
-            role: role,
-            email_confirmed_at: emailConfirmedAt
-          };
-          
-          req.session.userId = userId;
-          req.session.isLoggedIn = true;
-          req.session.userRole = role;
-          req.session.emailConfirmed = true;
-          
-          // Volver a establecer el mensaje flash en la nueva sesión
-          req.flash('success_msg', '¡Tu correo electrónico ha sido verificado correctamente!');
-          
-          // Continuar con el guardado de la sesión
-          req.session.save((err) => {
-            if (err) {
-              console.error('Error al guardar sesión:', err);
-              return res.redirect('/auth/login');
-            }
-            
-            // Redirigir según rol
-            if (role === 'paciente') {
-              return res.redirect('/patient/dashboard');
-            } else if (role === 'medico') {
-              return res.redirect('/doctor/dashboard');
-            } else {
-              return res.redirect('/');
-            }
-          });
+          return res.redirect('/auth/email-confirmed');
         });
       } else {
         // El correo sigue sin confirmarse (algo salió mal)
@@ -433,13 +420,20 @@ exports.handleAuthCallback = async (req, res) => {
         return res.redirect('/auth/login');
       }
     } else {
-      // Si no hay sesión, redirigir al login con mensaje
-      req.flash('success_msg', 'Verificación recibida. Por favor inicia sesión con tus credenciales.');
-      return res.redirect('/auth/login');
+      // Si no hay sesión, redirigir a la página de confirmación
+      return res.redirect('/auth/email-confirmed');
     }
   } catch (error) {
     console.error('Error en el callback de autenticación:', error);
     req.flash('error_msg', 'Error al procesar la verificación de correo');
     return res.redirect('/auth/login');
   }
+};
+
+// Mostrar la página de correo confirmado
+exports.getEmailConfirmed = (req, res) => {
+  res.render('auth/email-confirmed', { 
+    title: 'Correo Confirmado',
+    user: req.session.user
+  });
 }; 

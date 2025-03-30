@@ -17,6 +17,24 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Escuchar el botón de reenvío de confirmación de correo
   setupResendConfirmationButton();
+
+  // Debug para formulario de registro
+  const registerForm = document.getElementById('registerForm');
+  if (registerForm) {
+    registerForm.addEventListener('submit', function(event) {
+      // Obtener todos los valores del formulario
+      const formData = new FormData(registerForm);
+      const formValues = {};
+      
+      // Convertir FormData a objeto para logging
+      for (const [key, value] of formData.entries()) {
+        formValues[key] = value;
+      }
+      
+      // Mostrar los valores en la consola
+      console.log('Valores del formulario de registro:', formValues);
+    });
+  }
 });
 
 /**
@@ -273,7 +291,7 @@ function setupResendConfirmationButton() {
           messageDiv.innerHTML = `
             <div class="position-relative">
               <div class="mb-2">
-                <i class="fas fa-check-circle me-2"></i>${data.message}
+                <i class="fas fa-check-circle me-2"></i>Correo de confirmación enviado. Por favor revisa tu bandeja de entrada.
               </div>
               <button type="button" class="btn-close position-absolute top-0 end-0" aria-label="Cerrar"></button>
             </div>
