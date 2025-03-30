@@ -3,9 +3,25 @@ const router = express.Router();
 const authController = require('../controllers/authController');
 const { isAuthenticated, isNotAuthenticated } = require('../middleware/authMiddleware');
 
+// Middleware para procesar hash de autenticación
+const processAuthHash = (req, res, next) => {
+  // Este middleware solo aplica a la ruta /login
+  if (req.path !== '/login') return next();
+  
+  // Verificar si hay un hash en la URL que fue incluido por Supabase
+  // Esto lo detectamos en el cliente con JavaScript
+  const fullUrl = req.originalUrl;
+  if (fullUrl.includes('#access_token=') || req.query.access_token) {
+    console.log('Detectada redirección de confirmación con token por hash, redirigiendo a /email-confirmed');
+    return res.redirect('/auth/email-confirmed');
+  }
+  
+  next();
+};
+
 // Rutas públicas (solo accesibles cuando no está autenticado)
 // Ruta de inicio de sesión
-router.get('/login', isNotAuthenticated, authController.getLogin);
+router.get('/login', processAuthHash, isNotAuthenticated, authController.getLogin);
 router.post('/login', isNotAuthenticated, authController.postLogin);
 
 // Ruta de registro

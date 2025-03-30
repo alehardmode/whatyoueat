@@ -352,11 +352,18 @@ exports.postResetPassword = async (req, res) => {
 
 // Manejar el callback de autenticación (confirmación de correo)
 exports.handleAuthCallback = async (req, res) => {
+  console.log('====== INICIO handleAuthCallback ======');
+  console.log('URL completa:', req.originalUrl);
+  console.log('Query params:', req.query);
+  
   try {
     // Obtener token y tipo de confirmación de la URL
     const { token_hash, type } = req.query;
+    console.log('Token hash:', token_hash);
+    console.log('Tipo de confirmación:', type);
     
     if (!token_hash) {
+      console.log('ERROR: No se encontró token_hash en la URL');
       req.flash('error_msg', 'Enlace de verificación no válido');
       return res.redirect('/auth/login');
     }
@@ -366,26 +373,32 @@ exports.handleAuthCallback = async (req, res) => {
     const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
     
     if (sessionError) {
-      console.error('Error al verificar sesión:', sessionError);
+      console.error('ERROR al verificar sesión:', sessionError);
       req.flash('error_msg', 'Error al procesar la verificación del correo');
       return res.redirect('/auth/login');
     }
     
+    console.log('¿Existe sesión?', sessionData && sessionData.session ? 'SÍ' : 'NO');
+    
     // Si la sesión existe y el usuario está autenticado, actualizar la sesión
     if (sessionData && sessionData.session) {
+      console.log('RUTA 1: Usuario con sesión activa');
       // Obtener usuario actualizado primero para verificar si se confirmó el correo
       const { data: userData, error: userError } = await supabase.auth.getUser();
       
       if (userError || !userData || !userData.user) {
-        console.error('Error al obtener usuario:', userError);
+        console.error('ERROR al obtener usuario:', userError);
         req.flash('error_msg', 'Error al obtener información del usuario');
         return res.redirect('/auth/login');
       }
       
       // Verificar si el correo está confirmado
       const emailConfirmed = userData.user.email_confirmed_at !== null;
+      console.log('¿Email confirmado?', emailConfirmed ? 'SÍ' : 'NO');
+      console.log('Fecha confirmación:', userData.user.email_confirmed_at);
       
       if (emailConfirmed) {
+        console.log('RUTA 1.1: Email confirmado, actualizando sesión');
         // Guardar temporalmente los datos necesarios para la nueva sesión
         const name = userData.user.user_metadata?.name || userData.user.email;
         const role = userData.user.user_metadata?.role || 'paciente';
@@ -410,23 +423,32 @@ exports.handleAuthCallback = async (req, res) => {
         // Guardar la sesión y redirigir a la página de confirmación
         req.session.save((err) => {
           if (err) {
-            console.error('Error al guardar sesión:', err);
+            console.error('ERROR al guardar sesión:', err);
           }
+          console.log('REDIRIGIENDO a /auth/email-confirmed (RUTA 1.1)');
           return res.redirect('/auth/email-confirmed');
         });
       } else {
+        console.log('RUTA 1.2: Email NO confirmado, algo salió mal');
         // El correo sigue sin confirmarse (algo salió mal)
         req.flash('error_msg', 'No se pudo verificar tu correo electrónico. Intenta nuevamente.');
+        console.log('REDIRIGIENDO a /auth/login (RUTA 1.2)');
         return res.redirect('/auth/login');
       }
     } else {
-      // Si no hay sesión, redirigir a la página de confirmación
+      console.log('RUTA 2: Usuario sin sesión activa');
+      // Si no hay sesión activa pero tenemos token_hash,
+      // asumimos que es una confirmación válida y redirigimos a la página de confirmación
+      console.log('REDIRIGIENDO a /auth/email-confirmed (RUTA 2)');
       return res.redirect('/auth/email-confirmed');
     }
   } catch (error) {
-    console.error('Error en el callback de autenticación:', error);
+    console.error('ERROR GENERAL en el callback de autenticación:', error);
     req.flash('error_msg', 'Error al procesar la verificación de correo');
+    console.log('REDIRIGIENDO a /auth/login (ERROR)');
     return res.redirect('/auth/login');
+  } finally {
+    console.log('====== FIN handleAuthCallback ======');
   }
 };
 

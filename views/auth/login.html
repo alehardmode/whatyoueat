@@ -1,3 +1,47 @@
+<!-- Script para procesar tokens (debe estar antes de cualquier otro contenido) -->
+<script>
+  // Ejecutar inmediatamente para capturar el token antes de cualquier renderizado
+  (function() {
+    if (window.location.hash) {
+      console.log('Hash detectado en URL:', window.location.hash);
+      
+      // Extraer parámetros del hash
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      
+      // Caso 1: Token de confirmación exitoso
+      if (hashParams.get('access_token') && hashParams.get('type') === 'signup') {
+        console.log('Confirmación de correo detectada, redirigiendo...');
+        // Mostrar mensaje temporal
+        document.write('<div style="text-align:center;padding:50px;font-family:Arial;"><h2>Confirmación exitosa</h2><p>Redirigiendo...</p></div>');
+        // Redireccionar
+        window.location.href = '/auth/email-confirmed';
+        return;
+      }
+      
+      // Caso 2: Error por enlace expirado o inválido
+      if (hashParams.get('error') === 'access_denied' && 
+          (hashParams.get('error_code') === 'otp_expired' || hashParams.get('error_description')?.includes('expired'))) {
+        console.log('Enlace de verificación expirado detectado');
+        
+        // Permitir que la página se cargue, pero prepararemos un mensaje de error
+        window.addEventListener('DOMContentLoaded', function() {
+          // Crear mensaje de error
+          const errorContainer = document.createElement('div');
+          errorContainer.className = 'alert alert-danger mb-4';
+          errorContainer.innerHTML = '<strong>El enlace de verificación ha expirado o es inválido.</strong> ' +
+                                    'Por favor, inicia sesión con tus credenciales o solicita un nuevo enlace de verificación.';
+          
+          // Insertar al principio del formulario
+          const form = document.querySelector('form');
+          if (form) {
+            form.parentNode.insertBefore(errorContainer, form);
+          }
+        });
+      }
+    }
+  })();
+</script>
+
 <!-- Página de Inicio de Sesión -->
 <div class="row justify-content-center animate-fade-in py-5">
   <div class="col-lg-5 col-md-7 col-sm-10">

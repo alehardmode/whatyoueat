@@ -98,6 +98,35 @@ app.use(session({
 // Flash messages - debe ir después de session
 app.use(flash());
 
+// Middleware para interceptar posibles redirecciones de Supabase
+// Nota: los fragmentos de URL (después de #) no llegan al servidor
+app.use((req, res, next) => {
+  // Log para depuración
+  console.log('URL solicitada:', req.originalUrl);
+  
+  // Verificar si es una redirección a /auth/login con referrer de Supabase
+  if (req.path === '/auth/login' && req.headers.referer && 
+      req.headers.referer.includes('supabase.co/auth/v1/verify')) {
+    console.log('Detectada redirección desde Supabase a login');
+    return res.redirect('/auth/email-confirmed');
+  }
+  
+  // Verificar los parámetros de consulta
+  if (req.query.access_token || req.query.type === 'signup') {
+    console.log('Token o parámetro de confirmación detectado en la URL');
+    return res.redirect('/auth/email-confirmed');
+  }
+  
+  // Verificar la ruta callback
+  if (req.path === '/auth/callback' && !req.query.token_hash) {
+    console.log('Detectada ruta callback sin token, posible redirección incorrecta');
+    return res.redirect('/auth/email-confirmed');
+  }
+  
+  // Continuar con el siguiente middleware
+  next();
+});
+
 // Variables globales y datos para las vistas
 app.use((req, res, next) => {
   res.locals.success_msg = req.flash('success_msg');
