@@ -37,6 +37,7 @@ public/uploads/
 # IDEs y editores
 .idea/
 .vscode/
+.cursor/
 *.swp
 *.swo
 *.sublime-workspace
