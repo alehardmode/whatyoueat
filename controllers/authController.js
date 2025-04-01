@@ -33,8 +33,17 @@ exports.postLogin = async (req, res) => {
       return res.redirect('/auth/login');
     }
     
+    console.log('Intentando iniciar sesión con email:', email);
+    
     // Intentar iniciar sesión
     const result = await UserAuth.login(email, password);
+    
+    console.log('Resultado del login:', {
+      success: result.success,
+      errorCode: result.errorCode || 'no_error',
+      userRole: result.user?.role,
+      emailConfirmed: result.user?.email_confirmed_at ? 'Sí' : 'No'
+    });
     
     if (!result.success) {
       // Usar mensajes específicos cuando sea seguro
@@ -63,6 +72,12 @@ exports.postLogin = async (req, res) => {
     req.session.userId = result.user.id;
     req.session.userRole = result.user.role;
     
+    console.log('Sesión establecida:', {
+      userId: req.session.userId,
+      userRole: req.session.userRole,
+      emailConfirmed: !emailNotConfirmed
+    });
+    
     // Verificar si el email está confirmado (simplificado)
     req.session.emailConfirmed = !emailNotConfirmed && (result.user.email_confirmed_at !== null);
     
@@ -76,12 +91,15 @@ exports.postLogin = async (req, res) => {
       
       // Redireccionar al dashboard según el rol del usuario
       const userRole = req.session.userRole;
+      console.log('Redirigiendo basado en rol:', userRole);
+      
       if (userRole === 'paciente') {
         res.redirect('/patient/dashboard');
       } else if (userRole === 'medico') {
         res.redirect('/doctor/dashboard');
       } else {
         // Si el rol no está definido o es desconocido, redirigir a la página principal
+        console.log('Rol no definido o desconocido, redirigiendo a la página principal');
         res.redirect('/');
       }
     });

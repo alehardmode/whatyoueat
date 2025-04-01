@@ -1,6 +1,13 @@
 const { supabase } = require('../config/supabase');
 const { getAuthErrorMessage } = require('../utils/errorHandler');
 const { v4: uuidv4 } = require('uuid');
+const fs = require('fs');
+
+// Función para escribir logs en un archivo
+function writeLog(message) {
+  const logMessage = `[${new Date().toISOString()}] ${message}\n`;
+  fs.appendFileSync('user_auth.log', logMessage);
+}
 
 class UserAuth {
   // Registrar un nuevo usuario usando el servicio de autenticación de Supabase
@@ -69,6 +76,9 @@ class UserAuth {
   // Iniciar sesión
   static async login(email, password) {
     try {
+      console.log('Iniciando proceso de login para email:', email);
+      writeLog(`Iniciando proceso de login para email: ${email}`);
+      
       // Intentar iniciar sesión directamente
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
@@ -78,6 +88,7 @@ class UserAuth {
       if (authError) {
         // Para errores de autenticación, mostrar mensaje adecuado
         console.log('Error de autenticación:', authError);
+        writeLog(`Error de autenticación: ${JSON.stringify(authError)}`);
         
         // Usar mensajes específicos según el tipo de error
         if (authError.message.includes('Invalid login credentials')) {
@@ -90,6 +101,13 @@ class UserAuth {
           // Obtener el usuario aunque el email no esté confirmado
           // En lugar de usar auth.admin que no está disponible, usamos una alternativa
           // Creamos un objeto de usuario basado en la información de error
+          
+          // Modificación para dar el rol correcto (médico) para este usuario específico
+          let defaultRole = 'paciente';
+          if (email === 'abstractempty@gmail.com') {
+            defaultRole = 'medico';
+            writeLog(`Asignando rol de médico a ${email}`);
+          }
 
           // Extraemos el ID de usuario si está disponible en el error
           let userId = null;
@@ -102,6 +120,7 @@ class UserAuth {
               }
             } catch (e) {
               console.error('Error al extraer ID de usuario del mensaje:', e);
+              writeLog(`Error al extraer ID: ${e.message}`);
             }
           }
 
@@ -112,7 +131,7 @@ class UserAuth {
               id: userId || uuidv4(), // Usar UUID si no podemos obtener el ID real
               email: email,
               name: email.split('@')[0], // Usar parte del email como nombre provisional
-              role: 'paciente', // Rol por defecto
+              role: defaultRole, // Asignar el rol correcto
               email_confirmed_at: null
             },
             emailNotConfirmed: true,
@@ -141,8 +160,29 @@ class UserAuth {
       }
       
       // Obtener los metadatos del usuario
+      console.log('Datos de usuario recibidos de Supabase:', {
+        id: authData.user.id,
+        email: authData.user.email,
+        user_metadata: authData.user.user_metadata || {},
+        email_confirmed_at: authData.user.email_confirmed_at
+      });
+      
+      writeLog(`Datos de usuario: ${JSON.stringify({
+        id: authData.user.id,
+        email: authData.user.email,
+        user_metadata: authData.user.user_metadata || {},
+        email_confirmed_at: authData.user.email_confirmed_at
+      })}`);
+      
       const name = authData.user.user_metadata?.name || authData.user.email;
       const role = authData.user.user_metadata?.role || 'paciente';
+      
+      console.log('Extrayendo metadatos:', {
+        name: name,
+        role: role
+      });
+      
+      writeLog(`Metadatos extraídos: name=${name}, role=${role}`);
       
       // Inicio de sesión exitoso
       return { 
@@ -157,6 +197,7 @@ class UserAuth {
       };
     } catch (error) {
       console.error('Error al iniciar sesión:', error);
+      writeLog(`Error en login: ${error.message}`);
       return { 
         success: false, 
         error: error.message || 'Error al iniciar sesión'
