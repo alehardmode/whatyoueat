@@ -45,4 +45,7 @@ public/uploads/
 # Archivos de caché
 .cache/
 .npm/
-.eslintcache 
+.eslintcache
+
+# Archivos de testing
+.nyc_output/ 
