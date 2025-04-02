@@ -9,19 +9,24 @@ exports.getDashboard = async (req, res) => {
   try {
     const doctorId = req.session.user.id;
     
-    // Obtener lista de pacientes asignados
+    // Obtener lista de pacientes asignados - Asegurar que la consulta no use caché
     const result = await DoctorPatient.getPatientsByDoctor(doctorId);
     
     if (!result.success) {
       throw new Error(result.error);
     }
     
+    // Añadir información de timestamp para debugging
+    console.log(`Dashboard cargado a las ${new Date().toISOString()} con ${result.patients.length} pacientes`);
+    
     res.render('doctor/dashboard', {
       title: 'Dashboard del Médico',
       user: req.session.user,
       patients: result.patients,
       moment,
-      emailConfirmed: req.session.emailConfirmed
+      emailConfirmed: req.session.emailConfirmed,
+      // Añadir timestamp para evitar caché del navegador
+      timestamp: Date.now()
     });
   } catch (error) {
     console.error('Error al cargar dashboard:', error);
@@ -30,7 +35,9 @@ exports.getDashboard = async (req, res) => {
       user: req.session.user,
       patients: [],
       error: 'Error al cargar la información del dashboard',
-      emailConfirmed: req.session.emailConfirmed
+      emailConfirmed: req.session.emailConfirmed,
+      // Añadir timestamp para evitar caché del navegador
+      timestamp: Date.now()
     });
   }
 };
@@ -100,11 +107,25 @@ exports.assignPatient = async (req, res) => {
     }
     
     req.flash('success_msg', 'Paciente asignado correctamente');
-    res.redirect('/doctor/search-patients');
+    
+    // Guardar la sesión antes de redireccionar para asegurar que todos los datos se persistan
+    req.session.save((err) => {
+      if (err) {
+        console.error('Error al guardar la sesión después de asignar paciente:', err);
+      }
+      res.redirect('/doctor/dashboard');
+    });
   } catch (error) {
     console.error('Error al asignar paciente:', error);
     req.flash('error_msg', 'Error al asignar paciente: ' + error.message);
-    res.redirect('/doctor/search-patients');
+    
+    // También guardar la sesión en caso de error
+    req.session.save((err) => {
+      if (err) {
+        console.error('Error al guardar la sesión después de un error de asignación:', err);
+      }
+      res.redirect('/doctor/dashboard');
+    });
   }
 };
 

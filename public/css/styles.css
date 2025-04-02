@@ -642,3 +642,27 @@ html {
   background-size: 20px;
   transition: background 0.3s ease-in-out;
 }
+
+/* Estilo específico para el mensaje de búsqueda de pacientes */
+#search-info-message {
+  display: block !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
+  border-left-width: 5px !important;
+  /* Aumentamos el peso CSS para prevenir eliminación */
+  z-index: 100 !important;
+  position: relative !important;
+}
+
+/* Estilo específico para el mensaje de sin pacientes */
+#no-patients-message {
+  display: block !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
+  border-left-width: 5px !important;
+  /* Aumentamos el peso CSS para prevenir eliminación */
+  z-index: 100 !important;
+  position: relative !important;
+}

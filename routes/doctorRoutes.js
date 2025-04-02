@@ -12,10 +12,16 @@ router.get('/dashboard', doctorController.getDashboard);
 // Búsqueda y asignación de pacientes
 router.get('/search-patients', doctorController.searchPatients);
 router.get('/assign-patient/:patientId', doctorController.assignPatient);
+router.post('/assign-patient/:patientId', doctorController.assignPatient);
 router.get('/remove-patient/:relationId', doctorController.removePatient);
+// Añadir ruta POST para eliminar paciente desde el formulario
+router.post('/patient/:relationId/remove', doctorController.removePatient);
+// Añadir ruta DELETE para eliminar paciente (para method-override)
+router.delete('/patient/:relationId/remove', doctorController.removePatient);
 
 // Ver historial de paciente
 router.get('/patient/:patientId', doctorController.getPatientHistory);
 router.get('/patient/:patientId/entry/:entryId', doctorController.getEntryDetail);
+router.get('/patient/:patientId/history', doctorController.getPatientHistory);
 
 module.exports = router; 

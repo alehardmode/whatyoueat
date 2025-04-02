@@ -55,6 +55,9 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 // Configuración mejorada de method-override para soportar _method en body, query o headers
+// Primero, usar el método estándar para query string _method
+app.use(methodOverride('_method'));
+// Luego, agregar soporte para _method en el body
 app.use(methodOverride(function (req, res) {
   if (req.body && typeof req.body === 'object' && '_method' in req.body) {
     // Guardar el método original

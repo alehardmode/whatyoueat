@@ -4,6 +4,38 @@ class DoctorPatient {
   // Asignar un paciente a un médico
   static async assign(doctorId, patientId) {
     try {
+      // Verificar que el doctor es realmente un médico
+      const { data: doctorProfile, error: doctorError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', doctorId)
+        .single();
+        
+      if (doctorError) throw doctorError;
+      
+      if (doctorProfile.role !== 'medico') {
+        return { 
+          success: false, 
+          error: 'Solo los médicos pueden tener pacientes asignados'
+        };
+      }
+      
+      // Verificar que el paciente es realmente un paciente
+      const { data: patientProfile, error: patientError } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', patientId)
+        .single();
+        
+      if (patientError) throw patientError;
+      
+      if (patientProfile.role !== 'paciente') {
+        return { 
+          success: false, 
+          error: 'Solo los pacientes pueden ser asignados a médicos'
+        };
+      }
+      
       // Verificar si ya existe la relación
       const { data: existingRelation, error: checkError } = await supabase
         .from('doctor_patient_relationships')
