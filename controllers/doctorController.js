@@ -160,6 +160,8 @@ exports.getPatientHistory = async (req, res) => {
     const page = parseInt(pageParam) || 1;
     const limit = parseInt(req.query.limit) || 10;
     
+    console.log(`[DEBUG] Doctor ${doctorId} está intentando ver el historial del paciente ${patientId}`);
+    
     // Verificar la conexión a Supabase primero
     const connectionCheck = await checkSupabaseConnection();
     if (!connectionCheck.success) {
@@ -183,7 +185,13 @@ exports.getPatientHistory = async (req, res) => {
       throw new Error(assignedResult.error);
     }
     
-    const isAssigned = assignedResult.patients.some(p => p.id === patientId);
+    console.log(`[DEBUG] Pacientes asignados al doctor:`, assignedResult.patients.map(p => ({ id: p.id, name: p.name })));
+    
+    // Asegurar que los IDs sean strings para la comparación
+    const patientIdStr = String(patientId);
+    const isAssigned = assignedResult.patients.some(p => String(p.id) === patientIdStr);
+    
+    console.log(`[DEBUG] ¿El paciente ${patientIdStr} está asignado al doctor?: ${isAssigned}`);
     
     if (!isAssigned) {
       req.flash('error_msg', 'No tienes permiso para ver este paciente');
@@ -217,6 +225,8 @@ exports.getPatientHistory = async (req, res) => {
     if (!entriesResult.success) {
       throw new Error(entriesResult.error);
     }
+    
+    console.log(`[DEBUG] Se encontraron ${entriesResult.entries.length} entradas para el paciente ${patientId}`);
     
     // Para cada entrada, cargar la imagen completa si es necesario
     if (entriesResult.entries.length > 0) {
@@ -262,6 +272,8 @@ exports.getEntryDetail = async (req, res) => {
     const { patientId, entryId } = req.params;
     const doctorId = req.session.user.id;
     
+    console.log(`[DEBUG] Doctor ${doctorId} está intentando ver el detalle de la entrada ${entryId} del paciente ${patientId}`);
+    
     // Verificar la conexión a Supabase primero
     const connectionCheck = await checkSupabaseConnection();
     if (!connectionCheck.success) {
@@ -277,7 +289,11 @@ exports.getEntryDetail = async (req, res) => {
       throw new Error(assignedResult.error);
     }
     
-    const isAssigned = assignedResult.patients.some(p => p.id === patientId);
+    // Convertir IDs a string para comparación
+    const patientIdStr = String(patientId);
+    const isAssigned = assignedResult.patients.some(p => String(p.id) === patientIdStr);
+    
+    console.log(`[DEBUG] ¿El paciente ${patientIdStr} está asignado al doctor?: ${isAssigned}`);
     
     if (!isAssigned) {
       req.flash('error_msg', 'No tienes permiso para ver este paciente');
@@ -299,9 +315,9 @@ exports.getEntryDetail = async (req, res) => {
     }
     
     // Verificar que la entrada pertenece al paciente
-    if (entryResult.entry.user_id !== patientId) {
+    if (String(entryResult.entry.user_id) !== patientIdStr) {
       req.flash('error_msg', 'La entrada solicitada no pertenece a este paciente');
-      return res.redirect(`/doctor/patient/${patientId}`);
+      return res.redirect(`/doctor/patient/${patientId}/history`);
     }
     
     // Si no hay datos de imagen, usar imagen por defecto

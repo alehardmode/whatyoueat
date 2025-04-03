@@ -88,6 +88,8 @@ class DoctorPatient {
   // Obtener todos los pacientes de un médico
   static async getPatientsByDoctor(doctorId) {
     try {
+      console.log(`[DEBUG] Consultando pacientes del médico ${doctorId}`);
+      
       const { data, error } = await supabase
         .from('doctor_patient_relationships')
         .select(`
@@ -105,14 +107,17 @@ class DoctorPatient {
         
       if (error) throw error;
       
-      // Formatear datos para facilitar su uso
+      // Formatear datos para facilitar su uso y asegurar que los IDs sean strings
       const patients = data.map(relation => ({
         relationId: relation.id,
         status: relation.status,
-        id: relation.patient.id,
+        id: String(relation.patient.id),
         name: relation.patient.name,
+        email: 'No disponible', // Valor por defecto ya que el campo no existe en la BD
         created_at: relation.patient.created_at
       }));
+      
+      console.log(`[DEBUG] Se encontraron ${patients.length} pacientes para el médico ${doctorId}`);
       
       return { success: true, patients };
     } catch (error) {
@@ -145,7 +150,7 @@ class DoctorPatient {
       const doctors = data.map(relation => ({
         relationId: relation.id,
         status: relation.status,
-        id: relation.doctor.id,
+        id: String(relation.doctor.id),
         name: relation.doctor.name,
         created_at: relation.doctor.created_at
       }));
