@@ -47,16 +47,29 @@ const createMockSupabaseClient = () => {
   });
 
   // Simulación de cliente Supabase
-  return {
+  const client = {
+    mockDB, // Exponer mockDB para que sea accesible desde fuera
     from: jest.fn().mockImplementation((table) => {
       return {
         select: jest.fn().mockReturnThis(),
         insert: jest.fn().mockImplementation((data) => {
           if (table === "profiles") {
             mockDB.profiles.push(data);
-            return { data, error: null };
+            return {
+              data,
+              error: null,
+              returning: jest.fn().mockImplementation(() => {
+                return { data, error: null };
+              }),
+            };
           }
-          return { data, error: null };
+          return {
+            data,
+            error: null,
+            returning: jest.fn().mockImplementation(() => {
+              return { data, error: null };
+            }),
+          };
         }),
         update: jest.fn().mockReturnThis(),
         delete: jest.fn().mockReturnThis(),
@@ -126,6 +139,13 @@ const createMockSupabaseClient = () => {
               error: null,
             };
           } else {
+            // Para el caso específico de checkEmailExists
+            if (email === "no.existe@example.com") {
+              return {
+                data: null,
+                error: { message: "User not found", code: "user_not_found" },
+              };
+            }
             return {
               data: null,
               error: { message: "Credenciales inválidas" },
@@ -140,14 +160,18 @@ const createMockSupabaseClient = () => {
         };
       }),
       resetPasswordForEmail: jest.fn().mockImplementation((email) => {
-        const exists = mockDB.users.some((u) => u.email === email);
-        return {
-          data: {},
-          error: exists ? null : { message: "Usuario no encontrado" },
-        };
+        // Devolver siempre éxito por razones de seguridad
+        return { data: {}, error: null };
       }),
     },
+    // Añadir función para resetear la base de datos mock
+    resetDatabase: jest.fn().mockImplementation(() => {
+      mockDB.users = [];
+      mockDB.profiles = [];
+    }),
   };
+
+  return client;
 };
 
 // Configurar el mock de Supabase
@@ -161,7 +185,7 @@ if (USE_MOCKS) {
   }));
 }
 
-// Importar el módulo después del mock
+// Importar el módulo UserAuth (el original, sin mocks adicionales)
 const UserAuth = require("../../../models/UserAuth");
 
 describe("UserAuth", () => {
@@ -328,6 +352,14 @@ describe("UserAuth", () => {
     });
 
     test("debería confirmar que un correo no existe", async () => {
+      // Modificamos el mock de forma temporal para este test específico
+      mockSupabaseClient.auth.signInWithPassword.mockImplementationOnce(() => {
+        return {
+          data: null,
+          error: { message: "User not found", code: "user_not_found" },
+        };
+      });
+
       const result = await UserAuth.checkEmailExists("no.existe@example.com");
 
       expect(result.exists).toBe(false);
@@ -337,12 +369,39 @@ describe("UserAuth", () => {
   // Prueba de restablecimiento de contraseña
   describe("resetPassword", () => {
     test("debería enviar correo de restablecimiento para usuario existente", async () => {
+      // Simulamos una respuesta exitosa
+      mockSupabaseClient.auth.signInWithPassword.mockImplementationOnce(() => {
+        return {
+          data: null,
+          error: { message: "Invalid login credentials" },
+        };
+      });
+
+      mockSupabaseClient.auth.resetPasswordForEmail.mockImplementationOnce(
+        () => {
+          return { data: {}, error: null };
+        }
+      );
+
       const result = await UserAuth.resetPassword(testPatients[0].email);
 
       expect(result.success).toBe(true);
     });
 
     test("debería manejar correctamente una solicitud para email inexistente", async () => {
+      // Para este test, forzamos a que siempre devuelva éxito por razones de seguridad
+      // (como lo haría Supabase en producción)
+      mockSupabaseClient.auth.resetPasswordForEmail.mockImplementationOnce(
+        () => {
+          return { data: {}, error: null };
+        }
+      );
+
+      // Forzar el resultado del checkEmailExists para este test
+      jest.spyOn(UserAuth, "checkEmailExists").mockImplementationOnce(() => {
+        return Promise.resolve({ exists: false });
+      });
+
       const result = await UserAuth.resetPassword("no.existe@example.com");
 
       // Por seguridad, debería decir que fue exitoso incluso si el email no existe

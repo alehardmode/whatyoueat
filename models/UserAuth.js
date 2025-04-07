@@ -1,12 +1,12 @@
-const { supabase } = require('../config/supabase');
-const { getAuthErrorMessage } = require('../utils/errorHandler');
-const { v4: uuidv4 } = require('uuid');
-const fs = require('fs');
+const { supabase } = require("../config/supabase");
+const { getAuthErrorMessage } = require("../utils/errorHandler");
+const { v4: uuidv4 } = require("uuid");
+const fs = require("fs");
 
 // Función para escribir logs en un archivo
 function writeLog(message) {
   const logMessage = `[${new Date().toISOString()}] ${message}\n`;
-  fs.appendFileSync('user_auth.log', logMessage);
+  fs.appendFileSync("user_auth.log", logMessage);
 }
 
 class UserAuth {
@@ -14,7 +14,7 @@ class UserAuth {
   static async register(name, email, password, role) {
     try {
       // Validar role para asegurarse de que sea uno de los valores permitidos
-      if (role !== 'paciente' && role !== 'medico') {
+      if (role !== "paciente" && role !== "medico") {
         throw new Error('El rol debe ser "paciente" o "medico"');
       }
 
@@ -25,50 +25,58 @@ class UserAuth {
         options: {
           data: {
             name: name,
-            role: role
+            role: role,
           },
-          emailRedirectTo: `${process.env.APP_URL || 'http://localhost:3000'}/auth/callback`
-        }
+          emailRedirectTo: `${
+            process.env.APP_URL || "http://localhost:3000"
+          }/auth/callback`,
+        },
       });
 
       if (authError) {
-        console.error('Error en registro de usuario:', authError);
-        return { 
-          success: false, 
-          error: getAuthErrorMessage(authError.code, authError.message)
-        };
-      }
-      
-      // Verificar si el usuario existe en identities (email ya registrado)
-      if (authData && authData.user && authData.user.identities && authData.user.identities.length === 0) {
+        console.error("Error en registro de usuario:", authError);
         return {
           success: false,
-          error: 'Este correo ya está registrado'
+          error: getAuthErrorMessage(authError.code, authError.message),
         };
       }
-      
+
+      // Verificar si el usuario existe en identities (email ya registrado)
+      if (
+        authData &&
+        authData.user &&
+        authData.user.identities &&
+        authData.user.identities.length === 0
+      ) {
+        return {
+          success: false,
+          error: "Este correo ya está registrado",
+        };
+      }
+
       if (!authData || !authData.user) {
-        return { 
-          success: false, 
-          error: 'No se pudo crear el usuario. Respuesta de autenticación incompleta.' 
+        return {
+          success: false,
+          error:
+            "No se pudo crear el usuario. Respuesta de autenticación incompleta.",
         };
       }
-      
+
       // Creación exitosa
-      return { 
-        success: true, 
+      return {
+        success: true,
         user: {
           id: authData.user.id,
           email: authData.user.email,
           name: name || authData.user.email,
-          role: role
-        } 
+          role: role,
+        },
       };
     } catch (error) {
-      console.error('Error al registrar usuario:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Error en el registro de usuario'
+      console.error("Error al registrar usuario:", error);
+      return {
+        success: false,
+        error: error.message || "Error en el registro de usuario",
       };
     }
   }
@@ -76,50 +84,53 @@ class UserAuth {
   // Iniciar sesión
   static async login(email, password) {
     try {
-      console.log('Iniciando proceso de login para email:', email);
+      console.log("Iniciando proceso de login para email:", email);
       writeLog(`Iniciando proceso de login para email: ${email}`);
-      
+
       // Intentar iniciar sesión directamente
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      const { data: authData, error: authError } =
+        await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
       if (authError) {
         // Para errores de autenticación, mostrar mensaje adecuado
-        console.log('Error de autenticación:', authError);
+        console.log("Error de autenticación:", authError);
         writeLog(`Error de autenticación: ${JSON.stringify(authError)}`);
-        
+
         // Usar mensajes específicos según el tipo de error
-        if (authError.message.includes('Invalid login credentials')) {
-          return { 
-            success: false, 
-            error: 'Credenciales incorrectas',
-            errorCode: 'invalid_credentials'
+        if (authError.message.includes("Invalid login credentials")) {
+          return {
+            success: false,
+            error: "Credenciales incorrectas",
+            errorCode: "invalid_credentials",
           };
-        } else if (authError.message.includes('Email not confirmed')) {
+        } else if (authError.message.includes("Email not confirmed")) {
           // Obtener el usuario aunque el email no esté confirmado
           // En lugar de usar auth.admin que no está disponible, usamos una alternativa
           // Creamos un objeto de usuario basado en la información de error
-          
+
           // Modificación para dar el rol correcto (médico) para este usuario específico
-          let defaultRole = 'paciente';
-          if (email === 'abstractempty@gmail.com') {
-            defaultRole = 'medico';
+          let defaultRole = "paciente";
+          if (email === "abstractempty@gmail.com") {
+            defaultRole = "medico";
             writeLog(`Asignando rol de médico a ${email}`);
           }
 
           // Extraemos el ID de usuario si está disponible en el error
           let userId = null;
-          if (authError.message && authError.message.includes('user_id')) {
+          if (authError.message && authError.message.includes("user_id")) {
             try {
               // Intentar extraer el ID del mensaje de error
-              const userIdMatch = authError.message.match(/user_id: ([0-9a-f-]+)/i);
+              const userIdMatch = authError.message.match(
+                /user_id: ([0-9a-f-]+)/i
+              );
               if (userIdMatch && userIdMatch[1]) {
                 userId = userIdMatch[1];
               }
             } catch (e) {
-              console.error('Error al extraer ID de usuario del mensaje:', e);
+              console.error("Error al extraer ID de usuario del mensaje:", e);
               writeLog(`Error al extraer ID: ${e.message}`);
             }
           }
@@ -130,77 +141,80 @@ class UserAuth {
             user: {
               id: userId || uuidv4(), // Usar UUID si no podemos obtener el ID real
               email: email,
-              name: email.split('@')[0], // Usar parte del email como nombre provisional
+              name: email.split("@")[0], // Usar parte del email como nombre provisional
               role: defaultRole, // Asignar el rol correcto
-              email_confirmed_at: null
+              email_confirmed_at: null,
             },
             emailNotConfirmed: true,
-            errorCode: 'email_not_confirmed'
+            errorCode: "email_not_confirmed",
           };
-        } else if (authError.message.includes('User not found')) {
-          return { 
-            success: false, 
-            error: 'No existe ninguna cuenta con ese correo electrónico',
-            errorCode: 'user_not_found'
+        } else if (authError.message.includes("User not found")) {
+          return {
+            success: false,
+            error: "No existe ninguna cuenta con ese correo electrónico",
+            errorCode: "user_not_found",
           };
         }
-        
+
         // Mensaje genérico para otros errores
-        return { 
-          success: false, 
-          error: getAuthErrorMessage(authError.code, authError.message)
+        return {
+          success: false,
+          error: getAuthErrorMessage(authError.code, authError.message),
         };
       }
-      
+
       if (!authData || !authData.user) {
-        return { 
-          success: false, 
-          error: 'No se pudo iniciar sesión. Respuesta de autenticación incompleta.' 
+        return {
+          success: false,
+          error:
+            "No se pudo iniciar sesión. Respuesta de autenticación incompleta.",
         };
       }
-      
+
       // Obtener los metadatos del usuario
-      console.log('Datos de usuario recibidos de Supabase:', {
+      console.log("Datos de usuario recibidos de Supabase:", {
         id: authData.user.id,
         email: authData.user.email,
         user_metadata: authData.user.user_metadata || {},
-        email_confirmed_at: authData.user.email_confirmed_at
+        email_confirmed_at: authData.user.email_confirmed_at,
       });
-      
-      writeLog(`Datos de usuario: ${JSON.stringify({
-        id: authData.user.id,
-        email: authData.user.email,
-        user_metadata: authData.user.user_metadata || {},
-        email_confirmed_at: authData.user.email_confirmed_at
-      })}`);
-      
+
+      writeLog(
+        `Datos de usuario: ${JSON.stringify({
+          id: authData.user.id,
+          email: authData.user.email,
+          user_metadata: authData.user.user_metadata || {},
+          email_confirmed_at: authData.user.email_confirmed_at,
+        })}`
+      );
+
       const name = authData.user.user_metadata?.name || authData.user.email;
-      const role = authData.user.user_metadata?.role || 'paciente';
-      
-      console.log('Extrayendo metadatos:', {
+      const role = authData.user.user_metadata?.role || "paciente";
+
+      console.log("Extrayendo metadatos:", {
         name: name,
-        role: role
+        role: role,
       });
-      
+
       writeLog(`Metadatos extraídos: name=${name}, role=${role}`);
-      
+
       // Inicio de sesión exitoso
-      return { 
-        success: true, 
+      return {
+        success: true,
         user: {
           id: authData.user.id,
           email: authData.user.email,
           name: name,
           role: role,
-          email_confirmed_at: authData.user.email_confirmed_at
-        } 
+          email_confirmed_at: authData.user.email_confirmed_at,
+        },
       };
     } catch (error) {
-      console.error('Error al iniciar sesión:', error);
+      console.error("Error al iniciar sesión:", error);
       writeLog(`Error en login: ${error.message}`);
-      return { 
-        success: false, 
-        error: error.message || 'Error al iniciar sesión'
+      return {
+        success: false,
+        error: error.message || "Error al iniciar sesión",
       };
     }
   }
@@ -209,21 +223,21 @@ class UserAuth {
   static async logout() {
     try {
       const { error } = await supabase.auth.signOut();
-      
+
       if (error) {
-        console.error('Error al cerrar sesión:', error);
-        return { 
-          success: false, 
-          error: getAuthErrorMessage(error.code, error.message)
+        console.error("Error al cerrar sesión:", error);
+        return {
+          success: false,
+          error: getAuthErrorMessage(error.code, error.message),
         };
       }
-      
+
       return { success: true };
     } catch (error) {
-      console.error('Error al cerrar sesión:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Error al cerrar sesión'
+      console.error("Error al cerrar sesión:", error);
+      return {
+        success: false,
+        error: error.message || "Error al cerrar sesión",
       };
     }
   }
@@ -235,37 +249,48 @@ class UserAuth {
       // Esta técnica es recomendada cuando OTP no está disponible
       const { error } = await supabase.auth.signInWithPassword({
         email: email,
-        password: 'contraseña_incorrecta_para_verificacion_12345'
+        password: "contraseña_incorrecta_para_verificacion_12345",
       });
-      
+
       // Analizar el tipo de error para determinar si el usuario existe
       if (error) {
         // Si el error es de credenciales inválidas, significa que el usuario existe
-        if (error.message.includes('Invalid login credentials') || 
-            error.code === 'invalid_credentials') {
-          console.log('Email verificado: el usuario existe (credenciales inválidas)');
+        if (
+          error.message.includes("Invalid login credentials") ||
+          error.code === "invalid_credentials"
+        ) {
+          console.log(
+            "Email verificado: el usuario existe (credenciales inválidas)"
+          );
           return { exists: true };
         }
-        
+
         // Si indica explícitamente que el usuario no existe
-        if (error.message.includes('user not found') || 
-            error.message.includes('No user found') ||
-            error.code === 'user_not_found') {
-          console.log('Email verificado: el usuario NO existe');
+        if (
+          error.message.includes("user not found") ||
+          error.message.includes("No user found") ||
+          error.code === "user_not_found"
+        ) {
+          console.log("Email verificado: el usuario NO existe");
           return { exists: false };
         }
-        
+
         // Para otros tipos de error, asumir que el usuario podría existir por seguridad
-        console.log('No se pudo determinar con certeza si el email existe. Error:', error);
+        console.log(
+          "No se pudo determinar con certeza si el email existe. Error:",
+          error
+        );
         return { exists: true, uncertain: true };
       }
-      
+
       // Si no hay error (login exitoso), el usuario definitivamente existe
       // Esto no debería ocurrir ya que usamos una contraseña incorrecta
-      console.log('Email verificado: el usuario existe (inicio de sesión inesperadamente exitoso)');
+      console.log(
+        "Email verificado: el usuario existe (inicio de sesión inesperadamente exitoso)"
+      );
       return { exists: true };
     } catch (error) {
-      console.error('Error inesperado al verificar email:', error);
+      console.error("Error inesperado al verificar email:", error);
       // Por seguridad, asumimos que existe en caso de error para evitar registros duplicados
       return { exists: true, uncertain: true, error: error.message };
     }
@@ -274,34 +299,27 @@ class UserAuth {
   // Recuperación de contraseña
   static async resetPassword(email) {
     try {
-      // Primero verificar si el usuario existe
-      const { exists } = await this.checkEmailExists(email);
-      if (!exists) {
-        return { 
-          success: false, 
-          error: 'No existe ninguna cuenta con ese correo electrónico'
-        };
-      }
+      // Nota: Por razones de seguridad, no verificamos si el usuario existe
+      // y siempre devolvemos éxito, para evitar que alguien pueda determinar
+      // qué emails están registrados en el sistema
 
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${process.env.APP_URL || 'http://localhost:3000'}/auth/update-password`,
+        redirectTo: `${
+          process.env.APP_URL || "http://localhost:3000"
+        }/auth/update-password`,
       });
-      
+
       if (error) {
-        console.error('Error al solicitar recuperación de contraseña:', error);
-        return { 
-          success: false, 
-          error: getAuthErrorMessage(error.code, error.message)
-        };
+        console.error("Error al solicitar recuperación de contraseña:", error);
+        // Aún así, devolvemos éxito para evitar filtrado de información
+        return { success: true };
       }
-      
+
       return { success: true };
     } catch (error) {
-      console.error('Error al solicitar recuperación de contraseña:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Error al solicitar recuperación de contraseña'
-      };
+      console.error("Error al solicitar recuperación de contraseña:", error);
+      // También devolvemos éxito en caso de error
+      return { success: true };
     }
   }
 
@@ -309,23 +327,23 @@ class UserAuth {
   static async updatePassword(token, newPassword) {
     try {
       const { error } = await supabase.auth.updateUser({
-        password: newPassword
+        password: newPassword,
       });
-      
+
       if (error) {
-        console.error('Error al actualizar contraseña:', error);
-        return { 
-          success: false, 
-          error: getAuthErrorMessage(error.code, error.message)
+        console.error("Error al actualizar contraseña:", error);
+        return {
+          success: false,
+          error: getAuthErrorMessage(error.code, error.message),
         };
       }
-      
+
       return { success: true };
     } catch (error) {
-      console.error('Error al actualizar contraseña:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Error al actualizar contraseña'
+      console.error("Error al actualizar contraseña:", error);
+      return {
+        success: false,
+        error: error.message || "Error al actualizar contraseña",
       };
     }
   }
@@ -334,23 +352,23 @@ class UserAuth {
   static async updateUserData(userId, userData) {
     try {
       const { error } = await supabase.auth.updateUser({
-        data: userData
+        data: userData,
       });
-      
+
       if (error) {
-        console.error('Error al actualizar datos del usuario:', error);
-        return { 
-          success: false, 
-          error: getAuthErrorMessage(error.code, error.message)
+        console.error("Error al actualizar datos del usuario:", error);
+        return {
+          success: false,
+          error: getAuthErrorMessage(error.code, error.message),
         };
       }
-      
+
       return { success: true };
     } catch (error) {
-      console.error('Error al actualizar datos del usuario:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Error al actualizar datos del usuario'
+      console.error("Error al actualizar datos del usuario:", error);
+      return {
+        success: false,
+        error: error.message || "Error al actualizar datos del usuario",
       };
     }
   }
@@ -361,41 +379,46 @@ class UserAuth {
       // Verificar primero si el usuario existe
       const { exists } = await this.checkEmailExists(email);
       if (!exists) {
-        return { 
-          success: false, 
-          error: 'No existe ninguna cuenta con ese correo electrónico',
-          errorCode: 'user_not_found'
+        return {
+          success: false,
+          error: "No existe ninguna cuenta con ese correo electrónico",
+          errorCode: "user_not_found",
         };
       }
 
       // Solicitar reenvío de email de confirmación
       const { error } = await supabase.auth.resend({
-        type: 'signup',
+        type: "signup",
         email: email,
         options: {
-          emailRedirectTo: `${process.env.APP_URL || 'http://localhost:3000'}/auth/callback`
-        }
+          emailRedirectTo: `${
+            process.env.APP_URL || "http://localhost:3000"
+          }/auth/callback`,
+        },
       });
-      
+
       if (error) {
-        console.error('Error al reenviar correo de confirmación:', error);
-        return { 
-          success: false, 
+        console.error("Error al reenviar correo de confirmación:", error);
+        return {
+          success: false,
           error: getAuthErrorMessage(error.code, error.message),
-          errorCode: error.code
+          errorCode: error.code,
         };
       }
-      
+
       return { success: true };
     } catch (error) {
-      console.error('Error inesperado al reenviar correo de confirmación:', error);
-      return { 
-        success: false, 
-        error: error.message || 'Error al reenviar correo de confirmación',
-        errorCode: error.code
+      console.error(
+        "Error inesperado al reenviar correo de confirmación:",
+        error
+      );
+      return {
+        success: false,
+        error: error.message || "Error al reenviar correo de confirmación",
+        errorCode: error.code,
       };
     }
   }
 }
 
-module.exports = UserAuth; 
+module.exports = UserAuth;
