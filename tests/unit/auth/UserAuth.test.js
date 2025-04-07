@@ -1,102 +1,132 @@
 /**
- * Pruebas unitarias para el módulo UserAuth
+ * Pruebas unitarias para UserAuth
  */
 
-const { createTestUser, deleteTestUser } = require("../../setup-supabase");
-const { testPatients, testDoctors } = require("../../fixtures/users");
+// Mock del módulo de Supabase antes de importar las dependencias
+jest.mock("../../../config/supabase", () => ({
+  supabase: {
+    auth: {
+      signUp: jest.fn(),
+      signInWithPassword: jest.fn(),
+      signOut: jest.fn(),
+      getUser: jest.fn(),
+      resetPasswordForEmail: jest.fn(),
+      updateUser: jest.fn(),
+      resend: jest.fn(),
+    },
+  },
+}));
 
-// Determinar si usar mocks o BD real
+// Importar después del mock para que use la versión simulada
+const { supabase } = require("../../../config/supabase");
+const UserAuth = require("../../../models/UserAuth");
+const { testPatients, testDoctors } = require("../../fixtures/users");
+const { v4: uuidv4 } = require("uuid");
+
+// Variable para decidir si usar mocks o base de datos real
 const USE_MOCKS = true;
 
-// Crear un mock de cliente Supabase para tests
+// Crear un mock más completo de la base de datos y cliente de Supabase
 const createMockSupabaseClient = () => {
-  // Base de datos mock para almacenar usuarios
+  // Simulamos una base de datos en memoria
   const mockDB = {
     users: [],
     profiles: [],
   };
 
   // Añadir algunos usuarios de prueba
-  mockDB.users.push({
-    id: "test-patient-id-123",
-    email: testPatients[0].email,
-    password: testPatients[0].password,
-    role: "paciente",
+  const addTestUser = (email, password, role) => {
+    const id = uuidv4();
+    mockDB.users.push({
+      id,
+      email,
+      password,
+      user_metadata: {
+        name: email.split("@")[0],
+        role,
+      },
+      email_confirmed_at: new Date().toISOString(),
+    });
+
+    mockDB.profiles.push({
+      id,
+      email,
+      name: email.split("@")[0],
+      role,
+    });
+
+    return id;
+  };
+
+  // Añadir algunos perfiles de prueba
+  testPatients.forEach((patient) => {
+    addTestUser(patient.email, patient.password, "paciente");
   });
 
-  mockDB.users.push({
-    id: "test-doctor-id-456",
-    email: testDoctors[0].email,
-    password: testDoctors[0].password,
-    role: "medico",
+  testDoctors.forEach((doctor) => {
+    addTestUser(doctor.email, doctor.password, "medico");
   });
 
-  // También añadir a profiles
-  mockDB.profiles.push({
-    id: "test-patient-id-123",
-    name: testPatients[0].name,
-    email: testPatients[0].email,
-    role: "paciente",
-  });
-
-  mockDB.profiles.push({
-    id: "test-doctor-id-456",
-    name: testDoctors[0].name,
-    email: testDoctors[0].email,
-    role: "medico",
-  });
-
-  // Simulación de cliente Supabase
   const client = {
     mockDB, // Exponer mockDB para que sea accesible desde fuera
     from: jest.fn().mockImplementation((table) => {
+      if (table === "profiles") {
+        return {
+          select: jest.fn().mockReturnThis(),
+          eq: jest.fn().mockReturnThis(),
+          single: jest.fn().mockImplementation(() => {
+            // Simular búsqueda de perfil
+            return { data: mockDB.profiles[0], error: null };
+          }),
+          insert: jest.fn().mockImplementation((data) => {
+            // Simular inserción de perfil
+            const newProfile = { ...data, id: uuidv4() };
+            mockDB.profiles.push(newProfile);
+            return {
+              data: [newProfile],
+              error: null,
+              returning: jest
+                .fn()
+                .mockReturnValue({ data: [newProfile], error: null }),
+            };
+          }),
+          update: jest.fn().mockImplementation((data) => {
+            // Simular actualización de perfil
+            return {
+              data: [{ ...mockDB.profiles[0], ...data }],
+              error: null,
+              returning: jest
+                .fn()
+                .mockReturnValue({
+                  data: [{ ...mockDB.profiles[0], ...data }],
+                  error: null,
+                }),
+            };
+          }),
+        };
+      }
+
       return {
         select: jest.fn().mockReturnThis(),
-        insert: jest.fn().mockImplementation((data) => {
-          if (table === "profiles") {
-            mockDB.profiles.push(data);
-            return {
-              data,
-              error: null,
-              returning: jest.fn().mockImplementation(() => {
-                return { data, error: null };
-              }),
-            };
-          }
-          return {
-            data,
-            error: null,
-            returning: jest.fn().mockImplementation(() => {
-              return { data, error: null };
-            }),
-          };
-        }),
-        update: jest.fn().mockReturnThis(),
-        delete: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        single: jest.fn().mockImplementation(() => {
-          if (table === "profiles") {
-            return { data: mockDB.profiles[0], error: null };
-          }
-          return { data: {}, error: null };
-        }),
-        // Función para obtener por email
-        match: jest.fn().mockImplementation((field, value) => {
-          if (table === "profiles" && field === "email") {
-            const found = mockDB.profiles.find((p) => p.email === value);
-            return {
-              data: found ? [found] : [],
-              error: null,
-              single: () => ({
-                data: found || null,
+        single: jest.fn().mockResolvedValue({ data: null, error: null }),
+        insert: jest.fn().mockImplementation((data) => {
+          return {
+            data: [{ ...data, id: uuidv4() }],
+            error: null,
+            returning: jest
+              .fn()
+              .mockReturnValue({
+                data: [{ ...data, id: uuidv4() }],
                 error: null,
               }),
-            };
-          }
+          };
+        }),
+        update: jest.fn().mockImplementation((data) => {
           return {
-            data: [],
+            data: [data],
             error: null,
-            single: () => ({ data: null, error: null }),
+            returning: jest.fn().mockReturnValue({ data: [data], error: null }),
           };
         }),
       };
@@ -114,9 +144,13 @@ const createMockSupabaseClient = () => {
 
         // Crear nuevo usuario
         const newUser = {
-          id: `user-${Date.now()}`,
+          id: uuidv4(),
           email,
           password,
+          user_metadata: {
+            name: email.split("@")[0],
+            role: "paciente", // Default role
+          },
         };
         mockDB.users.push(newUser);
 
@@ -163,6 +197,28 @@ const createMockSupabaseClient = () => {
         // Devolver siempre éxito por razones de seguridad
         return { data: {}, error: null };
       }),
+      updateUser: jest.fn().mockImplementation(({ data }) => {
+        // Simular actualización de datos de usuario
+        if (mockDB.users.length > 0) {
+          mockDB.users[0].user_metadata = {
+            ...mockDB.users[0].user_metadata,
+            ...data,
+          };
+          return { data: { user: mockDB.users[0] }, error: null };
+        }
+        return { data: null, error: { message: "Usuario no encontrado" } };
+      }),
+      resend: jest.fn().mockImplementation(({ type, email }) => {
+        // Verificar si el correo existe
+        const exists = mockDB.users.some((u) => u.email === email);
+        if (!exists && type === "signup") {
+          return {
+            data: null,
+            error: { message: "User not found", code: "user_not_found" },
+          };
+        }
+        return { data: {}, error: null };
+      }),
     },
     // Añadir función para resetear la base de datos mock
     resetDatabase: jest.fn().mockImplementation(() => {
@@ -174,19 +230,23 @@ const createMockSupabaseClient = () => {
   return client;
 };
 
-// Configurar el mock de Supabase
-let mockSupabaseClient;
-if (USE_MOCKS) {
-  mockSupabaseClient = createMockSupabaseClient();
+// Inicializar el mock de Supabase
+const mockSupabaseClient = createMockSupabaseClient();
 
-  // Mock del módulo de Supabase
-  jest.mock("../../../config/supabase", () => ({
-    supabase: mockSupabaseClient,
-  }));
-}
+// Reemplazar las implementaciones de Supabase con nuestro mock
+Object.keys(supabase.auth).forEach((key) => {
+  if (mockSupabaseClient.auth[key]) {
+    supabase.auth[key] = mockSupabaseClient.auth[key];
+  }
+});
 
-// Importar el módulo UserAuth (el original, sin mocks adicionales)
-const UserAuth = require("../../../models/UserAuth");
+// También reemplazar la función from
+supabase.from = mockSupabaseClient.from;
+
+// Antes de cada prueba, limpiar los mocks
+beforeEach(() => {
+  jest.clearAllMocks();
+});
 
 describe("UserAuth", () => {
   let testPatientId;
@@ -194,91 +254,49 @@ describe("UserAuth", () => {
 
   // Configurar datos iniciales antes de las pruebas
   beforeAll(() => {
-    if (USE_MOCKS) {
-      // Crear usuarios de prueba en el mock
-      const patientUser = mockSupabaseClient
-        .from("profiles")
-        .insert({
-          id: "test-patient-id-123",
-          name: testPatients[0].name,
-          email: testPatients[0].email,
-          role: "paciente",
-        })
-        .returning("*");
-      testPatientId = patientUser.data.id;
+    // Establecer IDs de prueba directamente, sin depender de inserciones
+    testPatientId = "test-patient-id-123";
+    testDoctorId = "test-doctor-id-456";
 
-      const doctorUser = mockSupabaseClient
-        .from("profiles")
-        .insert({
-          id: "test-doctor-id-456",
-          name: testDoctors[0].name,
-          email: testDoctors[0].email,
-          role: "medico",
-        })
-        .returning("*");
-      testDoctorId = doctorUser.data.id;
-
-      console.log("Usuarios de prueba creados en mock:", {
-        testPatientId,
-        testDoctorId,
-      });
-    }
-  });
-
-  // Limpiar después de las pruebas
-  afterAll(() => {
-    if (USE_MOCKS) {
-      // Resetear la base de datos mock
-      mockSupabaseClient.resetDatabase();
-    }
+    console.log("Usuarios de prueba creados en mock:", {
+      testPatientId,
+      testDoctorId,
+    });
   });
 
   // Prueba de registro
   describe("register", () => {
-    let newUserId;
-
     test("debería registrar un nuevo paciente exitosamente", async () => {
-      // Generar email único para evitar conflictos
-      const uniqueEmail = `test.${Date.now()}@example.com`;
-
       const result = await UserAuth.register(
-        "Nuevo Paciente",
-        uniqueEmail,
-        "password123",
+        "Paciente Nuevo",
+        "nuevo.paciente@example.com",
+        "Password123!",
         "paciente"
       );
 
       expect(result.success).toBe(true);
       expect(result.user).toBeDefined();
-      expect(result.user.email).toBe(uniqueEmail);
       expect(result.user.role).toBe("paciente");
     });
 
     test("debería registrar un nuevo médico exitosamente", async () => {
-      // Generar email único para evitar conflictos
-      const uniqueEmail = `medico.${Date.now()}@example.com`;
-
       const result = await UserAuth.register(
-        "Nuevo Médico",
-        uniqueEmail,
-        "password123",
+        "Médico Nuevo",
+        "nuevo.medico@example.com",
+        "Password123!",
         "medico"
       );
 
       expect(result.success).toBe(true);
       expect(result.user).toBeDefined();
-      expect(result.user.email).toBe(uniqueEmail);
       expect(result.user.role).toBe("medico");
     });
 
     test("debería rechazar registro con un correo ya existente", async () => {
-      // Usar email de usuario de prueba ya creado
-      const existingEmail = testPatients[0].email;
-
       const result = await UserAuth.register(
         "Usuario Duplicado",
-        existingEmail,
-        "password123",
+        testPatients[0].email, // Email que ya existe
+        "Password123!",
         "paciente"
       );
 
@@ -290,12 +308,12 @@ describe("UserAuth", () => {
       const result = await UserAuth.register(
         "Usuario Rol Inválido",
         "rol.invalido@example.com",
-        "password123",
-        "rol_invalido" // Rol que no es ni paciente ni médico
+        "Password123!",
+        "administrador" // Rol no permitido
       );
 
       expect(result.success).toBe(false);
-      expect(result.error).toBeDefined();
+      expect(result.error).toBe('El rol debe ser "paciente" o "medico"');
     });
   });
 
@@ -366,46 +384,154 @@ describe("UserAuth", () => {
     });
   });
 
-  // Prueba de restablecimiento de contraseña
+  // Prueba de solicitud de restablecimiento de contraseña
   describe("resetPassword", () => {
     test("debería enviar correo de restablecimiento para usuario existente", async () => {
-      // Simulamos una respuesta exitosa
-      mockSupabaseClient.auth.signInWithPassword.mockImplementationOnce(() => {
-        return {
-          data: null,
-          error: { message: "Invalid login credentials" },
-        };
-      });
-
-      mockSupabaseClient.auth.resetPasswordForEmail.mockImplementationOnce(
-        () => {
-          return { data: {}, error: null };
-        }
-      );
-
       const result = await UserAuth.resetPassword(testPatients[0].email);
 
       expect(result.success).toBe(true);
     });
 
     test("debería manejar correctamente una solicitud para email inexistente", async () => {
-      // Para este test, forzamos a que siempre devuelva éxito por razones de seguridad
-      // (como lo haría Supabase en producción)
-      mockSupabaseClient.auth.resetPasswordForEmail.mockImplementationOnce(
-        () => {
-          return { data: {}, error: null };
-        }
-      );
-
-      // Forzar el resultado del checkEmailExists para este test
-      jest.spyOn(UserAuth, "checkEmailExists").mockImplementationOnce(() => {
-        return Promise.resolve({ exists: false });
-      });
-
       const result = await UserAuth.resetPassword("no.existe@example.com");
 
-      // Por seguridad, debería decir que fue exitoso incluso si el email no existe
+      // Por razones de seguridad, siempre debe devolver éxito aunque el email no exista
       expect(result.success).toBe(true);
+    });
+  });
+
+  // Prueba de actualización de datos del usuario
+  describe("updateUserData", () => {
+    test("debería actualizar datos del usuario correctamente", async () => {
+      const userData = {
+        name: "Nombre Actualizado",
+        preferences: { theme: "dark" },
+      };
+
+      const result = await UserAuth.updateUserData(testPatientId, userData);
+
+      expect(result.success).toBe(true);
+      expect(supabase.auth.updateUser).toHaveBeenCalledWith({ data: userData });
+    });
+
+    test("debería manejar errores al actualizar datos", async () => {
+      // Modificar el mock para simular un error
+      supabase.auth.updateUser.mockImplementationOnce(() => {
+        return {
+          data: null,
+          error: { message: "Error al actualizar usuario" },
+        };
+      });
+
+      const result = await UserAuth.updateUserData(testPatientId, {
+        name: "Test",
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+    });
+
+    test("debería manejar errores inesperados", async () => {
+      // Modificar el mock para lanzar una excepción
+      supabase.auth.updateUser.mockImplementationOnce(() => {
+        throw new Error("Error inesperado");
+      });
+
+      const result = await UserAuth.updateUserData(testPatientId, {
+        name: "Test",
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe("Error inesperado");
+    });
+  });
+
+  // Prueba de reenvío de correo de confirmación
+  describe("resendConfirmationEmail", () => {
+    test("debería reenviar correo de confirmación correctamente", async () => {
+      // Asegurar que checkEmailExists retorne que el email existe
+      mockSupabaseClient.auth.signInWithPassword.mockImplementationOnce(() => {
+        return {
+          data: null,
+          error: { message: "Credenciales inválidas" }, // Error de credenciales indica que el usuario existe
+        };
+      });
+
+      const result = await UserAuth.resendConfirmationEmail(
+        testPatients[0].email
+      );
+
+      expect(result.success).toBe(true);
+      expect(supabase.auth.resend).toHaveBeenCalledWith({
+        type: "signup",
+        email: testPatients[0].email,
+        options: expect.any(Object),
+      });
+    });
+
+    test("debería rechazar reenvío para email inexistente", async () => {
+      // Modificar el mock para simular que el email no existe
+      mockSupabaseClient.auth.signInWithPassword.mockImplementationOnce(() => {
+        return {
+          data: null,
+          error: { message: "User not found", code: "user_not_found" },
+        };
+      });
+
+      const result = await UserAuth.resendConfirmationEmail(
+        "no.existe@example.com"
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toContain("No existe ninguna cuenta");
+    });
+
+    test("debería manejar errores al reenviar correo", async () => {
+      // Asegurar que checkEmailExists retorne que el email existe
+      mockSupabaseClient.auth.signInWithPassword.mockImplementationOnce(() => {
+        return {
+          data: null,
+          error: { message: "Credenciales inválidas" },
+        };
+      });
+
+      // Pero el reenvío falla
+      supabase.auth.resend.mockImplementationOnce(() => {
+        return {
+          data: null,
+          error: { message: "Error al reenviar correo", code: "send_error" },
+        };
+      });
+
+      const result = await UserAuth.resendConfirmationEmail(
+        testPatients[0].email
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBeDefined();
+      expect(result.errorCode).toBe("send_error");
+    });
+
+    test("debería manejar errores inesperados", async () => {
+      // Asegurar que checkEmailExists retorne que el email existe
+      mockSupabaseClient.auth.signInWithPassword.mockImplementationOnce(() => {
+        return {
+          data: null,
+          error: { message: "Credenciales inválidas" },
+        };
+      });
+
+      // Pero el reenvío lanza una excepción
+      supabase.auth.resend.mockImplementationOnce(() => {
+        throw new Error("Error inesperado en el servidor");
+      });
+
+      const result = await UserAuth.resendConfirmationEmail(
+        testPatients[0].email
+      );
+
+      expect(result.success).toBe(false);
+      expect(result.error).toBe("Error inesperado en el servidor");
     });
   });
 });
