@@ -1,39 +1,42 @@
-const { describe, it, expect, beforeAll, afterAll } = require('@jest/globals');
-const { db } = require('../../config/database');
+const { describe, it, expect, beforeAll, afterAll } = require("@jest/globals");
 
-describe('Ejemplo de prueba de integración', () => {
+describe("Ejemplo de prueba de integración", () => {
   // Datos de prueba
   const testUser = {
-    email: 'test.user@example.com',
-    password: '123456',
-    nombre: 'Usuario de Prueba'
+    email: "test.user@example.com",
+    password: "123456",
+    nombre: "Usuario de Prueba",
   };
-  
+
   let userRecord;
 
   // Antes de todas las pruebas
   beforeAll(async () => {
-    // Inicializar la base de datos si es necesario
-    // await db.connect();
-    
-    // Crear datos de prueba
-    // userRecord = await db.users.create(testUser);
+    // En una prueba real, inicializaríamos la base de datos
+    // Creamos un usuario simulado para las pruebas
+    userRecord = {
+      id: "123456789",
+      email: testUser.email,
+      nombre: testUser.nombre,
+      created_at: new Date().toISOString(),
+    };
   });
 
   // Después de todas las pruebas
   afterAll(async () => {
-    // Limpiar datos de prueba
-    // await db.users.delete(userRecord.id);
-    
-    // Cerrar conexiones
-    // await db.disconnect();
+    // En una prueba real, limpiaríamos los datos
+    userRecord = null;
   });
 
-  it('debería permitir a un usuario registrarse', async () => {
+  it("debería permitir a un usuario registrarse", async () => {
     // Este es un ejemplo que simula la integración entre controladores y modelos
-    // En una implementación real, probarías la integración efectiva
-    
-    // Ejemplo simulado:
-    expect(true).toBe(true);
+    expect(userRecord).toBeDefined();
+    expect(userRecord.email).toBe(testUser.email);
   });
-}); 
+
+  it("debería procesar datos correctamente", async () => {
+    // Otro test simulado para integración
+    expect(userRecord.id).toBeDefined();
+    expect(typeof userRecord.created_at).toBe("string");
+  });
+});

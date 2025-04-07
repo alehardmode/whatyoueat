@@ -1,9 +1,10 @@
 module.exports = {
-  testEnvironment: 'node',
-  testMatch: ['**/tests/unit/**/*.test.js'],
+  rootDir: "../",
+  testEnvironment: "node",
+  testMatch: ["**/tests/unit/**/*.test.js"],
   collectCoverage: true,
-  coverageDirectory: 'coverage',
-  coverageReporters: ['text', 'lcov'],
+  coverageDirectory: "coverage",
+  coverageReporters: ["text", "lcov"],
   verbose: true,
-  setupFilesAfterEnv: ['../tests/setup.js'],
-}; 
+  setupFilesAfterEnv: ["./tests/setup.js"],
+};
