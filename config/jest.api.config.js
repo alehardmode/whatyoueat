@@ -1,10 +1,11 @@
 module.exports = {
-  testEnvironment: 'node',
-  testMatch: ['**/tests/api/**/*.test.js'],
+  rootDir: "..",
+  testEnvironment: "node",
+  testMatch: ["**/tests/api/**/*.test.js", "**/tests/api/**/*.api.test.js"],
   collectCoverage: true,
-  coverageDirectory: 'coverage/api',
-  coverageReporters: ['text', 'lcov'],
+  coverageDirectory: "coverage/api",
+  coverageReporters: ["text", "lcov"],
   verbose: true,
-  setupFilesAfterEnv: ['../tests/setup.api.js'],
+  setupFilesAfterEnv: ["./tests/setup.js"],
   testTimeout: 15000,
-}; 
+};

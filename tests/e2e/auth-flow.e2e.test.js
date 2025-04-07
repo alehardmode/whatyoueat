@@ -56,13 +56,19 @@ const createMockPage = () => {
           mockPage._lastEmail === testPatients[0].email &&
           mockPage._lastPassword === testPatients[0].password
         ) {
-          mockPage._lastPath = "/dashboard";
+          mockPage._lastPath = "http://localhost:3001/dashboard";
         } else {
           // Mantener en login para credenciales incorrectas
-          mockPage._lastPath = "/login";
+          mockPage._lastPath = "http://localhost:3001/auth/login";
+          mockPage._showError = true;
         }
       } else if (selector.includes("logout")) {
-        mockPage._lastPath = "/login";
+        mockPage._lastPath = "http://localhost:3001/auth/login";
+      } else if (
+        selector.includes("submit") &&
+        mockPage._lastPath.includes("register")
+      ) {
+        mockPage._lastPath = "http://localhost:3001/dashboard";
       }
       return Promise.resolve();
     }),
@@ -74,32 +80,42 @@ const createMockPage = () => {
       // Podemos simular diferentes valores según el test
       return Promise.resolve(true);
     }),
-    content: jest
-      .fn()
-      .mockResolvedValue(
-        '<html><body><div class="dashboard">Dashboard mock</div></body></html>'
-      ),
+    content: jest.fn().mockImplementation(() => {
+      if (mockPage._lastPath.includes("dashboard")) {
+        return Promise.resolve(
+          '<html><body><div class="dashboard">Dashboard mock</div></body></html>'
+        );
+      } else if (mockPage._showError) {
+        return Promise.resolve(
+          '<html><body><div class="alert-error">Credenciales inválidas</div></body></html>'
+        );
+      }
+      return Promise.resolve("<html><body>Página normal</body></html>");
+    }),
     // Almacenar la última ruta visitada y datos de formulario
     _lastPath: "",
     _lastEmail: "",
     _lastPassword: "",
+    _showError: false,
   };
 
   // Sobrescribir goto para actualizar la última ruta
   const originalGoto = mockPage.goto;
   mockPage.goto = (url) => {
     mockPage._lastPath = url;
+    mockPage._showError = false; // Reset error state on navigation
     return originalGoto(url);
   };
 
   return mockPage;
 };
 
-// Configurar mocks globales
-global.browser = {
+// Mock del browser para el test
+const mockBrowser = {
   newPage: jest
     .fn()
     .mockImplementation(() => Promise.resolve(createMockPage())),
+  close: jest.fn().mockResolvedValue(undefined),
 };
 
 describe("Flujo de Autenticación (E2E)", () => {
@@ -107,8 +123,11 @@ describe("Flujo de Autenticación (E2E)", () => {
   let testUser;
   const BASE_URL = "http://localhost:3001";
 
-  // Crear usuario de prueba antes de todos los tests
+  // Usar el mock del browser en lugar del global
   beforeAll(async () => {
+    // Sobrescribir el browser global con nuestro mock
+    global.browser = mockBrowser;
+
     testUser = await createTestUser({
       name: "Usuario E2E",
       email: `e2e.test.${Date.now()}@example.com`,

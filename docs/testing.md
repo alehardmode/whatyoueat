@@ -13,8 +13,9 @@ Las pruebas siguen una organización por categorías:
   /unit          # Pruebas unitarias para componentes individuales
     /auth        # Pruebas para autenticación
     /nutrition   # Pruebas para funcionalidades nutricionales
+    /doctor-patient # Pruebas unitarias de relación médico-paciente
   /integration   # Pruebas de integración entre múltiples componentes
-    /doctor-patient # Pruebas de relación médico-paciente
+    /doctor-patient # Pruebas de integración médico-paciente
   /e2e           # Pruebas end-to-end con Puppeteer (navegador simulado)
   /api           # Pruebas de API REST
   /fixtures      # Datos de prueba compartidos
@@ -56,7 +57,7 @@ SUPABASE_TEST_SERVICE_ROLE_KEY=tu-service-role-key-de-prueba
 
 ```bash
 # Pruebas unitarias
-npm test
+npm run test:unit
 
 # Modo vigilante (para desarrollo)
 npm run test:watch
@@ -73,8 +74,9 @@ npm run test:e2e
 # Todas las pruebas
 npm run test:all
 
-# Pruebas específicas de Supabase
-npm run test:supabase
+# Pruebas con mocks (sin conexión a Supabase real)
+npm run test:unit:mock
+npm run test:all:mock
 ```
 
 ### Ejecutar Pruebas Específicas
@@ -120,50 +122,21 @@ Las pruebas utilizan diferentes estrategias para no depender de servicios extern
 2. **Supabase**: Se usa un proyecto de prueba dedicado o mocks según configuración
 3. **E2E**: Se utilizan mocks de Puppeteer para simular navegador y UI
 
-### Ejemplo de Mock de API
+### Configuración de Pruebas
 
-```javascript
-// tests/api/example.test.js
-const createMockApi = () => {
-  return {
-    get: jest.fn().mockImplementation((path) => {
-      if (path === "/") {
-        return Promise.resolve({
-          status: 200,
-          data: { message: "API funcionando correctamente" },
-        });
-      }
-      // ...otras respuestas simuladas
-    }),
-    // ...otros métodos HTTP
-  };
-};
+Las diferentes categorías de pruebas utilizan archivos de configuración específicos:
 
-global.api = createMockApi();
-```
+- Pruebas unitarias: `config/jest.config.js`
+- Pruebas de integración: `config/jest.integration.config.js`
+- Pruebas de API: `config/jest.api.config.js`
+- Pruebas end-to-end: `config/jest.e2e.config.js`
 
-### Ejemplo de Mock de Puppeteer
+Los patrones para identificar los archivos de prueba son:
 
-```javascript
-// tests/e2e/auth-flow.e2e.test.js
-const createMockPage = () => {
-  return {
-    goto: jest.fn().mockResolvedValue(undefined),
-    $: jest.fn().mockImplementation((selector) => {
-      // Simular elementos de la página
-      if (selector.includes("form")) {
-        return Promise.resolve({});
-      }
-      return Promise.resolve(null);
-    }),
-    // ...otros métodos de página
-  };
-};
-
-global.browser = {
-  newPage: jest.fn().mockResolvedValue(createMockPage()),
-};
-```
+- Unitarias: `**/tests/unit/**/*.test.js`
+- Integración: `**/tests/integration/**/*.test.js` y `**/tests/integration/**/*.integration.test.js`
+- API: `**/tests/api/**/*.test.js`
+- E2E: `**/tests/e2e/**/*.test.js`
 
 ## Datos de Prueba
 

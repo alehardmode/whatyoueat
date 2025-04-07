@@ -8,6 +8,7 @@ const mockDatabase = {
   profiles: [],
   food_entries: [],
   doctor_patient: [],
+  doctor_patient_relationships: [],
 };
 
 // UUID mock generator
@@ -28,6 +29,7 @@ const createMockSupabase = () => {
     mockDatabase.profiles = [];
     mockDatabase.food_entries = [];
     mockDatabase.doctor_patient = [];
+    mockDatabase.doctor_patient_relationships = [];
   };
 
   // Añadir usuario de prueba
