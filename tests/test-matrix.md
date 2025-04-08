@@ -153,20 +153,6 @@ La matriz anterior refleja el estado completo de todas las pruebas. A continuaci
 - **INT-DOC-01**: Incluye vinculación correcta, rechazo con IDs inválidos y rechazo de vinculación duplicada
 - **API-AUTH-01**: Incluye registro exitoso, rechazo por datos incompletos y rechazo por correo duplicado
 
-### Pruebas pendientes prioritarias
-
-1. ~~Pruebas unitarias para actualización de datos de usuario (UT-AUTH-06)~~ ✅
-2. ~~Pruebas E2E para restablecimiento de contraseña (E2E-AUTH-06)~~ ✅
-3. ~~Pruebas E2E para navegación responsive y accesibilidad (E2E-UI-01, E2E-UI-02)~~ ✅
-4. Pruebas para el almacenamiento de Supabase:
-   - ~~SB-STOR-01 (Subir imágenes)~~ ✅
-   - SB-STOR-02 (Subir planes) ❌
-   - ~~SB-STOR-03 (Obtener URL)~~ ✅
-   - SB-STOR-04 (Descargar archivos) ❌
-   - SB-STOR-05 (Restricciones) ❌
-5. Pruebas para Supabase Edge Functions (SB-EDGE-01 a SB-EDGE-04) ❌
-6. Pruebas de rendimiento de Supabase (SB-PERF-01 a SB-PERF-03) ❌
-
 ## Estrategia de Ejecución
 
 1. Ejecutar pruebas unitarias en cada commit

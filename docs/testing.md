@@ -17,10 +17,10 @@ El proyecto utiliza las siguientes tecnologías para pruebas:
 
 El proyecto utiliza varios archivos de configuración para diferentes tipos de pruebas:
 
-- `/config/jest.config.js` - Configuración principal
-- `/config/jest.integration.config.js` - Configuración para pruebas de integración
-- `/config/jest.api.config.js` - Configuración para pruebas de API REST
-- `/config/jest.e2e.config.js` - Configuración para pruebas end-to-end
+- `/config/jest/jest.config.js` - Configuración principal
+- `/config/jest/jest.integration.config.js` - Configuración para pruebas de integración
+- `/config/jest/jest.api.config.js` - Configuración para pruebas de API REST
+- `/config/jest/jest.e2e.config.js` - Configuración para pruebas end-to-end
 
 ## Cobertura de Pruebas
 
