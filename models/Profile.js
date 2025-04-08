@@ -302,7 +302,6 @@ class Profile extends BaseModel {
         .from("profiles")
         .select("*")
         .eq("role", "paciente")
-        .eq("is_active", true)
         .ilike("name", `%${name}%`)
         .limit(options.limit || 20)
         .range(
