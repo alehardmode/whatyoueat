@@ -28,9 +28,7 @@
           <div class="card-header bg-primary text-white">
             <h4 class="mb-0">
               <i class="fas fa-calendar-alt me-2"></i>
-              <%= entry.name || 'Comida sin nombre' %> - <%=
-              moment(entry.meal_date || entry.created_at).format('DD/MM/YYYY
-              HH:mm') %>
+              <%= entry.name || 'Comida sin nombre' %> - <%= moment(entry.meal_date || entry.created_at).format('DD/MM/YYYY HH:mm') %>
             </h4>
           </div>
           <div class="card-body">
@@ -159,7 +157,7 @@
               </div>
             </div>
           </div>
-          <div class="card-footer bg-white">
+          <div class="card-footer bg-body-tertiary">
             <a
               href="/doctor/patient/<%= patient.id %>/history"
               class="btn btn-secondary"

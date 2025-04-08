@@ -908,64 +908,9 @@ function setupResendConfirmationButton() {
 }
 
 /**
- * Función para diagnosticar el estado del tema
- * Solo se usa durante el desarrollo para verificar posibles problemas
+ * Asegura que las sugerencias de contraseñas funcionen correctamente
+ * eliminando cualquier manipulación de estos campos
  */
-function debugThemeState() {
-  try {
-    const htmlTheme = document.documentElement.getAttribute("data-theme");
-    const htmlBsTheme = document.documentElement.getAttribute("data-bs-theme");
-    const bodyHasDarkClass = document.body.classList.contains("dark-theme");
-    const bodyHasLightClass = document.body.classList.contains("light-theme");
-    const savedTheme = localStorage.getItem("theme");
-    const prefersDarkScheme = window.matchMedia(
-      "(prefers-color-scheme: dark)"
-    ).matches;
-
-    console.group("Estado del tema (Debug)");
-    console.log("HTML data-theme:", htmlTheme);
-    console.log("HTML data-bs-theme:", htmlBsTheme);
-    console.log("Body tiene clase dark-theme:", bodyHasDarkClass);
-    console.log("Body tiene clase light-theme:", bodyHasLightClass);
-    console.log("Tema guardado en localStorage:", savedTheme);
-    console.log("Sistema prefiere tema oscuro:", prefersDarkScheme);
-
-    // Verificar coherencia
-    const isConsistent =
-      htmlTheme === htmlBsTheme &&
-      ((htmlTheme === "dark" && bodyHasDarkClass) ||
-        (htmlTheme === "light" && bodyHasLightClass));
-
-    console.log("Estado coherente:", isConsistent);
-
-    if (!isConsistent) {
-      console.warn("⚠️ Inconsistencia en el estado del tema detectada");
-    }
-
-    console.groupEnd();
-
-    return {
-      htmlTheme,
-      htmlBsTheme,
-      bodyHasDarkClass,
-      bodyHasLightClass,
-      savedTheme,
-      prefersDarkScheme,
-      isConsistent,
-    };
-  } catch (error) {
-    console.error("Error al diagnosticar el estado del tema:", error);
-    return null;
-  }
-}
-
-// Añadir la función al espacio global solo en desarrollo
-if (
-  window.location.hostname === "localhost" ||
-  window.location.hostname === "127.0.0.1"
-) {
-  window.debugThemeState = debugThemeState;
-}
 
 /**
  * Asegura que las sugerencias de contraseñas funcionen correctamente

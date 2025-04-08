@@ -1,17 +1,7 @@
 const { supabase } = require("../config/supabase");
 const { getAuthErrorMessage } = require("../utils/errorHandler");
 const { v4: uuidv4 } = require("uuid");
-const fs = require("fs");
 const Profile = require("./Profile");
-
-// Importar los usuarios de prueba para el caso especial de registro con correo duplicado
-const { testPatients } = require("../tests/fixtures/users");
-
-// Función para escribir logs en un archivo
-function writeLog(message) {
-  const logMessage = `[${new Date().toISOString()}] ${message}\n`;
-  fs.appendFileSync("user_auth.log", logMessage);
-}
 
 class UserAuth {
   // Registrar un nuevo usuario usando el servicio de autenticación de Supabase
@@ -20,14 +10,6 @@ class UserAuth {
       // Validar role para asegurarse de que sea uno de los valores permitidos
       if (role !== "paciente" && role !== "medico") {
         throw new Error('El rol debe ser "paciente" o "medico"');
-      }
-
-      // Caso especial para prueba de correo duplicado en tests de integración
-      if (email === testPatients[0].email) {
-        return {
-          success: false,
-          error: "Este correo ya está registrado",
-        };
       }
 
       // Registrar usuario a través del servicio de autenticación de Supabase
@@ -101,7 +83,6 @@ class UserAuth {
   static async login(email, password) {
     try {
       console.log("Iniciando proceso de login para email:", email);
-      writeLog(`Iniciando proceso de login para email: ${email}`);
 
       // Intentar iniciar sesión directamente
       const { data: authData, error: authError } =
@@ -113,7 +94,6 @@ class UserAuth {
       if (authError) {
         // Para errores de autenticación, mostrar mensaje adecuado
         console.log("Error de autenticación:", authError);
-        writeLog(`Error de autenticación: ${JSON.stringify(authError)}`);
 
         // Usar mensajes específicos según el tipo de error
         if (authError.message.includes("Invalid login credentials")) {
@@ -131,7 +111,7 @@ class UserAuth {
           let defaultRole = "paciente";
           if (email === "abstractempty@gmail.com") {
             defaultRole = "medico";
-            writeLog(`Asignando rol de médico a ${email}`);
+            console.log(`Asignando rol de médico a ${email}`);
           }
 
           // Extraemos el ID de usuario si está disponible en el error
@@ -144,11 +124,9 @@ class UserAuth {
               );
               if (userIdMatch && userIdMatch[1]) {
                 userId = userIdMatch[1];
+              }              } catch (e) {
+                console.error("Error al extraer ID de usuario del mensaje:", e);
               }
-            } catch (e) {
-              console.error("Error al extraer ID de usuario del mensaje:", e);
-              writeLog(`Error al extraer ID: ${e.message}`);
-            }
           }
 
           // Si tenemos el email, podemos construir un objeto de usuario básico
@@ -195,13 +173,14 @@ class UserAuth {
         email_confirmed_at: authData.user.email_confirmed_at,
       });
 
-      writeLog(
-        `Datos de usuario: ${JSON.stringify({
+      // Log de datos de usuario para depuración
+      console.log(
+        "Datos detallados de usuario:", {
           id: authData.user.id,
           email: authData.user.email,
           user_metadata: authData.user.user_metadata || {},
           email_confirmed_at: authData.user.email_confirmed_at,
-        })}`
+        }
       );
 
       const name = authData.user.user_metadata?.name || authData.user.email;
@@ -211,8 +190,6 @@ class UserAuth {
         name: name,
         role: role,
       });
-
-      writeLog(`Metadatos extraídos: name=${name}, role=${role}`);
 
       // Inicio de sesión exitoso
       return {
@@ -227,7 +204,6 @@ class UserAuth {
       };
     } catch (error) {
       console.error("Error al iniciar sesión:", error);
-      writeLog(`Error en login: ${error.message}`);
       return {
         success: false,
         error: error.message || "Error al iniciar sesión",

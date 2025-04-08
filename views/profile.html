@@ -67,12 +67,6 @@
                   </tr>
                   <tr>
                     <th scope="row">
-                      <i class="fas fa-phone me-2"></i>Teléfono:
-                    </th>
-                    <td><%= profile.phone || 'No especificado' %></td>
-                  </tr>
-                  <tr>
-                    <th scope="row">
                       <i class="fas fa-calendar-alt me-2"></i>Miembro desde:
                     </th>
                     <td>
@@ -83,16 +77,6 @@
                   </tr>
                 </tbody>
               </table>
-
-              <!-- Biografía -->
-              <% if (profile.bio) { %>
-              <div class="mt-3">
-                <h6 class="border-bottom pb-2">
-                  <i class="fas fa-quote-left me-2"></i>Biografía
-                </h6>
-                <p class="text-muted"><%= profile.bio %></p>
-              </div>
-              <% } %>
 
               <!-- Botón de editar -->
               <div class="mt-4">
@@ -113,94 +97,7 @@
         </div>
       </div>
 
-      <!-- Sección de estadísticas (condicional para pacientes) -->
-      <% if (profile && profile.role === 'paciente') { %>
-      <div class="card shadow mb-4">
-        <div class="card-header bg-info text-white">
-          <h5 class="mb-0">
-            <i class="fas fa-chart-pie me-2"></i>Resumen de Actividad
-          </h5>
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-4 text-center mb-3">
-              <div class="stat-circle mx-auto">
-                <h3>
-                  <%= (typeof stats !== 'undefined' && stats?.totalMeals) || 0
-                  %>
-                </h3>
-              </div>
-              <p class="mt-2">Comidas Registradas</p>
-            </div>
-            <div class="col-md-4 text-center mb-3">
-              <div class="stat-circle mx-auto">
-                <h3>
-                  <%= (typeof stats !== 'undefined' && stats?.daysActive) || 0
-                  %>
-                </h3>
-              </div>
-              <p class="mt-2">Días Activos</p>
-            </div>
-            <div class="col-md-4 text-center mb-3">
-              <div class="stat-circle mx-auto">
-                <h3>
-                  <%= (typeof stats !== 'undefined' && stats?.streakDays) || 0
-                  %>
-                </h3>
-              </div>
-              <p class="mt-2">Racha Actual</p>
-            </div>
-          </div>
-
-          <div class="text-center mt-3">
-            <a href="/patient/history" class="btn btn-outline-primary">
-              <i class="fas fa-history me-1"></i> Ver Historial Completo
-            </a>
-          </div>
-        </div>
-      </div>
-      <% } %>
-
-      <!-- Sección para médicos (condicional) -->
-      <% if (profile && profile.role === 'medico') { %>
-      <div class="card shadow">
-        <div class="card-header bg-success text-white">
-          <h5 class="mb-0">
-            <i class="fas fa-user-friends me-2"></i>Resumen de Pacientes
-          </h5>
-        </div>
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-6 text-center mb-3">
-              <div class="stat-box p-3 rounded shadow-sm">
-                <i class="fas fa-users fa-2x mb-2 text-success"></i>
-                <h3>
-                  <%= (typeof stats !== 'undefined' && stats?.totalPatients) ||
-                  0 %>
-                </h3>
-                <p class="text-muted">Pacientes Totales</p>
-              </div>
-            </div>
-            <div class="col-md-6 text-center mb-3">
-              <div class="stat-box p-3 rounded shadow-sm">
-                <i class="fas fa-user-check fa-2x mb-2 text-info"></i>
-                <h3>
-                  <%= (typeof stats !== 'undefined' && stats?.activePatients) ||
-                  0 %>
-                </h3>
-                <p class="text-muted">Activos en última semana</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="text-center mt-3">
-            <a href="/doctor/patients" class="btn btn-outline-success">
-              <i class="fas fa-clipboard-list me-1"></i> Gestionar Pacientes
-            </a>
-          </div>
-        </div>
-      </div>
-      <% } %>
+      <!-- Removed "Resumen de Actividad" card section -->
     </div>
   </div>
 </div>

@@ -14,18 +14,15 @@ exports.getProfile = async (req, res) => {
     }
 
     const userId = req.session.user.id;
-    const result = await Profile.getById(userId);
+    // Usar el nuevo método para obtener el perfil con el email de auth.user
+    const result = await Profile.getProfileWithEmail(userId);
 
     if (!result.success) {
-      req.flash(
-        "error_msg",
-        "No se pudo cargar la información completa del perfil."
-      );
+      req.flash("error_msg", "No se pudo cargar la información del perfil.");
       return res.render("profile", {
         title: "Mi Perfil",
         user: req.session.user,
         profile: null,
-        stats: {},
       });
     }
 
@@ -35,38 +32,22 @@ exports.getProfile = async (req, res) => {
       return res.redirect("/");
     }
 
-    // Obtener estadísticas del usuario
-    const statsResult = await Profile.getUserStats(userId);
-    const userStats = statsResult.success ? statsResult.stats : {};
+    // Asegurarnos de que el email esté disponible
+    if (
+      result.profile &&
+      (!result.profile.email || result.profile.email === "Email no disponible")
+    ) {
+      result.profile.email = req.session.user.email || "Email no disponible";
+    }
 
     res.render("profile", {
       title: "Mi Perfil",
       user: req.session.user,
       profile: result.profile,
-      stats: userStats,
     });
   } catch (error) {
     console.error("Error en getProfile:", error);
-
-    try {
-      // Si handleHttpError falla, aseguramos que el usuario vea algo
-      handleHttpError(error, res, req, "Ocurrió un error al cargar tu perfil");
-      // No hacemos redirect aquí, ya que handleHttpError lo hará
-    } catch (handlerError) {
-      console.error("Error adicional en handleHttpError:", handlerError);
-
-      // Último recurso: intentar renderizar algo básico
-      if (!res.headersSent) {
-        req.flash("error_msg", "Ocurrió un error al cargar tu perfil");
-        return res.render("profile", {
-          title: "Mi Perfil",
-          user: req.session.user,
-          profile: null,
-          error: "No se pudieron cargar los datos del perfil",
-          stats: {},
-        });
-      }
-    }
+    handleHttpError(error, res, req, "Ocurrió un error al cargar tu perfil");
   }
 };
 
@@ -83,7 +64,8 @@ exports.getEditProfile = async (req, res) => {
     }
 
     const userId = req.session.user.id;
-    const result = await Profile.getById(userId);
+    // Usar el nuevo método para obtener el perfil con el email de auth.user
+    const result = await Profile.getProfileWithEmail(userId);
 
     if (!result.success) {
       req.flash("error_msg", "No se pudo cargar la información del perfil.");
@@ -94,6 +76,14 @@ exports.getEditProfile = async (req, res) => {
     if (result.profile && result.profile.is_active === false) {
       req.flash("error_msg", "Este perfil ha sido desactivado.");
       return res.redirect("/");
+    }
+
+    // Asegurarnos de que el email esté disponible
+    if (
+      result.profile &&
+      (!result.profile.email || result.profile.email === "Email no disponible")
+    ) {
+      result.profile.email = req.session.user.email || "Email no disponible";
     }
 
     res.render("edit-profile", {
@@ -137,7 +127,7 @@ exports.updateProfile = async (req, res) => {
     }
 
     const userId = req.session.user.id;
-    const { name, bio, phone } = req.body;
+    const { name } = req.body;
 
     // Validación básica
     if (!name || name.trim() === "") {
@@ -148,8 +138,6 @@ exports.updateProfile = async (req, res) => {
     // Preparar objeto de actualización
     const updates = {
       name: name.trim(),
-      bio: bio ? bio.trim() : null,
-      phone: phone ? phone.trim() : null,
       updated_at: new Date(),
     };
 

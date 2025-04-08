@@ -258,44 +258,6 @@
       imageObserver.observe(img);
     });
     
-    // Fallback para navegadores sin soporte para IntersectionObserver
-    if (!('IntersectionObserver' in window)) {
-      console.log('IntersectionObserver no soportado, usando fallback');
-      const lazyImages = Array.from(document.querySelectorAll('img.lazy-image'));
-      
-      function lazyLoad() {
-        if (lazyImages.length === 0) {
-          document.removeEventListener('scroll', throttledLazyLoad);
-          window.removeEventListener('resize', throttledLazyLoad);
-          return;
-        }
-        
-        for (let i = 0; i < lazyImages.length; i++) {
-          const img = lazyImages[i];
-          const src = img.getAttribute('data-src');
-          
-          if (src && src !== '/img/empty-plate.svg') {
-            img.src = src;
-          }
-          
-          // Eliminar esta imagen de la lista
-          lazyImages.splice(i, 1);
-          i--; // Ajustar índice
-          
-          img.classList.add('loaded');
-        }
-      }
-      
-      // Throttle para evitar demasiadas ejecuciones durante scroll
-      let throttleTimeout;
-      const throttledLazyLoad = function() {
-        if (throttleTimeout) clearTimeout(throttleTimeout);
-        throttleTimeout = setTimeout(lazyLoad, 200);
-      };
-      
-      document.addEventListener('scroll', throttledLazyLoad);
-      window.addEventListener('resize', throttledLazyLoad);
-      throttledLazyLoad(); // Ejecutar una vez al cargar
-    }
+    // Los navegadores modernos soportan IntersectionObserver, no se necesita fallback
   });
 </script>

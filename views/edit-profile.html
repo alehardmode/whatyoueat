@@ -80,45 +80,16 @@
               >
             </div>
 
-            <!-- Teléfono -->
-            <div class="mb-3">
-              <label for="phone" class="form-label">Teléfono</label>
-              <input
-                type="tel"
-                class="form-control"
-                id="phone"
-                name="phone"
-                value="<%= profile.phone || '' %>"
-                placeholder="Ej: +34 123 456 789"
-              />
-              <small class="text-muted"
-                >Opcional: Número de teléfono de contacto.</small
-              >
-            </div>
-
-            <!-- Biografía -->
-            <div class="mb-3">
-              <label for="bio" class="form-label">Biografía</label>
-              <textarea
-                class="form-control"
-                id="bio"
-                name="bio"
-                rows="3"
-                placeholder="Cuéntanos un poco sobre ti..."
-              >
-<%= profile.bio || '' %></textarea
-              >
-              <small class="text-muted"
-                >Opcional: Una breve descripción sobre ti.</small
-              >
-            </div>
-
             <!-- Botones -->
             <div class="mt-4">
               <button type="submit" class="btn btn-primary">
                 <i class="fas fa-save me-1"></i> Guardar Cambios
               </button>
-              <a href="/profile" class="btn btn-outline-secondary ms-2">
+              <a
+                href="/profile"
+                class="btn btn-outline-secondary ms-2"
+                id="cancelEditButton"
+              >
                 <i class="fas fa-times me-1"></i> Cancelar
               </a>
             </div>
@@ -157,5 +128,14 @@
         false
       );
     });
+
+    // Configurar el botón de cancelar
+    const cancelButton = document.getElementById("cancelEditButton");
+    if (cancelButton) {
+      cancelButton.addEventListener("click", function (event) {
+        event.preventDefault();
+        window.location.href = "/profile";
+      });
+    }
   });
 </script>

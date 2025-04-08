@@ -3,24 +3,6 @@ const moment = require("moment");
 const { v4: uuidv4 } = require("uuid");
 const { getDatabaseErrorMessage } = require("../utils/errorHandler");
 
-// Caché para optimizar consultas frecuentes
-const entryCache = {
-  history: new Map(), // Caché para historial de usuarios
-  entry: new Map(), // Caché para entradas individuales
-  invalidate: (userId) => {
-    // Invalida todas las entradas de caché para un usuario específico
-    entryCache.history.delete(userId);
-    // También podríamos invalidar las entradas individuales, pero
-    // sería más complejo identificar cuáles pertenecen al usuario
-  },
-  getCacheKey: (userId, page, limit, filters) => {
-    // Crear una clave única para la consulta de historial
-    return `${userId}_${page}_${limit}_${filters?.from || ""}_${
-      filters?.to || ""
-    }`;
-  },
-};
-
 class FoodEntry {
   // Crear nueva entrada de comida con imagen almacenada en base64
   static async create(userId, entryData) {
@@ -32,54 +14,10 @@ class FoodEntry {
           imageData: !!entryData.imageData,
         });
 
-        // Caso especial para prueba de integración
-        if (
-          userId &&
-          entryData &&
-          entryData.name === "Comida de Integración" &&
-          entryData.description ===
-            "Prueba de integración entre usuario y entrada"
-        ) {
-          // Creación especial para la prueba de integración
-          const testEntry = {
-            id: `test-entry-${Date.now()}`,
-            user_id: userId,
-            name: entryData.name,
-            description: entryData.description,
-            meal_date: entryData.date || new Date().toISOString(),
-            meal_type: entryData.mealType || "desayuno",
-            image_url: "https://example.com/test-image.jpg",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          };
-
-          // Insertar directamente en la base de datos mock
-          try {
-            const { data, error } = await supabase
-              .from("food_entries")
-              .insert([testEntry])
-              .select();
-
-            if (error) throw error;
-
-            return {
-              success: true,
-              entry: data[0] || testEntry,
-            };
-          } catch (insertError) {
-            console.error("Error al insertar entrada de prueba:", insertError);
-          }
-        }
-
         return {
           success: false,
           error: "Faltan datos obligatorios para crear la entrada",
         };
-      }
-
-      // Verificar que el userId sea un UUID válido (para pruebas con usuario inexistente)
-      if (userId === "usuario-inexistente") {
-        return { success: false, error: "Usuario no encontrado" };
       }
 
       // Verificar acceso a la tabla food_entries
@@ -146,14 +84,12 @@ class FoodEntry {
           // Éxito en la inserción
           if (!data || data.length === 0) {
             console.warn("Inserción exitosa pero sin datos retornados");
-            entryCache.invalidate(userId);
             return {
               success: true,
               entry: { ...entryDataToInsert, id: entryDataToInsert.id },
             };
           }
 
-          entryCache.invalidate(userId);
           return { success: true, entry: data[0] };
         } catch (insertError) {
           console.error(`Error general (intento ${attempt}):`, insertError);
@@ -188,20 +124,6 @@ class FoodEntry {
     limit = 10
   ) {
     try {
-      // Generar clave de caché
-      const cacheKey = entryCache.getCacheKey(userId, page, limit, dateFilter);
-
-      // Verificar si tenemos resultados en caché (solo en producción)
-      if (
-        process.env.NODE_ENV === "production" &&
-        entryCache.history.has(cacheKey)
-      ) {
-        const cachedResult = entryCache.history.get(cacheKey);
-        // Verificar si el caché aún es válido (menos de 5 minutos)
-        if (Date.now() - cachedResult.timestamp < 5 * 60 * 1000) {
-          return cachedResult.data;
-        }
-      }
 
       // Construir la consulta base
       let query = supabase
@@ -287,14 +209,6 @@ class FoodEntry {
           },
         };
 
-        // Guardar en caché para futuras consultas
-        if (process.env.NODE_ENV === "production") {
-          entryCache.history.set(cacheKey, {
-            data: result,
-            timestamp: Date.now(),
-          });
-        }
-
         return result;
       }
 
@@ -312,14 +226,6 @@ class FoodEntry {
         },
       };
 
-      // Guardar en caché para futuras consultas
-      if (process.env.NODE_ENV === "production") {
-        entryCache.history.set(cacheKey, {
-          data: result,
-          timestamp: Date.now(),
-        });
-      }
-
       return result;
     } catch (error) {
       console.error("Error al obtener historial de comida:", error);
@@ -330,18 +236,6 @@ class FoodEntry {
   // Obtener entrada por ID, incluyendo la imagen
   static async getById(id, includeImage = true) {
     try {
-      // Verificar caché para entradas individuales
-      if (
-        process.env.NODE_ENV === "production" &&
-        entryCache.entry.has(id) &&
-        includeImage === entryCache.entry.get(id).includeImage
-      ) {
-        const cachedEntry = entryCache.entry.get(id);
-        // Verificar si el caché aún es válido (menos de 5 minutos)
-        if (Date.now() - cachedEntry.timestamp < 5 * 60 * 1000) {
-          return cachedEntry.data;
-        }
-      }
 
       // Construir consulta base
       let query = supabase.from("food_entries").select("*").eq("id", id);
@@ -360,15 +254,6 @@ class FoodEntry {
 
       if (!entry) {
         return { success: false, error: "Entrada no encontrada" };
-      }
-
-      // Guardar en caché para futuras consultas
-      if (process.env.NODE_ENV === "production") {
-        entryCache.entry.set(id, {
-          data: { success: true, entry },
-          timestamp: Date.now(),
-          includeImage,
-        });
       }
 
       return { success: true, entry };
@@ -421,9 +306,6 @@ class FoodEntry {
         };
       }
 
-      // Invalidar caché para este usuario
-      entryCache.invalidate(userId);
-
       return { success: true };
     } catch (error) {
       console.error("Error general al eliminar entrada:", error);
@@ -474,21 +356,7 @@ class FoodEntry {
       const updateData = {
         ...updates,
         updated_at: new Date().toISOString(),
-      };
-
-      // En tests de integración con mocks, asegurar que siempre devuelve éxito
-      if (process.env.NODE_ENV === "test" || process.env.JEST_WORKER_ID) {
-        // Para tests, simular actualización exitosa
-        return {
-          success: true,
-          entry: {
-            ...entry,
-            ...updateData,
-          },
-        };
-      }
-
-      // Proceder con la actualización (código real para producción)
+      };      // Proceder con la actualización
       try {
         // Intentar hacer update con select
         const { data: updatedEntry, error: updateError } = await supabase
@@ -499,9 +367,6 @@ class FoodEntry {
 
         if (updateError) throw updateError;
 
-        // Invalidar caché para este usuario
-        entryCache.invalidate(userId);
-
         return {
           success: true,
           entry:
@@ -510,25 +375,19 @@ class FoodEntry {
               : { ...entry, ...updateData },
         };
       } catch (updateError) {
-        if (
-          updateError.message &&
-          updateError.message.includes("select is not a function")
-        ) {
-          // Manejar el caso donde select() no es una función (común en mocks)
+        // Reintento sin select() en caso de error
+        try {
           const { error } = await supabase
             .from("food_entries")
             .update(updateData)
             .eq("id", id);
 
           if (error) throw error;
-
-          // Invalidar caché para este usuario
-          entryCache.invalidate(userId);
-
+          
           return { success: true, entry: { ...entry, ...updateData } };
-        } else {
-          // Re-lanzar cualquier otro error
-          throw updateError;
+        } catch (error) {
+          // Re-lanzar el error
+          throw error;
         }
       }
     } catch (error) {
@@ -539,37 +398,6 @@ class FoodEntry {
 
   // Método auxiliar para obtener las entradas por usuario (alias para getHistoryByUserId)
   static async getByUser(userId, dateFilter = null, page = 1, limit = 10) {
-    // Cuando estamos en entorno de test, devolver datos simulados directamente
-    if (process.env.NODE_ENV === "test" || process.env.JEST_WORKER_ID) {
-      // Caso de prueba donde queremos devolver un resultado modificado
-      try {
-        // En este punto, el test ya ha agregado la entrada al mock de la base de datos
-        const { data, error } = await supabase
-          .from("food_entries")
-          .select("*")
-          .eq("user_id", userId);
-
-        if (error) {
-          console.error("Error al obtener entradas simuladas:", error);
-          return { success: false, error: error.message };
-        }
-
-        return {
-          success: true,
-          entries: data || [],
-          pagination: {
-            page: 1,
-            limit: 10,
-            total: data?.length || 0,
-            totalPages: Math.ceil((data?.length || 0) / 10),
-          },
-        };
-      } catch (error) {
-        console.error("Error general en getByUser simulado:", error);
-        return { success: false, error: error.message };
-      }
-    }
-
     return this.getHistoryByUserId(userId, dateFilter, page, limit);
   }
 

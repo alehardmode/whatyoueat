@@ -25,9 +25,7 @@ router.post('/entry/:id/update', entryOwnershipMiddleware, patientController.upd
 
 // Rutas para eliminación de entradas
 router.delete('/entry/:id', entryOwnershipMiddleware, patientController.deleteEntry);
-// Añadir ruta POST para manejar el formulario directamente (por si method-override falla)
+// Ruta POST para manejar el formulario directamente (por si method-override falla)
 router.post('/entry/:id', entryOwnershipMiddleware, patientController.deleteEntry);
-// Mantener temporalmente la ruta anterior para compatibilidad
-router.get('/entry/:id/delete', entryOwnershipMiddleware, patientController.deleteEntry);
 
 module.exports = router;
