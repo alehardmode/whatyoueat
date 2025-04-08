@@ -6,6 +6,6 @@ module.exports = {
   coverageDirectory: "coverage/api",
   coverageReporters: ["text", "lcov"],
   verbose: true,
-  setupFilesAfterEnv: ["./tests/setup.js"],
+  setupFilesAfterEnv: ["./tests/setup.api.js"],
   testTimeout: 15000,
 };

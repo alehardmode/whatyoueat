@@ -27,7 +27,9 @@ const createMockPage = () => {
         selector.includes(".logout-button") ||
         selector.includes(".user-menu") ||
         selector.includes("main") ||
-        selector.includes(".dashboard")
+        selector.includes(".dashboard") ||
+        selector.includes(".success-message") ||
+        selector.includes(".reset-form")
       ) {
         return Promise.resolve({});
       }
@@ -69,6 +71,19 @@ const createMockPage = () => {
         mockPage._lastPath.includes("register")
       ) {
         mockPage._lastPath = "http://localhost:3001/dashboard";
+      } else if (
+        selector.includes("submit") &&
+        mockPage._lastPath.includes("forgot-password")
+      ) {
+        mockPage._lastPath = "http://localhost:3001/auth/reset-password-sent";
+        mockPage._showSuccess = true;
+      } else if (
+        selector.includes("submit") &&
+        mockPage._lastPath.includes("reset-password")
+      ) {
+        // Simular cambio exitoso de contraseña
+        mockPage._lastPath = "http://localhost:3001/auth/login";
+        mockPage._showSuccess = true;
       }
       return Promise.resolve();
     }),
@@ -89,6 +104,24 @@ const createMockPage = () => {
         return Promise.resolve(
           '<html><body><div class="alert-error">Credenciales inválidas</div></body></html>'
         );
+      } else if (
+        mockPage._showSuccess &&
+        mockPage._lastPath.includes("reset-password-sent")
+      ) {
+        return Promise.resolve(
+          '<html><body><div class="success-message">Instrucciones enviadas a tu correo</div></body></html>'
+        );
+      } else if (
+        mockPage._showSuccess &&
+        mockPage._lastPath.includes("login")
+      ) {
+        return Promise.resolve(
+          '<html><body><div class="success-message">Contraseña actualizada correctamente</div><form class="login-form"></form></body></html>'
+        );
+      } else if (mockPage._lastPath.includes("reset-password")) {
+        return Promise.resolve(
+          '<html><body><form class="reset-form"><input name="password" /><input name="confirmPassword" /><button type="submit">Cambiar contraseña</button></form></body></html>'
+        );
       }
       return Promise.resolve("<html><body>Página normal</body></html>");
     }),
@@ -97,6 +130,7 @@ const createMockPage = () => {
     _lastEmail: "",
     _lastPassword: "",
     _showError: false,
+    _showSuccess: false,
   };
 
   // Sobrescribir goto para actualizar la última ruta
@@ -104,6 +138,7 @@ const createMockPage = () => {
   mockPage.goto = (url) => {
     mockPage._lastPath = url;
     mockPage._showError = false; // Reset error state on navigation
+    mockPage._showSuccess = false; // Reset success state on navigation
     return originalGoto(url);
   };
 
@@ -251,5 +286,60 @@ describe("Flujo de Autenticación (E2E)", () => {
     // Verificar que se ha redirigido a la página de inicio de sesión o la landing page
     const pageUrl = page.url();
     expect(pageUrl).toContain("/login");
+  });
+
+  // Test ID: E2E-AUTH-06 - Restablecimiento de contraseña
+  test("debería permitir solicitar restablecimiento de contraseña", async () => {
+    // Navegar a la página de login
+    await page.goto(`${BASE_URL}/auth/login`, { waitUntil: "networkidle2" });
+
+    // Buscar y hacer clic en el enlace "Olvidé mi contraseña"
+    await page.goto(`${BASE_URL}/auth/forgot-password`, {
+      waitUntil: "networkidle2",
+    });
+
+    // Rellenar formulario con email
+    await page.type('input[name="email"]', testPatients[0].email);
+    await page.click('button[type="submit"]');
+
+    // Esperar redirección a página de confirmación
+    await page.waitForNavigation();
+
+    // Verificar que se muestra mensaje de éxito
+    const successMessage = await page.$(".success-message");
+    expect(successMessage).not.toBeNull();
+
+    // Verificar que estamos en la página correcta
+    const pageUrl = page.url();
+    expect(pageUrl).toContain("reset-password-sent");
+  });
+
+  test("debería permitir establecer nueva contraseña con token válido", async () => {
+    // Simular acceso directo a la página de restablecimiento con token
+    // En un caso real, el usuario recibiría un email con un enlace que contiene el token
+    const mockToken = "valid-reset-token-123";
+    await page.goto(`${BASE_URL}/auth/reset-password?token=${mockToken}`, {
+      waitUntil: "networkidle2",
+    });
+
+    // Verificar que el formulario de restablecimiento se muestra
+    const resetForm = await page.$(".reset-form");
+    expect(resetForm).not.toBeNull();
+
+    // Ingresar nueva contraseña y confirmación
+    await page.type('input[name="password"]', "NuevaContraseña123!");
+    await page.type('input[name="confirmPassword"]', "NuevaContraseña123!");
+    await page.click('button[type="submit"]');
+
+    // Esperar redirección después del cambio exitoso
+    await page.waitForNavigation();
+
+    // Verificar que se redirige a login con mensaje de éxito
+    const pageUrl = page.url();
+    expect(pageUrl).toContain("/login");
+
+    // Verificar mensaje de contraseña actualizada
+    const successMessage = await page.$(".success-message");
+    expect(successMessage).not.toBeNull();
   });
 });

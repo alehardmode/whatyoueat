@@ -371,6 +371,99 @@ const createMockSupabase = () => {
         return { data: null, error: { message: "Invalid credentials" } };
       },
 
+      // Añadir función signUp para los tests de integración
+      signUp: ({ email, password, options }) => {
+        // Comprobar si el usuario ya existe
+        const existingUser = mockDatabase.profiles.find(
+          (u) => u.email === email
+        );
+        if (existingUser) {
+          return {
+            data: {
+              user: {
+                email: email,
+                identities: [],
+              },
+            },
+            error: {
+              message: "Este correo ya está registrado",
+              code: "23505",
+            },
+          };
+        }
+
+        // Crear nuevo usuario
+        const userId = mockUUID();
+        const userData = {
+          id: userId,
+          email: email,
+          name: options?.data?.name || email.split("@")[0],
+          role: options?.data?.role || "paciente",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        };
+
+        // Añadir a la base de datos mock
+        mockDatabase.profiles.push(userData);
+        authUser = userData;
+
+        return {
+          data: {
+            user: {
+              id: userId,
+              email: email,
+              user_metadata: {
+                name: userData.name,
+                role: userData.role,
+              },
+              identities: [{ id: mockUUID() }],
+            },
+          },
+          error: null,
+        };
+      },
+
+      // Añadir función signInWithPassword para los tests de integración
+      signInWithPassword: ({ email, password }) => {
+        const user = mockDatabase.profiles.find((u) => u.email === email);
+
+        // Si el usuario existe y se trata de una credencial correcta
+        if (user && password !== "ContraseñaIncorrecta123!") {
+          authUser = user;
+          return {
+            data: {
+              user: {
+                id: user.id,
+                email: user.email,
+                user_metadata: {
+                  name: user.name,
+                  role: user.role,
+                },
+                email_confirmed_at: new Date().toISOString(),
+              },
+            },
+            error: null,
+          };
+        }
+
+        return {
+          data: null,
+          error: { message: "Invalid login credentials" },
+        };
+      },
+
+      // Añadir función resetPasswordForEmail para los tests de integración
+      resetPasswordForEmail: (email, options) => {
+        const user = mockDatabase.profiles.find((u) => u.email === email);
+
+        if (user) {
+          return { data: {}, error: null };
+        }
+
+        // Incluso si el usuario no existe, no revelamos eso por razones de seguridad
+        return { data: {}, error: null };
+      },
+
       signOut: () => {
         authUser = null;
         return { error: null };
