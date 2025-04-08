@@ -1,224 +1,70 @@
-# Guía de Pruebas - WhatYouEat
+# Documentación de Pruebas
 
 ## Introducción
 
-Este documento explica el sistema de pruebas implementado para la aplicación WhatYouEat, destinado a desarrolladores que necesiten entender, ejecutar o ampliar las pruebas existentes.
+Esta documentación proporciona información general sobre la estrategia de pruebas, configuración y buenas prácticas para el proyecto WhatYouEat. Para información detallada sobre la matriz de pruebas específicas y su estado de implementación, consulte el archivo `tests/test-matrix.md`.
 
-## Estructura de Pruebas
+## Framework y Tecnologías
 
-Las pruebas siguen una organización por categorías:
+El proyecto utiliza las siguientes tecnologías para pruebas:
 
-```
-/tests
-  /unit          # Pruebas unitarias para componentes individuales
-    /auth        # Pruebas para autenticación
-    /nutrition   # Pruebas para funcionalidades nutricionales
-    /doctor-patient # Pruebas unitarias de relación médico-paciente
-  /integration   # Pruebas de integración entre múltiples componentes
-    /doctor-patient # Pruebas de integración médico-paciente
-  /e2e           # Pruebas end-to-end con Puppeteer (navegador simulado)
-  /api           # Pruebas de API REST
-  /fixtures      # Datos de prueba compartidos
-  /mocks         # Mocks y simulaciones para tests
-  setup.js       # Configuración para pruebas unitarias/integración
-  setup-supabase.js # Configuración específica para Supabase
-  setup.e2e.js   # Configuración para pruebas e2e
-  plan.md        # Plan detallado de pruebas
-```
+- **Jest**: Framework principal para todas las pruebas
+- **Puppeteer**: Para pruebas end-to-end (e2e) que simulan interacciones de usuario
+- **Supertest**: Para pruebas de API REST
+- **Entorno de prueba Supabase**: Proyecto dedicado para testing
 
-## Convenciones de Nomenclatura
+## Configuración de Jest
 
-- Archivos de prueba unitaria: `[nombre-del-archivo].test.js`
-- Archivos de prueba de integración: `[funcionalidad].integration.test.js`
-- Archivos de prueba e2e: `[flujo-de-usuario].e2e.test.js`
-- Archivos de prueba de API: `[endpoint].api.test.js`
+El proyecto utiliza varios archivos de configuración para diferentes tipos de pruebas:
 
-## Configuración del Entorno
+- `/config/jest.config.js` - Configuración principal
+- `/config/jest.integration.config.js` - Configuración para pruebas de integración
+- `/config/jest.api.config.js` - Configuración para pruebas de API REST
+- `/config/jest.e2e.config.js` - Configuración para pruebas end-to-end
 
-### Prerequisitos
+## Cobertura de Pruebas
 
-- Node.js 18 o superior
-- npm 8 o superior
-- Un proyecto de Supabase dedicado para pruebas (nunca usar producción)
-
-### Variables de Entorno
-
-Crear un archivo `.env.test` en la raíz del proyecto con:
-
-```
-SUPABASE_TEST_URL=https://tu-proyecto-test.supabase.co
-SUPABASE_TEST_KEY=tu-api-key-de-prueba
-SUPABASE_TEST_SERVICE_ROLE_KEY=tu-service-role-key-de-prueba
-```
-
-## Ejecución de Pruebas
-
-### Comandos Principales
+La cobertura de pruebas se genera utilizando Jest y puede ser visualizada ejecutando:
 
 ```bash
-# Pruebas unitarias
-npm run test:unit
-
-# Modo vigilante (para desarrollo)
-npm run test:watch
-
-# Pruebas de integración
-npm run test:integration
-
-# Pruebas de API
-npm run test:api
-
-# Pruebas end-to-end
-npm run test:e2e
-
-# Todas las pruebas
-npm run test:all
-
-# Pruebas con mocks (sin conexión a Supabase real)
-npm run test:unit:mock
-npm run test:all:mock
+npm run test:coverage
 ```
 
-### Ejecutar Pruebas Específicas
+El informe generado incluye:
 
-Para ejecutar un archivo de prueba específico:
+- Cobertura de declaraciones (statements)
+- Cobertura de ramas (branches)
+- Cobertura de funciones (functions)
+- Cobertura de líneas (lines)
 
-```bash
-npm test -- path/to/file.test.js
-```
+El objetivo es mantener al menos un 80% de cobertura en el código principal.
 
-Para ejecutar una prueba específica:
+## Principios de Pruebas
 
-```bash
-npm test -- -t "nombre de la prueba"
-```
+### Enfoque de Desarrollo Guiado por Pruebas (TDD)
 
-## Estado Actual de las Pruebas
+1. **Escribir primero las pruebas**: Antes de implementar una nueva funcionalidad, se debe escribir la prueba que verifique su comportamiento.
+2. **Ciclo rojo-verde-refactor**: Ejecutar la prueba para confirmar que falla, implementar código mínimo para que pase, y luego refactorizar.
+3. **Implementación incremental**: Ir agregando funcionalidad de manera progresiva, validada por pruebas.
 
-Actualmente, se han implementado las siguientes categorías de pruebas:
+### Buenas Prácticas
 
-### Pruebas Completadas
+1. **Aislamiento**: Cada prueba debe ser independiente y no depender del estado de otras pruebas.
+2. **Determinismo**: Las pruebas deben producir el mismo resultado en cada ejecución.
+3. **Datos de prueba**: Utilizar los fixtures en `/tests/fixtures` para compartir datos entre pruebas.
+4. **Mocks**: Utilizar los mocks en `/tests/mocks` para simular servicios externos.
+5. **Limpieza**: Realizar una limpieza adecuada después de las pruebas utilizando `afterEach` o `afterAll`.
+6. **Descriptivas**: Utilizar nombres descriptivos para las pruebas indicando qué se está probando.
+7. **Seguridad**: Incluir pruebas específicas para validación de entradas, autenticación y autorización.
 
-- ✅ Autenticación de usuario (registro, login, logout)
-- ✅ Gestión de entradas de comida (CRUD)
-- ✅ Relación médico-paciente (asignación, consulta)
-- ✅ Endpoints de autenticación API REST
-- ✅ Flujo básico de autenticación E2E
+## Consideraciones para Pruebas con Supabase
 
-### Pruebas Pendientes Prioritarias
-
-- ❌ Funciones de utilidad
-- ❌ Flujos de autenticación completos (integración)
-- ❌ Endpoints de nutrición
-- ❌ Funcionalidades de pacientes y médicos (E2E)
-
-Consulta el archivo `tests/plan.md` para ver el estado completo y detallado de todas las pruebas planificadas.
-
-## Estrategia de Mocks
-
-Las pruebas utilizan diferentes estrategias para no depender de servicios externos:
-
-1. **API Rest**: Se utilizan mocks para simular las respuestas HTTP
-2. **Supabase**: Se usa un proyecto de prueba dedicado o mocks según configuración
-3. **E2E**: Se utilizan mocks de Puppeteer para simular navegador y UI
-
-### Configuración de Pruebas
-
-Las diferentes categorías de pruebas utilizan archivos de configuración específicos:
-
-- Pruebas unitarias: `config/jest.config.js`
-- Pruebas de integración: `config/jest.integration.config.js`
-- Pruebas de API: `config/jest.api.config.js`
-- Pruebas end-to-end: `config/jest.e2e.config.js`
-
-Los patrones para identificar los archivos de prueba son:
-
-- Unitarias: `**/tests/unit/**/*.test.js`
-- Integración: `**/tests/integration/**/*.test.js` y `**/tests/integration/**/*.integration.test.js`
-- API: `**/tests/api/**/*.test.js`
-- E2E: `**/tests/e2e/**/*.test.js`
-
-## Datos de Prueba
-
-Los datos para pruebas se encuentran en `tests/fixtures/`:
-
-- `users.js`: Datos de usuarios (pacientes, médicos, credenciales)
-- `food-entries.js`: Datos de entradas de comida
-- `nutrition-data.js`: Datos nutricionales
-
-Utiliza estos datos en tus pruebas para mantener consistencia.
-
-## Prácticas Recomendadas
-
-1. **Aislar las pruebas**: Cada prueba debe ejecutarse de forma independiente
-2. **Datos efímeros**: Usa IDs únicos (con timestamps) para evitar conflictos
-3. **Limpiar después de probar**: Usa `afterEach`/`afterAll` para eliminar datos de prueba
-4. **No conectar a producción**: Nunca conectes pruebas a entornos de producción
-5. **Pruebas deterministas**: Evita resultados aleatorios o dependientes del entorno
-
-## Escribir Nuevas Pruebas
-
-### Estructura Básica
-
-```javascript
-describe("Componente o funcionalidad", () => {
-  // Configuración inicial
-  beforeAll(() => {
-    // Preparar el entorno antes de todas las pruebas
-  });
-
-  // Limpieza al finalizar
-  afterAll(() => {
-    // Limpiar datos o estado
-  });
-
-  // Casos de prueba
-  test("debería hacer X cuando Y", async () => {
-    // Arrange (preparar)
-    const input = "valor";
-
-    // Act (actuar)
-    const result = await functionToTest(input);
-
-    // Assert (verificar)
-    expect(result).toBe(expectedValue);
-  });
-});
-```
-
-### Recomendaciones para Implementar Nuevas Pruebas
-
-1. Consulta `tests/plan.md` para ver qué pruebas están pendientes
-2. Sigue las convenciones de nombres y estructura existentes
-3. Reutiliza fixtures y mocks cuando sea posible
-4. Implementa primero las pruebas unitarias, luego integración y finalmente E2E
-5. Actualiza el archivo plan.md con tu progreso
-
-## Resolución de Problemas
-
-### Problemas Comunes
-
-1. **Error de conexión a Supabase**: Verifica credenciales en `.env.test`
-2. **Pruebas lentas**: Usa mocks en lugar de servicios reales cuando sea posible
-3. **Conflictos de datos**: Usa IDs dinámicos con timestamps
-4. **Pruebas no deterministas**: Asegúrate que los mocks devuelvan resultados consistentes
-
-### Depuración
-
-Para depurar pruebas:
-
-```bash
-# Modo depuración con Node
-node --inspect-brk node_modules/.bin/jest --runInBand ruta/a/archivo.test.js
-```
+1. **Entorno aislado**: Todas las pruebas de Supabase deben ejecutarse contra una instancia dedicada para pruebas.
+2. **Limpieza de datos**: Ejecutar scripts de limpieza después de pruebas que modifiquen datos.
+3. **Mocks para pruebas unitarias**: Utilizar mocks para evitar dependencias directas en pruebas unitarias.
+4. **Políticas RLS**: Verificar el funcionamiento correcto de las políticas de seguridad Row Level Security.
 
 ## Recursos Adicionales
 
-- [Documentación de Jest](https://jestjs.io/docs/getting-started)
-- [Documentación de Puppeteer](https://pptr.dev/)
-- [Documentación de Supabase](https://supabase.io/docs)
-- [Plan de pruebas completo](../tests/plan.md)
-
-## Contacto
-
-Si tienes preguntas sobre el sistema de pruebas, contacta al equipo de desarrollo en whatyoueat.project@gmail.com.
+- Para la matriz completa de pruebas y su estado, consulte `tests/test-matrix.md`
+- Para configurar el entorno de pruebas con Supabase, siga las instrucciones en `tests/test-matrix.md`
