@@ -1,9 +1,11 @@
-<!-- Vista simplificada del Historial de Paciente -->
-<div class="container my-4">
+<!-- Vista mejorada del Historial de Paciente -->
+<div class="container mb-5">
   <!-- Cabecera -->
-  <div class="row mb-3">
-    <div class="col-12">
-      <h1 class="border-bottom pb-2">Historial de <%= patient.name %></h1>
+  <div class="row mb-4">
+    <div class="col-md-12 animate-on-scroll">
+      <h1 class="mb-4 border-bottom pb-2">
+        <i class="fas fa-history me-2"></i>Historial de <%= patient.name %>
+      </h1>
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
           <li class="breadcrumb-item">
@@ -15,29 +17,38 @@
     </div>
   </div>
 
-  <!-- Datos del paciente -->
-  <div class="card mb-4">
-    <div class="card-body">
-      <div class="row">
-        <div class="col-md-9">
-          <h5>Información del Paciente</h5>
-          <p><strong>Nombre:</strong> <%= patient.name %></p>
-          <p>
-            <strong>Desde:</strong> <%=
-            moment(patient.created_at).format('DD/MM/YYYY') %>
-          </p>
-        </div>
-        <div class="col-md-3 text-end">
-          <a href="/doctor/dashboard" class="btn btn-outline-primary">Volver</a>
+  <!-- Datos del paciente y resumen -->
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <div class="card bg-light shadow-sm">
+        <div
+          class="card-body d-flex justify-content-between align-items-center"
+        >
+          <div>
+            <h5 class="mb-0">
+              <i class="fas fa-user me-2"></i>Paciente: <%= patient.name %>
+            </h5>
+            <p class="text-muted mb-0">
+              <i class="fas fa-calendar-alt me-1"></i> Desde: <%=
+              moment(patient.created_at).format('DD/MM/YYYY') %>
+            </p>
+          </div>
+          <div>
+            <a href="/doctor/dashboard" class="btn btn-outline-primary">
+              <i class="fas fa-arrow-left me-1"></i>Volver
+            </a>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Filtros -->
-  <div class="card mb-4">
+  <div class="card shadow mb-4">
     <div class="card-body">
-      <h5>Filtrar Entradas</h5>
+      <h5 class="card-title">
+        <i class="fas fa-filter me-2"></i>Filtrar Entradas
+      </h5>
       <form
         action="/doctor/patient/<%= patient.id %>/history"
         method="GET"
@@ -64,12 +75,15 @@
           />
         </div>
         <div class="col-md-4 d-flex align-items-end">
-          <button type="submit" class="btn btn-primary me-2">Buscar</button>
+          <button type="submit" class="btn btn-primary me-2">
+            <i class="fas fa-search me-1"></i>Buscar
+          </button>
           <a
             href="/doctor/patient/<%= patient.id %>/history"
             class="btn btn-outline-secondary"
-            >Reiniciar</a
           >
+            <i class="fas fa-redo me-1"></i>Reiniciar
+          </a>
         </div>
       </form>
     </div>
@@ -78,73 +92,102 @@
   <!-- Lista de entradas -->
   <div class="row">
     <% if (entries && entries.length > 0) { %> <% entries.forEach(entry => { %>
-    <div class="col-md-6 col-lg-4 mb-3">
-      <div class="card h-100">
-        <div style="height: 180px; overflow: hidden">
+    <div class="col-md-6 col-lg-4 mb-4">
+      <div class="card h-100 shadow-sm food-entry-card">
+        <div
+          class="card-img-container"
+          style="
+            height: 180px;
+            overflow: hidden;
+            position: relative;
+            background-color: #f8f9fa;
+          "
+        >
           <img
-            src="<%= entry.image_url %>"
-            class="card-img-top"
+            src="/img/empty-plate.svg"
+            data-src="<%= entry.image_url %>"
+            class="card-img-top lazy-image"
             alt="Imagen de comida"
-            style="width: 100%; height: 100%; object-fit: cover"
-            onerror="this.onerror=null; this.src='/img/empty-plate.svg';"
+            fetchpriority="high"
+            decoding="async"
+            onerror="this.onerror=null; this.src='/img/empty-plate.svg'; this.alt='Imagen no disponible'; this.style.padding = '20px';"
           />
         </div>
         <div class="card-body">
           <div class="d-flex justify-content-between">
-            <h5 class="card-title">Entrada #<%= entry.id %></h5>
+            <h5 class="card-title"><%= entry.name || 'Comida sin nombre' %></h5>
             <span class="badge bg-primary"
               ><%= moment(entry.created_at).format('DD/MM/YYYY') %></span
             >
           </div>
           <p class="text-muted">
+            <i class="fas fa-clock me-1"></i>
             <%= moment(entry.created_at).format('HH:mm') %>
           </p>
+          <div>
+            <span class="badge bg-info"
+              ><%= entry.meal_type || 'No especificado' %></span
+            >
+          </div>
           <% if (entry.comments) { %>
-          <p>
+          <p class="mt-2">
             <%= entry.comments.substring(0, 100) %><%= entry.comments.length >
             100 ? '...' : '' %>
           </p>
           <% } else { %>
-          <p class="text-muted">Sin comentarios</p>
+          <p class="text-muted mt-2">Sin comentarios</p>
           <% } %>
         </div>
-        <div class="card-footer bg-white d-flex justify-content-between">
-          <a href="/doctor/entry/<%= entry.id %>" class="btn btn-sm btn-primary"
-            >Ver Detalles</a
+        <div
+          class="card-footer bg-dark text-light d-flex justify-content-between"
+        >
+          <a
+            href="/doctor/entry/<%= entry.id %>"
+            class="btn btn-sm btn-outline-info"
           >
-          <small class="text-muted"
-            ><%= entry.meal_type || 'No especificado' %></small
-          >
+            <i class="fas fa-eye me-1"></i>Ver Detalles
+          </a>
         </div>
       </div>
     </div>
     <% }); %> <% } else { %>
     <div class="col-12 text-center py-4">
-      <img
-        src="/img/empty-plate.svg"
-        alt="Plato vacío"
-        style="width: 150px; margin-bottom: 1rem"
-      />
-      <h4 class="text-muted">No hay entradas en el historial</h4>
-      <p class="text-muted">
-        Este paciente aún no ha registrado ninguna comida.
-      </p>
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <img
+            src="/img/empty-plate.svg"
+            alt="Plato vacío"
+            style="width: 150px; margin-bottom: 1rem"
+          />
+          <h4 class="text-muted">No hay entradas en el historial</h4>
+          <p class="text-muted">
+            Este paciente aún no ha registrado ninguna comida.
+          </p>
+        </div>
+      </div>
     </div>
     <% } %>
   </div>
 
-  <!-- Paginación simplificada -->
+  <!-- Paginación mejorada -->
   <% if (entries && entries.length > 0 && totalPages > 1) { %>
-  <div class="row mt-3">
+  <div class="row mt-3 mb-4">
     <div class="col-12">
+      <div class="text-center mt-2 text-muted">
+        <p>
+          <i class="fas fa-info-circle me-1"></i>
+          Página <%= currentPage %> de <%= totalPages %>
+        </p>
+      </div>
       <nav>
         <ul class="pagination justify-content-center">
           <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
             <a
               class="page-link"
               href="/doctor/patient/<%= patient.id %>/history?page=<%= currentPage - 1 %><%= filters ? '&date_from=' + filters.date_from + '&date_to=' + filters.date_to : '' %>"
-              >Anterior</a
             >
+              <i class="fas fa-chevron-left"></i> Anterior
+            </a>
           </li>
 
           <% for (let i = 1; i <= totalPages; i++) { %>
@@ -163,8 +206,9 @@
             <a
               class="page-link"
               href="/doctor/patient/<%= patient.id %>/history?page=<%= currentPage + 1 %><%= filters ? '&date_from=' + filters.date_from + '&date_to=' + filters.date_to : '' %>"
-              >Siguiente</a
             >
+              Siguiente <i class="fas fa-chevron-right"></i>
+            </a>
           </li>
         </ul>
       </nav>
@@ -174,11 +218,129 @@
 </div>
 
 <style>
-  .card {
-    transition: transform 0.2s;
+  .food-entry-card {
+    transition: transform 0.2s, box-shadow 0.2s;
   }
-  .card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  .food-entry-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important;
+  }
+  .lazy-image {
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .lazy-image.loaded {
+    opacity: 1;
+  }
+  .animate-on-scroll {
+    opacity: 0;
+    animation: fadeIn 0.8s forwards;
+  }
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 </style>
+
+<!-- Script para implementar lazy loading para imágenes -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Marcar los elementos con la clase animate-on-scroll como visibles
+    document.querySelectorAll(".animate-on-scroll").forEach((element) => {
+      element.style.opacity = 1;
+    });
+
+    // Cola de imágenes para cargar secuencialmente
+    const loadQueue = [];
+    let isLoading = false;
+
+    // Función para procesar la cola de carga
+    function processQueue() {
+      if (loadQueue.length === 0 || isLoading) return;
+
+      isLoading = true;
+      const nextImg = loadQueue.shift();
+      if (!nextImg) {
+        isLoading = false;
+        return;
+      }
+
+      const img = nextImg.element;
+      const src = nextImg.src;
+
+      const newImg = new Image();
+
+      newImg.onload = function () {
+        img.src = src;
+        img.classList.add("loaded");
+
+        // Continuar con la siguiente imagen en la cola
+        isLoading = false;
+        setTimeout(processQueue, 50); // Pequeño retraso para evitar bloqueos
+      };
+
+      newImg.onerror = function () {
+        // Error: mostrar imagen por defecto
+        img.src = "/img/empty-plate.svg";
+        img.style.padding = "20px";
+        img.classList.add("loaded");
+
+        // Continuar con la siguiente imagen
+        isLoading = false;
+        setTimeout(processQueue, 50);
+      };
+
+      // Iniciar carga de la imagen
+      newImg.src = src;
+    }
+
+    // Agregar imagen a la cola de carga
+    function queueImageLoad(imgElement, src) {
+      // Solo agregar a la cola si no está ya cargada
+      loadQueue.push({ element: imgElement, src: src });
+      processQueue(); // Intentar procesar la cola
+    }
+
+    // Implementación de IntersectionObserver para lazy loading
+    const imageObserver = new IntersectionObserver(
+      (entries, observer) => {
+        entries.forEach((entry) => {
+          // Solo procesar elementos visibles
+          if (!entry.isIntersecting) return;
+
+          const img = entry.target;
+          const src = img.getAttribute("data-src");
+
+          // Si hay un src y no es la imagen por defecto, cargar imagen
+          if (src && src !== "/img/empty-plate.svg") {
+            queueImageLoad(img, src);
+          } else {
+            // Si es la imagen por defecto, mostrarla directamente
+            img.classList.add("loaded");
+          }
+
+          // Dejar de observar una vez cargada
+          observer.unobserve(img);
+        });
+      },
+      {
+        rootMargin: "100px 0px", // Margen para precargar cuando se acerca al viewport
+        threshold: 0.1, // 10% visible es suficiente para iniciar carga
+      }
+    );
+
+    // Observar todas las imágenes con clase lazy-image
+    document.querySelectorAll("img.lazy-image").forEach((img) => {
+      imageObserver.observe(img);
+    });
+  });
+</script>
