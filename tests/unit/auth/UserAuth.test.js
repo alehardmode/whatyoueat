@@ -95,12 +95,10 @@ const createMockSupabaseClient = () => {
             return {
               data: [{ ...mockDB.profiles[0], ...data }],
               error: null,
-              returning: jest
-                .fn()
-                .mockReturnValue({
-                  data: [{ ...mockDB.profiles[0], ...data }],
-                  error: null,
-                }),
+              returning: jest.fn().mockReturnValue({
+                data: [{ ...mockDB.profiles[0], ...data }],
+                error: null,
+              }),
             };
           }),
         };
@@ -114,12 +112,10 @@ const createMockSupabaseClient = () => {
           return {
             data: [{ ...data, id: uuidv4() }],
             error: null,
-            returning: jest
-              .fn()
-              .mockReturnValue({
-                data: [{ ...data, id: uuidv4() }],
-                error: null,
-              }),
+            returning: jest.fn().mockReturnValue({
+              data: [{ ...data, id: uuidv4() }],
+              error: null,
+            }),
           };
         }),
         update: jest.fn().mockImplementation((data) => {
@@ -132,30 +128,42 @@ const createMockSupabaseClient = () => {
       };
     }),
     auth: {
-      signUp: jest.fn().mockImplementation(({ email, password }) => {
+      signUp: jest.fn().mockImplementation(({ email, password, options }) => {
         // Verificar si el correo ya está en uso
         const exists = mockDB.users.some((u) => u.email === email);
         if (exists) {
           return {
-            data: null,
-            error: { message: "El correo ya está registrado" },
+            data: {
+              user: {
+                id: uuidv4(),
+                email,
+                identities: [], // Identities vacío para simular correo ya registrado
+              },
+            },
+            error: null,
           };
         }
 
         // Crear nuevo usuario
+        const userId = uuidv4();
         const newUser = {
-          id: uuidv4(),
+          id: userId,
           email,
           password,
-          user_metadata: {
+          user_metadata: options?.data || {
             name: email.split("@")[0],
             role: "paciente", // Default role
           },
+          identities: [{ id: uuidv4(), provider: "email" }], // Identities con datos para indicar que es un nuevo usuario
+          email_confirmed_at: null,
         };
         mockDB.users.push(newUser);
 
         return {
-          data: { user: newUser },
+          data: {
+            user: newUser,
+            session: null,
+          },
           error: null,
         };
       }),

@@ -1,0 +1,161 @@
+<!-- Vista de Edición de Perfil de Usuario -->
+<div class="container py-5">
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <h1 class="mb-4 border-bottom pb-2">
+        <i class="fas fa-user-edit me-2"></i>Editar Perfil
+      </h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="/">Inicio</a></li>
+          <li class="breadcrumb-item"><a href="/profile">Perfil</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Editar</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">Editar Información del Usuario</h5>
+    </div>
+    <div class="card-body">
+      <% if (profile) { %>
+      <form
+        action="/profile/update"
+        method="POST"
+        class="needs-validation"
+        novalidate
+      >
+        <div class="row">
+          <div class="col-md-4 text-center mb-3 mb-md-0">
+            <!-- Placeholder for profile picture -->
+            <img
+              src="/img/logo.webp"
+              alt="Foto de perfil"
+              class="img-thumbnail rounded-circle mb-3"
+              style="width: 150px; height: 150px; object-fit: cover"
+            />
+
+            <!-- Cambio de imagen - para futura implementación -->
+            <div class="mb-3 mt-2 text-muted">
+              <small
+                ><i class="fas fa-info-circle me-1"></i>La funcionalidad para
+                cambiar la imagen estará disponible próximamente</small
+              >
+            </div>
+          </div>
+          <div class="col-md-8">
+            <!-- Nombre -->
+            <div class="mb-3">
+              <label for="name" class="form-label"
+                >Nombre completo <span class="text-danger">*</span></label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="name"
+                name="name"
+                value="<%= profile.name || '' %>"
+                required
+              />
+              <div class="invalid-feedback">
+                Por favor ingresa tu nombre completo.
+              </div>
+            </div>
+
+            <!-- Email (solo lectura) -->
+            <div class="mb-3">
+              <label for="email" class="form-label">Correo Electrónico</label>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                value="<%= profile.email %>"
+                readonly
+                disabled
+              />
+              <small class="text-muted"
+                >El correo electrónico no se puede modificar.</small
+              >
+            </div>
+
+            <!-- Teléfono -->
+            <div class="mb-3">
+              <label for="phone" class="form-label">Teléfono</label>
+              <input
+                type="tel"
+                class="form-control"
+                id="phone"
+                name="phone"
+                value="<%= profile.phone || '' %>"
+                placeholder="Ej: +34 123 456 789"
+              />
+              <small class="text-muted"
+                >Opcional: Número de teléfono de contacto.</small
+              >
+            </div>
+
+            <!-- Biografía -->
+            <div class="mb-3">
+              <label for="bio" class="form-label">Biografía</label>
+              <textarea
+                class="form-control"
+                id="bio"
+                name="bio"
+                rows="3"
+                placeholder="Cuéntanos un poco sobre ti..."
+              >
+<%= profile.bio || '' %></textarea
+              >
+              <small class="text-muted"
+                >Opcional: Una breve descripción sobre ti.</small
+              >
+            </div>
+
+            <!-- Botones -->
+            <div class="mt-4">
+              <button type="submit" class="btn btn-primary">
+                <i class="fas fa-save me-1"></i> Guardar Cambios
+              </button>
+              <a href="/profile" class="btn btn-outline-secondary ms-2">
+                <i class="fas fa-times me-1"></i> Cancelar
+              </a>
+            </div>
+          </div>
+        </div>
+      </form>
+      <% } else { %>
+      <div class="alert alert-warning">
+        No se pudo cargar la información del perfil.
+        <a href="/profile" class="btn btn-sm btn-outline-secondary ms-3"
+          >Volver al Perfil</a
+        >
+      </div>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+<!-- Script para validación del formulario -->
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    // Obtener todos los formularios a los que queremos aplicar estilos de validación de Bootstrap
+    var forms = document.querySelectorAll(".needs-validation");
+
+    // Iteración sobre ellos y prevención del envío
+    Array.prototype.slice.call(forms).forEach(function (form) {
+      form.addEventListener(
+        "submit",
+        function (event) {
+          if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+          }
+          form.classList.add("was-validated");
+        },
+        false
+      );
+    });
+  });
+</script>

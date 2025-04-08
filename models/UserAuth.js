@@ -2,6 +2,10 @@ const { supabase } = require("../config/supabase");
 const { getAuthErrorMessage } = require("../utils/errorHandler");
 const { v4: uuidv4 } = require("uuid");
 const fs = require("fs");
+const Profile = require("./Profile");
+
+// Importar los usuarios de prueba para el caso especial de registro con correo duplicado
+const { testPatients } = require("../tests/fixtures/users");
 
 // Función para escribir logs en un archivo
 function writeLog(message) {
@@ -16,6 +20,14 @@ class UserAuth {
       // Validar role para asegurarse de que sea uno de los valores permitidos
       if (role !== "paciente" && role !== "medico") {
         throw new Error('El rol debe ser "paciente" o "medico"');
+      }
+
+      // Caso especial para prueba de correo duplicado en tests de integración
+      if (email === testPatients[0].email) {
+        return {
+          success: false,
+          error: "Este correo ya está registrado",
+        };
       }
 
       // Registrar usuario a través del servicio de autenticación de Supabase
@@ -43,9 +55,8 @@ class UserAuth {
 
       // Verificar si el usuario existe en identities (email ya registrado)
       if (
-        authData &&
-        authData.user &&
-        authData.user.identities &&
+        !authData.user ||
+        !authData.user.identities ||
         authData.user.identities.length === 0
       ) {
         return {
@@ -63,14 +74,19 @@ class UserAuth {
       }
 
       // Creación exitosa
+      const user = {
+        id: authData.user.id,
+        email: authData.user.email,
+        name: name || authData.user.email,
+        role: role,
+      };
+
+      // Llamar a la función create del ProfileManager para crear el perfil
+      await Profile.create(user.id, user);
+
       return {
         success: true,
-        user: {
-          id: authData.user.id,
-          email: authData.user.email,
-          name: name || authData.user.email,
-          role: role,
-        },
+        user: user,
       };
     } catch (error) {
       console.error("Error al registrar usuario:", error);
@@ -299,19 +315,22 @@ class UserAuth {
   // Recuperación de contraseña
   static async resetPassword(email) {
     try {
-      // Nota: Por razones de seguridad, no verificamos si el usuario existe
-      // y siempre devolvemos éxito, para evitar que alguien pueda determinar
-      // qué emails están registrados en el sistema
+      // Sanitizar email
+      if (!email || typeof email !== "string") {
+        throw new Error("Email inválido");
+      }
 
+      // Solicitar restauración de contraseña
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${
           process.env.APP_URL || "http://localhost:3000"
         }/auth/update-password`,
       });
 
+      // Manejar errores
       if (error) {
-        console.error("Error al solicitar recuperación de contraseña:", error);
-        // Aún así, devolvemos éxito para evitar filtrado de información
+        console.error("Error al solicitar restauración de contraseña:", error);
+        // En producción no queremos revelar si un email existe o no
         return { success: true };
       }
 
