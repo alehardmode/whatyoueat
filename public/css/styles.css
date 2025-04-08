@@ -1,27 +1,235 @@
 /* Estilos generales modernizados para WhatYouEat */
 :root {
   /* Paleta de colores contemporánea */
-  --primary: #3b82f6;       /* Azul moderno */
-  --primary-dark: #2563eb;  /* Azul oscuro para hover */
-  --secondary: #10b981;     /* Verde esmeralda */
-  --accent: #8b5cf6;        /* Púrpura */
-  --danger: #ef4444;        /* Rojo */
-  --warning: #f59e0b;       /* Naranja */
-  --dark: #1f2937;          /* Gris oscuro casi negro */
-  --gray: #6b7280;          /* Gris medio */
-  --light: #f3f4f6;         /* Gris claro */
-  --white: #ffffff;         /* Blanco */
-  --background: #f9fafb;    /* Fondo ligeramente gris */
-  
+  --primary: #3b82f6; /* Azul moderno */
+  --primary-dark: #2563eb; /* Azul oscuro para hover */
+  --secondary: #10b981; /* Verde esmeralda */
+  --accent: #8b5cf6; /* Púrpura */
+  --danger: #ef4444; /* Rojo */
+  --warning: #f59e0b; /* Naranja */
+  --dark: #1f2937; /* Gris oscuro casi negro */
+  --gray: #6b7280; /* Gris medio */
+  --light: #f3f4f6; /* Gris claro */
+  --white: #ffffff; /* Blanco */
+  --background: #f9fafb; /* Fondo ligeramente gris */
+
   /* Bordes y sombras */
   --border-radius: 0.5rem;
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
   /* Transiciones */
   --transition: all 0.3s ease;
+
+  /* Modo oscuro (variables por defecto para modo claro) */
+  --bg-primary: var(--white);
+  --bg-secondary: var(--background);
+  --text-primary: var(--dark);
+  --text-secondary: var(--gray);
+  --border-color: rgba(0, 0, 0, 0.1);
+  --card-bg: var(--white);
+  --navbar-bg: var(--white);
+  --footer-bg: var(--white);
+  --input-bg: var(--white);
+  --input-text: var(--dark);
+  --input-border: #e5e7eb;
+  --dropdown-bg: var(--white);
+  --dropdown-text: var(--dark);
+  --dropdown-hover: var(--light);
+  --alert-bg-success: #d1e7dd;
+  --alert-text-success: #0f5132;
+  --alert-bg-danger: #f8d7da;
+  --alert-text-danger: #842029;
+  --alert-bg-warning: #fff3cd;
+  --alert-text-warning: #664d03;
+  --alert-bg-info: #cff4fc;
+  --alert-text-info: #055160;
+  --link-color: var(--primary);
+  --link-hover: var(--primary-dark);
+  --focus-ring-color: rgba(59, 130, 246, 0.25);
+  --btn-text: var(--white);
+  --modal-bg: var(--white);
+  --modal-text: var(--dark);
+  --badge-bg: #e5e7eb;
+  --badge-text: var(--dark);
+  --table-border: #e5e7eb;
+  --table-head-bg: #f3f4f6;
+  --table-row-hover: #f9fafb;
+  --code-bg: #f1f5f9;
+  --code-text: #1e293b;
+  --tooltip-bg: var(--dark);
+  --tooltip-text: var(--white);
+  --nav-link-color: var(--gray);
+  --nav-link-hover: var(--primary);
+  --nav-link-active: var(--primary);
+}
+
+/* Modo oscuro */
+[data-theme="dark"] {
+  --bg-primary: #121212;
+  --bg-secondary: #1a1a1a;
+  --text-primary: #f3f4f6;
+  --text-secondary: #d1d5db;
+  --border-color: rgba(255, 255, 255, 0.1);
+  --card-bg: #242424;
+  --navbar-bg: #242424;
+  --footer-bg: #242424;
+  --input-bg: #2d3748;
+  --input-text: #f3f4f6;
+  --input-border: #4b5563;
+  --dropdown-bg: #2d3748;
+  --dropdown-text: #f3f4f6;
+  --dropdown-hover: #374151;
+  --alert-bg-success: #064e3b;
+  --alert-text-success: #a7f3d0;
+  --alert-bg-danger: #7f1d1d;
+  --alert-text-danger: #fecaca;
+  --alert-bg-warning: #78350f;
+  --alert-text-warning: #fef3c7;
+  --alert-bg-info: #0e7490;
+  --alert-text-info: #cffafe;
+  --link-color: #60a5fa;
+  --link-hover: #93c5fd;
+  --focus-ring-color: rgba(96, 165, 250, 0.5);
+  --btn-text: var(--white);
+  --modal-bg: #1e1e1e;
+  --modal-text: #f3f4f6;
+  --badge-bg: #374151;
+  --badge-text: #f3f4f6;
+  --table-border: #374151;
+  --table-head-bg: #1f2937;
+  --table-row-hover: #2d3748;
+  --code-bg: #1e293b;
+  --code-text: #e2e8f0;
+  --tooltip-bg: #d1d5db;
+  --tooltip-text: #1e1e1e;
+  --nav-link-color: #d1d5db;
+  --nav-link-hover: #60a5fa;
+  --nav-link-active: #60a5fa;
+
+  /* Sombras para modo oscuro */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.3),
+    0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.3),
+    0 10px 10px -5px rgba(0, 0, 0, 0.2);
+
+  /* Clases de Bootstrap y otros elementos adicionales */
+  --bs-body-color: var(--text-primary);
+  --bs-body-bg: var(--bg-secondary);
+  --bs-border-color: var(--border-color);
+}
+
+/* Ajustes para el texto muted en modo oscuro */
+[data-theme="dark"] .text-muted {
+  color: #9ca3af !important;
+}
+
+/* Ajustes para componentes de Bootstrap en modo oscuro */
+[data-theme="dark"] .form-label {
+  color: var(--text-primary);
+}
+
+/* Mejorar el contraste de los iconos en modo oscuro */
+[data-theme="dark"] i.fas,
+[data-theme="dark"] i.fab,
+[data-theme="dark"] i.far {
+  color: inherit;
+}
+
+/* Clases específicas de Bootstrap que necesitan ser adaptadas */
+[data-theme="dark"] .navbar-brand {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .navbar-toggler {
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .navbar-toggler-icon {
+  filter: invert(1);
+}
+
+/* Ajustes para tarjetas específicas */
+[data-theme="dark"] .stat-card {
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .stat-card h3 {
+  color: var(--primary);
+}
+
+/* Corrección para color de texto en formularios */
+[data-theme="dark"] .form-control::placeholder {
+  color: #6b7280;
+}
+
+/* Ajustes para los botones en modo oscuro */
+[data-theme="dark"] .btn-outline-primary {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+[data-theme="dark"] .btn-outline-primary:hover {
+  background-color: var(--primary);
+  color: #fff;
+}
+
+/* Evitar iconos que desaparecen */
+[data-theme="dark"] .fa-heart.text-danger {
+  color: #ef4444 !important;
+}
+
+/* Mejorar contraste de elementos sociales */
+[data-theme="dark"] .social-links a {
+  color: var(--text-primary);
+  opacity: 0.8;
+}
+
+[data-theme="dark"] .social-links a:hover {
+  color: var(--link-color);
+  opacity: 1;
+}
+
+/* Ajuste para lista de información de contacto */
+[data-theme="dark"] .contact-info-list i {
+  color: var(--primary);
+}
+
+/* Corregir elementos con fondo blanco fijo */
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .food-entry-card,
+[data-theme="dark"] .entry-card {
+  background-color: var(--card-bg);
+}
+
+/* Corregir bordes y separadores */
+[data-theme="dark"] hr,
+[data-theme="dark"] .border-top,
+[data-theme="dark"] .border-bottom {
+  border-color: var(--border-color) !important;
+}
+
+/* Corregir fondos de validación para mejor contraste */
+[data-theme="dark"] .is-valid {
+  background-color: rgba(16, 185, 129, 0.05) !important;
+}
+
+[data-theme="dark"] .is-invalid {
+  background-color: rgba(239, 68, 68, 0.1) !important;
+}
+
+/* Prevenir el problema de imágenes SVG que desaparecen en modo oscuro */
+[data-theme="dark"] svg:not([fill="none"]) {
+  filter: brightness(0.8) invert(0.8);
 }
 
 /* Reset moderno */
@@ -39,12 +247,22 @@ html {
 }
 
 body {
-  font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
   line-height: 1.6;
-  color: var(--dark);
-  background-color: var(--background);
+  color: var(--text-primary);
+  background-color: var(--bg-secondary);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Solo aplicar transiciones cuando estamos listos para evitar animaciones al cargar */
+body.theme-transition-ready,
+body.theme-transition-ready *,
+body.theme-transitioning,
+body.theme-transitioning * {
+  transition: background-color 0.3s ease, border-color 0.3s ease,
+    color 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
 }
 
 /* Contenedores */
@@ -56,11 +274,16 @@ body {
 }
 
 /* Encabezados con tipografía moderna */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   margin-bottom: 1rem;
   font-weight: 700;
   line-height: 1.2;
-  color: var(--dark);
+  color: var(--text-primary);
 }
 
 h1 {
@@ -81,18 +304,18 @@ h3 {
 /* Párrafos */
 p {
   margin-bottom: 1.5rem;
-  color: var(--gray);
+  color: var(--text-secondary);
 }
 
 /* Enlaces con efectos modernos */
 a {
-  color: var(--primary);
+  color: var(--link-color);
   text-decoration: none;
   transition: var(--transition);
 }
 
 a:hover {
-  color: var(--primary-dark);
+  color: var(--link-hover);
 }
 
 /* Botones modernos con efectos de hover y sombras */
@@ -122,13 +345,14 @@ a:hover {
   box-shadow: var(--shadow);
 }
 
-.btn:active, .button-clicked {
+.btn:active,
+.button-clicked {
   transform: scale(0.98);
   box-shadow: var(--shadow-sm);
 }
 
 .btn-primary {
-  color: var(--white);
+  color: var(--btn-text);
   background-color: var(--primary);
   border-color: var(--primary);
 }
@@ -139,7 +363,7 @@ a:hover {
 }
 
 .btn-secondary {
-  color: var(--white);
+  color: var(--btn-text);
   background-color: var(--secondary);
   border-color: var(--secondary);
 }
@@ -152,12 +376,14 @@ a:hover {
 
 /* Navbar moderna con sombra suave */
 .navbar {
-  background-color: var(--white);
+  background-color: var(--navbar-bg);
   box-shadow: var(--shadow);
   padding: 1rem 0;
   position: sticky;
   top: 0;
   z-index: 1000;
+  transition: background-color 0.3s ease, border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .navbar-brand {
@@ -178,26 +404,28 @@ a:hover {
 }
 
 .nav-link {
-  color: var(--gray);
+  color: var(--nav-link-color);
   font-weight: 500;
   transition: var(--transition);
   padding: 0.5rem 0;
 }
 
-.nav-link:hover, 
+.nav-link:hover,
 .nav-link.active {
-  color: var(--primary);
+  color: var(--nav-link-hover);
 }
 
 /* Tarjetas con sombras y bordes redondeados */
 .card {
-  background-color: var(--white);
+  background-color: var(--card-bg);
   border-radius: var(--border-radius);
   box-shadow: var(--shadow);
   padding: 1.5rem;
   margin-bottom: 1.5rem;
   transition: var(--transition);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color);
+  transition: background-color 0.3s ease, border-color 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
 .card:hover {
@@ -225,13 +453,14 @@ section {
 .form-control {
   display: block;
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.625rem 0.75rem;
   font-size: 1rem;
+  font-weight: 400;
   line-height: 1.5;
-  color: var(--dark);
-  background-color: var(--white);
+  color: var(--input-text);
+  background-color: var(--input-bg);
   background-clip: padding-box;
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--input-border);
   border-radius: var(--border-radius);
   transition: var(--transition);
 }
@@ -239,7 +468,7 @@ section {
 .form-control:focus {
   border-color: var(--primary);
   outline: 0;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+  box-shadow: 0 0 0 0.2rem var(--focus-ring-color);
 }
 
 /* Validación de formularios */
@@ -284,6 +513,30 @@ section {
   transition: opacity 0.3s ease-in-out;
 }
 
+.alert-success {
+  background-color: var(--alert-bg-success);
+  color: var(--alert-text-success);
+  border-color: transparent;
+}
+
+.alert-danger {
+  background-color: var(--alert-bg-danger);
+  color: var(--alert-text-danger);
+  border-color: transparent;
+}
+
+.alert-warning {
+  background-color: var(--alert-bg-warning);
+  color: var(--alert-text-warning);
+  border-color: transparent;
+}
+
+.alert-info {
+  background-color: var(--alert-bg-info);
+  color: var(--alert-text-info);
+  border-color: transparent;
+}
+
 .alert-dismissible {
   padding-right: 4rem;
 }
@@ -292,15 +545,19 @@ section {
   position: absolute;
   top: 0.85rem;
   right: 1rem;
-  background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e") center/1em auto no-repeat;
+  background-color: transparent;
   border: 0;
   font-size: 1rem;
   cursor: pointer;
   padding: 0.3rem;
   width: 1rem;
   height: 1rem;
-  color: rgba(0, 0, 0, 0.7);
+  color: currentColor;
   opacity: 0.8;
+}
+
+[data-theme="dark"] .alert .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
 }
 
 .alert .btn-close:hover {
@@ -314,19 +571,19 @@ section {
 }
 
 .persistent-alert.alert-warning {
-  border-left-color: #f8c146;
+  border-left-color: var(--warning);
 }
 
 .persistent-alert.alert-info {
-  border-left-color: #0dcaf0;
+  border-left-color: var(--primary);
 }
 
 .persistent-alert.alert-success {
-  border-left-color: #20c997;
+  border-left-color: var(--secondary);
 }
 
 .persistent-alert.alert-danger {
-  border-left-color: #dc3545;
+  border-left-color: var(--danger);
 }
 
 .flash-messages {
@@ -334,8 +591,12 @@ section {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Spinner de carga */
@@ -351,7 +612,9 @@ section {
 }
 
 @keyframes spinner {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .loading {
@@ -359,29 +622,67 @@ section {
 }
 
 /* Utilidades */
-.text-center { text-align: center; }
-.text-right { text-align: right; }
-.text-left { text-align: left; }
+.text-center {
+  text-align: center;
+}
+.text-right {
+  text-align: right;
+}
+.text-left {
+  text-align: left;
+}
 
-.mt-1 { margin-top: 0.25rem; }
-.mt-2 { margin-top: 0.5rem; }
-.mt-3 { margin-top: 1rem; }
-.mt-4 { margin-top: 1.5rem; }
-.mt-5 { margin-top: 3rem; }
+.mt-1 {
+  margin-top: 0.25rem;
+}
+.mt-2 {
+  margin-top: 0.5rem;
+}
+.mt-3 {
+  margin-top: 1rem;
+}
+.mt-4 {
+  margin-top: 1.5rem;
+}
+.mt-5 {
+  margin-top: 3rem;
+}
 
-.mb-1 { margin-bottom: 0.25rem; }
-.mb-2 { margin-bottom: 0.5rem; }
-.mb-3 { margin-bottom: 1rem; }
-.mb-4 { margin-bottom: 1.5rem; }
-.mb-5 { margin-bottom: 3rem; }
+.mb-1 {
+  margin-bottom: 0.25rem;
+}
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+.mb-3 {
+  margin-bottom: 1rem;
+}
+.mb-4 {
+  margin-bottom: 1.5rem;
+}
+.mb-5 {
+  margin-bottom: 3rem;
+}
 
-.d-flex { display: flex; }
-.flex-column { flex-direction: column; }
-.justify-content-between { justify-content: space-between; }
-.justify-content-center { justify-content: center; }
-.align-items-center { align-items: center; }
+.d-flex {
+  display: flex;
+}
+.flex-column {
+  flex-direction: column;
+}
+.justify-content-between {
+  justify-content: space-between;
+}
+.justify-content-center {
+  justify-content: center;
+}
+.align-items-center {
+  align-items: center;
+}
 
-.d-none { display: none !important; }
+.d-none {
+  display: none !important;
+}
 
 /* Animaciones y efectos */
 .fade-in {
@@ -389,8 +690,14 @@ section {
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Responsive */
@@ -412,11 +719,11 @@ section {
   h1 {
     font-size: 2.2rem;
   }
-  
+
   h2 {
     font-size: 1.8rem;
   }
-  
+
   section {
     padding: 2rem 0;
   }
@@ -426,15 +733,15 @@ section {
   .container {
     padding: 0 1.5rem;
   }
-  
+
   h1 {
     font-size: 2rem;
   }
-  
+
   h2 {
     font-size: 1.5rem;
   }
-  
+
   .btn {
     padding: 0.5rem 1rem;
   }
@@ -471,7 +778,7 @@ section {
   margin-bottom: 0.5rem;
 }
 li {
-  list-style: none
+  list-style: none;
 }
 
 /* Estilos para la vista de historial */
@@ -497,7 +804,7 @@ li {
 
 .entry-card:hover {
   /* transform: translateY(-5px); */ /* Removed transform */
-  box-shadow: 0 10px 20px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06) !important;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.12), 0 4px 8px rgba(0, 0, 0, 0.06) !important;
 }
 
 /* 
@@ -507,7 +814,7 @@ transform: scale(1.05);
 */ /* Removed transform */
 
 .entry-card:hover .image-overlay {
-  background: rgba(0,0,0,0.3);
+  background: rgba(0, 0, 0, 0.3);
   opacity: 1;
 }
 
@@ -519,10 +826,14 @@ transform: scale(1.05);
 }
 
 /* Mejoras de accesibilidad para el contraste */
+.badge {
+  background-color: var(--badge-bg);
+  color: var(--badge-text);
+}
+
 .badge.bg-primary {
-  background-color: #0d6efd !important;
-  color: white !important;
-  font-weight: 600;
+  background-color: var(--primary) !important;
+  color: var(--btn-text) !important;
 }
 
 /* Asegurar que las imágenes siempre tengan espacio suficiente */
@@ -540,8 +851,12 @@ transform: scale(1.05);
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Estilos para la página de detalle */
@@ -612,8 +927,14 @@ transform: scale(1.05);
 
 /* Estilos para modales - versión simplificada */
 .modal-content {
-  border: none;
-  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  background-color: var(--modal-bg);
+  color: var(--modal-text);
+  border-color: var(--border-color);
+}
+
+.modal-header,
+.modal-footer {
+  border-color: var(--border-color);
 }
 
 /* Removed conflicting modal transition override */
@@ -665,4 +986,357 @@ html {
   /* Aumentamos el peso CSS para prevenir eliminación */
   z-index: 100 !important;
   position: relative !important;
+}
+
+/* Cambiador de tema (añadido para el modo oscuro) */
+.theme-toggle {
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+  margin-left: 10px;
+  background-color: transparent;
+  border: none;
+  color: var(--text-secondary);
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-toggle:hover {
+  background-color: rgba(107, 114, 128, 0.1);
+  transform: scale(1.1);
+}
+
+.theme-toggle:active {
+  transform: scale(0.95);
+}
+
+.theme-toggle i {
+  font-size: 1.2rem;
+  position: relative;
+  z-index: 10;
+}
+
+/* Efecto ripple para el botón de tema */
+.theme-toggle::after {
+  content: "";
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(107, 114, 128, 0.2);
+  border-radius: 50%;
+  transform: scale(0);
+  opacity: 0;
+  transition: transform 0.5s ease, opacity 0.5s ease;
+  pointer-events: none;
+}
+
+.theme-toggle:active::after {
+  transform: scale(1.5);
+  opacity: 1;
+  transition: transform 0.5s ease, opacity 0s;
+}
+
+/* Animación del ícono al cambiar de tema */
+.theme-icon-animate {
+  animation: spin 0.5s ease-in-out;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.2);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+/* Mejorar visualización de imágenes en modo oscuro */
+[data-theme="dark"] img:not([src*=".svg"]) {
+  filter: brightness(0.9);
+}
+
+/* Ajustes para scrollbars en modo oscuro */
+[data-theme="dark"] {
+  scrollbar-color: rgba(255, 255, 255, 0.2) rgba(30, 30, 30, 0.8);
+  scrollbar-width: thin;
+}
+
+[data-theme="dark"]::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+[data-theme="dark"]::-webkit-scrollbar-track {
+  background: rgba(30, 30, 30, 0.8);
+}
+
+[data-theme="dark"]::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+[data-theme="dark"]::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Estilos para dropdowns en modo oscuro */
+.dropdown-menu {
+  background-color: var(--dropdown-bg);
+  border: 1px solid var(--border-color);
+}
+
+.dropdown-item {
+  color: var(--dropdown-text);
+}
+
+.dropdown-item:hover,
+.dropdown-item:focus {
+  background-color: var(--dropdown-hover);
+  color: var(--dropdown-text);
+}
+
+footer {
+  background-color: var(--footer-bg);
+  color: var(--text-primary);
+  border-top: 1px solid var(--border-color);
+}
+
+/* Correcciones específicas para Bootstrap en modo oscuro */
+[data-theme="dark"] .modal-backdrop {
+  opacity: 0.8 !important;
+}
+
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-footer {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="dark"] .close {
+  color: var(--text-primary);
+}
+
+/* Correcciones para alertas Bootstrap */
+[data-theme="dark"] .alert {
+  border-width: 1px;
+}
+
+[data-theme="dark"] .alert-dismissible .btn-close {
+  filter: brightness(2);
+}
+
+/* Correcciones para elementos de formulario */
+[data-theme="dark"] .form-select {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border-color: var(--input-border);
+  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23f3f4f6' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3E%3C/svg%3E");
+}
+
+[data-theme="dark"] .form-check-input {
+  background-color: var(--input-bg);
+  border-color: var(--input-border);
+}
+
+[data-theme="dark"] .form-check-input:checked {
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+[data-theme="dark"] .pagination .page-link {
+  background-color: var(--card-bg);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .pagination .page-item.active .page-link {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+/* Correcciones para tooltips y popovers */
+[data-bs-theme="dark"] .tooltip .tooltip-inner {
+  background-color: var(--tooltip-bg);
+  color: var(--tooltip-text);
+}
+
+[data-bs-theme="dark"] .tooltip .tooltip-arrow::before {
+  border-top-color: var(--tooltip-bg);
+}
+
+/* Correcciones para imágenes y logos */
+[data-theme="dark"] .navbar-brand img,
+[data-theme="dark"] footer img {
+  filter: brightness(0.9) contrast(1.1);
+}
+
+/* Correcciones para elementos interactivos */
+[data-theme="dark"] .btn:hover {
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+}
+
+/* Correcciones para prevenir problemas de texto en modo oscuro */
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder {
+  color: rgba(209, 213, 219, 0.6);
+}
+
+/* Correcciones para enlaces en el footer */
+[data-theme="dark"] footer a:not(.social-links a) {
+  color: var(--link-color);
+}
+
+[data-theme="dark"] footer a:hover:not(.social-links a:hover) {
+  color: var(--link-hover);
+}
+
+/* Correcciones para elementos que pueden tener clase de color específica */
+[data-theme="dark"] .text-dark {
+  color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .bg-light {
+  background-color: var(--card-bg) !important;
+}
+
+/* Corrección para botones de navegación en dispositivos móviles */
+@media (max-width: 992px) {
+  [data-theme="dark"] .navbar-collapse {
+    background-color: var(--navbar-bg);
+    border-color: var(--border-color);
+  }
+
+  [data-theme="dark"] .navbar-toggler-icon {
+    filter: invert(1);
+  }
+}
+
+/* Mejorar visualización de formularios en modo oscuro */
+[data-theme="dark"] .form-label {
+  color: var(--text-primary);
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select,
+[data-theme="dark"] input[type="date"],
+[data-theme="dark"] input[type="time"],
+[data-theme="dark"] input[type="datetime-local"] {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border-color: var(--input-border);
+}
+
+/* Corregir los selectores de fecha en modo oscuro */
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator,
+[data-theme="dark"] input[type="time"]::-webkit-calendar-picker-indicator,
+[data-theme="dark"]
+  input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8);
+}
+
+/* Mejorar la visualización de selects en modo oscuro */
+[data-theme="dark"] select option {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+}
+
+/* Mejorar contraste en los campos enfocados */
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus,
+[data-theme="dark"] input[type="date"]:focus,
+[data-theme="dark"] input[type="time"]:focus,
+[data-theme="dark"] input[type="datetime-local"]:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 0.2rem rgba(96, 165, 250, 0.25);
+  background-color: rgba(45, 55, 72, 0.9);
+}
+
+/* Evitar conflictos CSS con clases de Bootstrap */
+[data-theme="dark"] .btn-check:checked + .btn-outline-primary,
+[data-theme="dark"] .btn-check:active + .btn-outline-primary {
+  background-color: var(--primary);
+  color: var(--btn-text);
+}
+
+[data-theme="dark"] .modal-content {
+  background-color: var(--modal-bg);
+  color: var(--modal-text);
+  border-color: var(--border-color);
+}
+
+/* Preservar estilos nativos de Bootstrap para componentes específicos */
+[data-theme="dark"] .btn-primary.disabled,
+[data-theme="dark"] .btn-primary:disabled {
+  background-color: rgba(59, 130, 246, 0.5);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+/* Asegurar la legibilidad de mensajes de validación */
+[data-theme="dark"] .invalid-feedback,
+[data-theme="dark"] .valid-feedback {
+  color: var(--alert-text-danger);
+  opacity: 1;
+}
+
+[data-theme="dark"] .valid-feedback {
+  color: var(--alert-text-success);
+}
+
+/* Evitar problemas con componentes dropdown de Bootstrap */
+[data-theme="dark"] .dropdown-item.active,
+[data-theme="dark"] .dropdown-item:active {
+  background-color: var(--primary);
+  color: var(--white);
+}
+
+/* Arreglar sugerencias de contraseñas - Remover todas las reglas */
+[data-theme="dark"] input:-webkit-autofill,
+[data-theme="dark"] input:-webkit-autofill:hover,
+[data-theme="dark"] input:-webkit-autofill:focus,
+[data-theme="dark"] input:-webkit-autofill:active {
+  /* Eliminar por completo */
+}
+
+/* Permitir que las sugerencias nativas del navegador funcionen correctamente */
+[data-theme="dark"] input::-webkit-credentials-auto-fill-button,
+[data-theme="dark"] input::-webkit-contacts-auto-fill-button {
+  /* Eliminar por completo */
+}
+
+[data-theme="dark"] *::-webkit-credentials-auto-fill-button,
+[data-theme="dark"] *::-webkit-contacts-auto-fill-button {
+  /* Eliminar por completo */
+}
+
+/* Asegurar que los navegadores basados en Chromium muestren correctamente el popup de sugerencias */
+[data-theme="dark"] input.form-control {
+  /* Comportamiento por defecto */
+}
+
+/* Eliminar por completo los estilos específicos para campos de contraseña */
+[data-theme="dark"] input[type="password"] {
+  /* Eliminar por completo - dejar comportamiento nativo */
+}
+
+/* Transición suave entre temas */
+body.theme-transitioning {
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.theme-transitioning * {
+  transition: background-color 0.5s ease, color 0.5s ease,
+    border-color 0.5s ease, box-shadow 0.5s ease !important;
+}
+
+/* Evitar transición en campos de contraseña */
+body.theme-transitioning input[type="password"] {
+  transition: none !important;
 }
