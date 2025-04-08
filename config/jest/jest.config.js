@@ -1,5 +1,5 @@
 module.exports = {
-  rootDir: "../",
+  rootDir: "../../",
   testEnvironment: "node",
   testMatch: ["**/tests/unit/**/*.test.js"],
   collectCoverage: true,
