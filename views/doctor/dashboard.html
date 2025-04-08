@@ -69,7 +69,6 @@
                 <tr>
                   <th scope="col">#</th>
                   <th scope="col">Nombre</th>
-                  <th scope="col">Correo Electrónico</th>
                   <th scope="col">Fecha de Registro</th>
                   <th scope="col">Acciones</th>
                 </tr>
@@ -79,7 +78,6 @@
                   <tr>
                     <th scope="row"><%= index + 1 %></th>
                     <td><%= patient.name %></td>
-                    <td><%= patient.email %></td>
                     <td><%= new Date(patient.created_at).toLocaleDateString('es-ES') %></td>
                     <td class="d-flex gap-2">
                       <a href="/doctor/patient/<%= patient.id %>/history" class="btn btn-sm btn-primary" title="Ver Diario">
