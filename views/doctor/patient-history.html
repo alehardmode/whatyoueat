@@ -1,10 +1,9 @@
-<!-- Vista de Historial de Paciente para Doctor -->
-<div class="container mb-5">
-  <div class="row mb-4">
-    <div class="col-md-12 animate-on-scroll">
-      <h1 class="mb-4 border-bottom pb-2">
-        <i class="fas fa-history me-2"></i>Historial de <%= patient.name %>
-      </h1>
+<!-- Vista simplificada del Historial de Paciente -->
+<div class="container my-4">
+  <!-- Cabecera -->
+  <div class="row mb-3">
+    <div class="col-12">
+      <h1 class="border-bottom pb-2">Historial de <%= patient.name %></h1>
       <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
           <li class="breadcrumb-item">
@@ -13,41 +12,33 @@
           <li class="breadcrumb-item active">Historial de Paciente</li>
         </ol>
       </nav>
+    </div>
+  </div>
 
-      <!-- Información del paciente -->
-      <div class="card mb-4 shadow-sm">
-        <div class="card-body">
-          <div class="row">
-            <div class="col-md-9">
-              <h5>
-                <i class="fas fa-user-circle me-2"></i>Información del Paciente
-              </h5>
-              <p class="mb-1"><strong>Nombre:</strong> <%= patient.name %></p>
-              <p class="mb-1"><strong>Email:</strong> <%= patient.email %></p>
-              <p class="mb-0">
-                <strong>Desde:</strong> <%=
-                moment(patient.created_at).format('DD/MM/YYYY') %>
-              </p>
-            </div>
-            <div
-              class="col-md-3 d-flex align-items-center justify-content-md-end mt-3 mt-md-0"
-            >
-              <a href="/doctor/dashboard" class="btn btn-outline-primary">
-                <i class="fas fa-arrow-left me-1"></i>Volver al Dashboard
-              </a>
-            </div>
-          </div>
+  <!-- Datos del paciente -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-9">
+          <h5>Información del Paciente</h5>
+          <p><strong>Nombre:</strong> <%= patient.name %></p>
+          <p><strong>Email:</strong> <%= patient.email %></p>
+          <p>
+            <strong>Desde:</strong> <%=
+            moment(patient.created_at).format('DD/MM/YYYY') %>
+          </p>
+        </div>
+        <div class="col-md-3 text-end">
+          <a href="/doctor/dashboard" class="btn btn-outline-primary">Volver</a>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Filtros de búsqueda -->
-  <div class="card shadow mb-4">
+  <!-- Filtros -->
+  <div class="card mb-4">
     <div class="card-body">
-      <h5 class="card-title">
-        <i class="fas fa-filter me-2"></i>Filtrar Entradas
-      </h5>
+      <h5>Filtrar Entradas</h5>
       <form
         action="/doctor/patient/<%= patient.id %>/history"
         method="GET"
@@ -74,147 +65,121 @@
           />
         </div>
         <div class="col-md-4 d-flex align-items-end">
-          <button type="submit" class="btn btn-primary me-2">
-            <i class="fas fa-search me-1"></i>Buscar
-          </button>
+          <button type="submit" class="btn btn-primary me-2">Buscar</button>
           <a
             href="/doctor/patient/<%= patient.id %>/history"
             class="btn btn-outline-secondary"
+            >Reiniciar</a
           >
-            <i class="fas fa-redo me-1"></i>Reiniciar
-          </a>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Entradas del historial -->
+  <!-- Lista de entradas -->
   <div class="row">
     <% if (entries && entries.length > 0) { %> <% entries.forEach(entry => { %>
-    <div class="col-md-6 col-lg-4 mb-4 animate-on-scroll">
-      <div class="card h-100 shadow border-0 entry-card">
-        <div class="card-img-container" style="height: 200px; overflow: hidden">
+    <div class="col-md-6 col-lg-4 mb-3">
+      <div class="card h-100">
+        <div style="height: 180px; overflow: hidden">
           <img
-            src="<%= entry.image_url || entry.image_data || '/img/empty-plate.svg' %>"
+            src="<%= entry.image_url %>"
             class="card-img-top"
             alt="Imagen de comida"
-            decoding="async"
-            fetchpriority="high"
             style="width: 100%; height: 100%; object-fit: cover"
-            onerror="this.onerror=null; this.src='/img/empty-plate.svg'; this.style.padding='10px';"
+            onerror="this.onerror=null; this.src='/img/empty-plate.svg';"
           />
         </div>
         <div class="card-body">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="card-title mb-0">
-              <i class="fas fa-utensils me-2"></i>Entrada #<%= entry.id %>
-            </h5>
-            <span class="badge bg-primary">
-              <%= moment(entry.created_at).format('DD/MM/YYYY') %>
-            </span>
+          <div class="d-flex justify-content-between">
+            <h5 class="card-title">Entrada #<%= entry.id %></h5>
+            <span class="badge bg-primary"
+              ><%= moment(entry.created_at).format('DD/MM/YYYY') %></span
+            >
           </div>
-          <p class="card-text text-muted">
-            <i class="fas fa-clock me-1"></i><%=
-            moment(entry.created_at).format('HH:mm') %>
+          <p class="text-muted">
+            <%= moment(entry.created_at).format('HH:mm') %>
           </p>
           <% if (entry.comments) { %>
-          <p class="card-text">
-            <small
-              ><%= entry.comments.substring(0, 100) %><%= entry.comments.length
-              > 100 ? '...' : '' %></small
-            >
+          <p>
+            <%= entry.comments.substring(0, 100) %><%= entry.comments.length >
+            100 ? '...' : '' %>
           </p>
           <% } else { %>
-          <p class="card-text text-muted">
-            <small>Sin comentarios</small>
-          </p>
+          <p class="text-muted">Sin comentarios</p>
           <% } %>
         </div>
-        <div
-          class="card-footer bg-white d-flex justify-content-between align-items-center"
-        >
-          <small class="text-muted">
-            <i class="fas fa-history me-1"></i><%=
-            moment(entry.created_at).fromNow() %>
-          </small>
-          <a
-            href="/doctor/patient/<%= patient.id %>/entry/<%= entry.id %>"
-            class="btn btn-sm btn-primary"
+        <div class="card-footer bg-white d-flex justify-content-between">
+          <a href="/doctor/entry/<%= entry.id %>" class="btn btn-sm btn-primary"
+            >Ver Detalles</a
           >
-            <i class="fas fa-eye me-1"></i>Ver Detalles
-          </a>
+          <small class="text-muted"
+            ><%= entry.meal_type || 'No especificado' %></small
+          >
         </div>
       </div>
     </div>
     <% }); %> <% } else { %>
-    <!-- Mostrar mensaje cuando no hay entradas -->
-    <div class="col-12 text-center py-5 animate-on-scroll">
-      <div class="empty-state">
-        <img
-          src="/img/empty-plate.svg"
-          alt="Plato vacío"
-          style="width: 200px; margin-bottom: 2rem"
-        />
-        <h3 class="text-muted">No hay entradas en el historial</h3>
-        <p class="text-muted mb-4">
-          Este paciente aún no ha registrado ninguna comida.
-        </p>
-      </div>
+    <div class="col-12 text-center py-4">
+      <img
+        src="/img/empty-plate.svg"
+        alt="Plato vacío"
+        style="width: 150px; margin-bottom: 1rem"
+      />
+      <h4 class="text-muted">No hay entradas en el historial</h4>
+      <p class="text-muted">
+        Este paciente aún no ha registrado ninguna comida.
+      </p>
     </div>
     <% } %>
   </div>
 
-  <!-- Paginación -->
+  <!-- Paginación simplificada -->
   <% if (entries && entries.length > 0 && totalPages > 1) { %>
-  <div class="row mt-4">
+  <div class="row mt-3">
     <div class="col-12">
-      <nav aria-label="Navegación de páginas">
+      <nav>
         <ul class="pagination justify-content-center">
-          <% if (currentPage > 1) { %>
-          <li class="page-item">
+          <li class="page-item <%= currentPage === 1 ? 'disabled' : '' %>">
             <a
               class="page-link"
-              href="/doctor/patient/<%= patient.id %>/history?page=<%= currentPage - 1 %><%= filters ? `&date_from=${filters.date_from}&date_to=${filters.date_to}` : '' %>"
-              aria-label="Anterior"
+              href="/doctor/patient/<%= patient.id %>/history?page=<%= currentPage - 1 %><%= filters ? '&date_from=' + filters.date_from + '&date_to=' + filters.date_to : '' %>"
+              >Anterior</a
             >
-              <span aria-hidden="true">&laquo;</span>
-            </a>
           </li>
-          <% } else { %>
-          <li class="page-item disabled">
-            <a class="page-link" href="#" aria-label="Anterior">
-              <span aria-hidden="true">&laquo;</span>
-            </a>
-          </li>
-          <% } %> <% for (let i = 1; i <= totalPages; i++) { %>
+
+          <% for (let i = 1; i <= totalPages; i++) { %>
           <li class="page-item <%= currentPage === i ? 'active' : '' %>">
             <a
               class="page-link"
-              href="/doctor/patient/<%= patient.id %>/history?page=<%= i %><%= filters ? `&date_from=${filters.date_from}&date_to=${filters.date_to}` : '' %>"
+              href="/doctor/patient/<%= patient.id %>/history?page=<%= i %><%= filters ? '&date_from=' + filters.date_from + '&date_to=' + filters.date_to : '' %>"
+              ><%= i %></a
             >
-              <%= i %>
-            </a>
-          </li>
-          <% } %> <% if (currentPage < totalPages) { %>
-          <li class="page-item">
-            <a
-              class="page-link"
-              href="/doctor/patient/<%= patient.id %>/history?page=<%= currentPage + 1 %><%= filters ? `&date_from=${filters.date_from}&date_to=${filters.date_to}` : '' %>"
-              aria-label="Siguiente"
-            >
-              <span aria-hidden="true">&raquo;</span>
-            </a>
-          </li>
-          <% } else { %>
-          <li class="page-item disabled">
-            <a class="page-link" href="#" aria-label="Siguiente">
-              <span aria-hidden="true">&raquo;</span>
-            </a>
           </li>
           <% } %>
+
+          <li
+            class="page-item <%= currentPage === totalPages ? 'disabled' : '' %>"
+          >
+            <a
+              class="page-link"
+              href="/doctor/patient/<%= patient.id %>/history?page=<%= currentPage + 1 %><%= filters ? '&date_from=' + filters.date_from + '&date_to=' + filters.date_to : '' %>"
+              >Siguiente</a
+            >
+          </li>
         </ul>
       </nav>
     </div>
   </div>
   <% } %>
 </div>
+
+<style>
+  .card {
+    transition: transform 0.2s;
+  }
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+</style>

@@ -124,12 +124,11 @@ class FoodEntry {
     limit = 10
   ) {
     try {
-
       // Construir la consulta base
       let query = supabase
         .from("food_entries")
         .select(
-          "id, user_id, name, description, meal_date, meal_type, created_at, updated_at",
+          "id, user_id, name, description, meal_date, meal_type, created_at, updated_at, image_data",
           { count: "exact" }
         ) // Asegurarse de contar exactamente
         .eq("user_id", userId)
@@ -236,7 +235,6 @@ class FoodEntry {
   // Obtener entrada por ID, incluyendo la imagen
   static async getById(id, includeImage = true) {
     try {
-
       // Construir consulta base
       let query = supabase.from("food_entries").select("*").eq("id", id);
 
@@ -356,7 +354,7 @@ class FoodEntry {
       const updateData = {
         ...updates,
         updated_at: new Date().toISOString(),
-      };      // Proceder con la actualización
+      }; // Proceder con la actualización
       try {
         // Intentar hacer update con select
         const { data: updatedEntry, error: updateError } = await supabase
@@ -383,7 +381,7 @@ class FoodEntry {
             .eq("id", id);
 
           if (error) throw error;
-          
+
           return { success: true, entry: { ...entry, ...updateData } };
         } catch (error) {
           // Re-lanzar el error
