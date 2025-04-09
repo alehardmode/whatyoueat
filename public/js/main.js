@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // setupAnimations(); // Movido a animations.js
 
   // Inicializar tooltips de Bootstrap
-  initTooltips();
+  // initTooltips(); // Movido a tooltips.js
 
   // Escuchar el botón de reenvío de confirmación de correo
   setupResendConfirmationButton();
@@ -84,16 +84,6 @@ function setupButtons() {
         this.classList.remove("button-clicked");
       }, 300);
     });
-  });
-}
-
-// Inicializar tooltips de Bootstrap
-function initTooltips() {
-  const tooltipTriggerList = [].slice.call(
-    document.querySelectorAll('[data-bs-toggle="tooltip"]')
-  );
-  tooltipTriggerList.map(function (tooltipTriggerEl) {
-    return new bootstrap.Tooltip(tooltipTriggerEl);
   });
 }
 
