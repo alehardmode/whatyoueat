@@ -109,7 +109,9 @@
 </div>
 
 <!-- Script para validación del formulario -->
+<!-- ELIMINADO PARCIALMENTE: Lógica del botón Cancelar movida a public/js/edit-profile.js -->
 <script>
+  // Validación estándar de Bootstrap
   document.addEventListener("DOMContentLoaded", function () {
     // Obtener todos los formularios a los que queremos aplicar estilos de validación de Bootstrap
     var forms = document.querySelectorAll(".needs-validation");
@@ -129,13 +131,13 @@
       );
     });
 
-    // Configurar el botón de cancelar
-    const cancelButton = document.getElementById("cancelEditButton");
-    if (cancelButton) {
-      cancelButton.addEventListener("click", function (event) {
-        event.preventDefault();
-        window.location.href = "/profile";
-      });
-    }
+    // // Configurar el botón de cancelar - MOVIDO a edit-profile.js
+    // const cancelButton = document.getElementById("cancelEditButton");
+    // if (cancelButton) {
+    //   cancelButton.addEventListener("click", function (event) {
+    //     event.preventDefault();
+    //     window.location.href = "/profile";
+    //   });
+    // }
   });
 </script>

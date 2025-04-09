@@ -164,32 +164,3 @@
     </div>
   </div>
 </div>
-
-<!-- Script para implementar lazy loading de la imagen de detalle -->
-<script>
-  document.addEventListener("DOMContentLoaded", function () {
-    const img = document.querySelector(".lazy-image");
-    const src = img.getAttribute("data-src");
-
-    // Cargar la imagen real si no es la imagen por defecto
-    if (src && src !== "/img/empty-plate.svg") {
-      // Precargar la imagen
-      const newImg = new Image();
-
-      newImg.onload = function () {
-        img.src = src;
-        img.classList.add("loaded");
-      };
-
-      newImg.onerror = function () {
-        // En caso de error, mostrar la imagen por defecto
-        img.src = "/img/empty-plate.svg";
-        img.style.padding = "20px";
-        img.style.background = "#f8f9fa";
-      };
-
-      // Iniciar carga
-      newImg.src = src;
-    }
-  });
-</script>

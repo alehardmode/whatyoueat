@@ -272,8 +272,24 @@
   <!-- <script type="module" src="/js/auth.js?v=<%= process.env.VERSION || Date.now() %>"></script> -->
   
   <% if (title === 'Historial de Comidas') { %>
-    <%# history.js podría necesitar ser módulo si usa import/export o si se llama desde main.js %>
     <script type="module" src="/js/history.js?v=<%= process.env.VERSION || Date.now() %>"></script> 
+  <% } else if (title === 'Historial del Paciente') { %>
+    <script type="module" src="/js/history.js?v=<%= process.env.VERSION || Date.now() %>"></script> 
+  <% } %>
+  
+  <%# Cargar script específico para detalle de entrada %>
+  <% if (title === 'Detalle de Comida' || title === 'Detalle de Entrada') { %> <%# Cargar para paciente y doctor %>
+    <script src="/js/entry-detail.js?v=<%= process.env.VERSION || Date.now() %>"></script> 
+  <% } %>
+  
+  <%# Cargar script específico para edición de entrada %>
+  <% if (title === 'Editar Entrada') { %> <%# Ajustar título si es necesario %>
+    <script src="/js/edit-entry.js?v=<%= process.env.VERSION || Date.now() %>"></script> 
+  <% } %>
+  
+  <%# Cargar script específico para edición de perfil %>
+  <% if (title === 'Editar Perfil') { %> <%# Ajustar título si es necesario %>
+    <script src="/js/edit-profile.js?v=<%= process.env.VERSION || Date.now() %>"></script> 
   <% } %>
   
   <% if (title === 'Subir Foto de Comida') { %>

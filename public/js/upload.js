@@ -37,9 +37,35 @@ function handleSuccessfulUpload() {
   }
 }
 
+/**
+ * Inicializa el campo de fecha y hora `#mealDate` con la fecha y hora actual.
+ */
+function initMealDateField() {
+  const mealDateInput = document.getElementById("mealDate");
+  if (mealDateInput) {
+    // Solo establecer si está vacío, para no sobrescribir valores
+    // que puedan venir del servidor (ej. al editar)
+    if (!mealDateInput.value) {
+      const now = new Date();
+      // Ajustar a la zona horaria local
+      now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+      // Formatear a YYYY-MM-DDTHH:mm requerido por datetime-local
+      const formattedDateTime = now.toISOString().slice(0, 16);
+      mealDateInput.value = formattedDateTime;
+      console.log("Campo mealDate inicializado con fecha actual.");
+    }
+  } else {
+    // No es necesariamente un error, el campo puede no existir en todas las vistas que usen este script
+    // console.log("Campo mealDate no encontrado.");
+  }
+}
+
 // Función de inicialización que se ejecutará cuando el DOM esté listo
 function initUploadFunctions() {
   console.log("Script de subida cargado e inicializado correctamente");
+
+  // Inicializar campo de fecha
+  initMealDateField();
 
   // Manejar la vista previa de la imagen
   const photoInput = document.getElementById("food_photo");

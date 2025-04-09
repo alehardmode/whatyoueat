@@ -26,7 +26,9 @@
           <div class="card-header bg-primary text-white">
             <h4 class="mb-0">
               <i class="fas fa-calendar-alt me-2"></i>
-              <%= entry.name || 'Comida sin nombre' %> - <%= moment(entry.meal_date || entry.created_at).format('DD/MM/YYYY HH:mm') %>
+              <%= entry.name || 'Comida sin nombre' %> - <%=
+              moment(entry.meal_date || entry.created_at).format('DD/MM/YYYY
+              HH:mm') %>
             </h4>
           </div>
           <div class="card-body">
@@ -161,6 +163,8 @@
 </div>
 
 <!-- Script para implementar lazy loading de la imagen de detalle -->
+<!-- ELIMINADO: Lógica movida a public/js/entry-detail.js -->
+<!--
 <script>
   document.addEventListener("DOMContentLoaded", function () {
     const img = document.querySelector(".lazy-image");
@@ -188,3 +192,4 @@
     }
   });
 </script>
+-->
