@@ -11,7 +11,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Configurar otros componentes después
   setupButtons();
-  setupAlerts();
   setupDateSelector();
   setupAnimations();
 
@@ -502,61 +501,6 @@ function setupAnimations() {
 }
 
 /**
- * Configuración de alertas y notificaciones
- */
-function setupAlerts() {
-  console.log("Configurando alertas...");
-
-  // Solo cerrar automáticamente alertas normales (no persistentes)
-  const autoCloseAlerts = document.querySelectorAll(
-    ".alert:not(.alert-permanent):not(.persistent-alert):not(.flash-messages .alert)"
-  );
-  console.log("Alertas auto-close:", autoCloseAlerts.length);
-
-  if (autoCloseAlerts.length > 0) {
-    setTimeout(() => {
-      autoCloseAlerts.forEach((alert) => {
-        if (alert && document.body.contains(alert)) {
-          alert.style.opacity = "0";
-          setTimeout(() => {
-            if (alert && document.body.contains(alert)) {
-              alert.remove();
-            }
-          }, 300);
-        }
-      });
-    }, 7000);
-  }
-
-  // Configurar solo botones de cierre que no tengan ya event listeners
-  const closeButtons = document.querySelectorAll(
-    ".alert:not(.flash-messages .alert) .btn-close, .alert:not(.flash-messages .alert) .close-alert"
-  );
-  console.log("Botones de cierre a configurar:", closeButtons.length);
-
-  closeButtons.forEach((btn) => {
-    // Verificar si el botón ya tiene event listener configurado
-    if (!btn.hasAttribute("data-alert-handler")) {
-      btn.setAttribute("data-alert-handler", "true");
-      btn.addEventListener("click", function (e) {
-        e.preventDefault();
-        const alert = this.closest(".alert");
-        console.log("Cerrando alerta:", alert?.id || "sin ID");
-
-        if (alert) {
-          alert.style.opacity = "0";
-          setTimeout(() => {
-            if (alert && document.body.contains(alert)) {
-              alert.remove();
-            }
-          }, 300);
-        }
-      });
-    }
-  });
-}
-
-/**
  * Configuración del selector de fechas en el historial
  */
 function setupDateSelector() {
@@ -786,11 +730,6 @@ function setupResendConfirmationButton() {
     });
   });
 }
-
-/**
- * Asegura que las sugerencias de contraseñas funcionen correctamente
- * eliminando cualquier manipulación de estos campos
- */
 
 /**
  * Asegura que las sugerencias de contraseñas funcionen correctamente
