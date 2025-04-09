@@ -1,54 +1,7 @@
 // public/js/theme.js
 // Módulo para gestionar el tema claro/oscuro
 
-/**
- * Implementación de debounce para evitar llamadas excesivas a funciones costosas
- * @param {Function} func - La función a ejecutar
- * @param {number} wait - Tiempo de espera en ms
- * @param {boolean} immediate - Si debe ejecutarse inmediatamente
- * @returns {Function} - Función con debounce
- */
-function debounce(func, wait, immediate) {
-  let timeout;
-  return function () {
-    const context = this,
-      args = arguments;
-    const later = function () {
-      timeout = null;
-      if (!immediate) func.apply(context, args);
-    };
-    const callNow = immediate && !timeout;
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-    if (callNow) func.apply(context, args);
-  };
-}
-
-// Versión optimizada de refreshBootstrapComponents con debounce
-const debouncedRefreshComponents = debounce(function () {
-  refreshBootstrapComponents();
-}, 150);
-
-/**
- * Determina si un elemento es un campo de contraseña o contiene uno
- * @param {HTMLElement} element - El elemento a verificar
- * @returns {boolean} - True si es o contiene un campo de contraseña
- */
-function isPasswordField(element) {
-  if (!element || !element.nodeType || element.nodeType !== 1) return false;
-
-  // Verificar si es un campo de contraseña directamente
-  if (element.tagName === "INPUT" && element.type === "password") {
-    return true;
-  }
-
-  // Verificar si contiene un campo de contraseña
-  if (element.querySelector) {
-    return element.querySelector('input[type="password"]') !== null;
-  }
-
-  return false;
-}
+import { debounce, isPasswordField } from "./utils.js"; // Importar utilidades
 
 /**
  * Aplica el tema a un elemento específico y sus hijos (excluyendo campos de contraseña).

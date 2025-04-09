@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
   console.log("main.js cargado correctamente");
 
   // Configurar otros componentes después
-  setupButtons();
+  // setupButtons(); // Movido a ui.js
   // setupDateSelector(); // Movido a dateSelector.js
   // setupAnimations(); // Movido a animations.js
 
@@ -55,37 +55,6 @@ function setupAnimations() {
     });
 }
 */
-
-/**
- * Configuración de botones
- */
-function setupButtons() {
-  // Seleccionamos todos los botones de la aplicación
-  const allButtons = document.querySelectorAll(
-    'button, .btn, [role="button"], input[type="submit"]'
-  );
-
-  // Para cada botón, verificamos su funcionalidad
-  allButtons.forEach((button) => {
-    // Añadimos el listener para todos los botones
-    button.addEventListener("click", function (e) {
-      // Si el botón está dentro de un form y no tiene type="submit", prevenimos el envío
-      if (
-        button.closest("form") &&
-        button.type !== "submit" &&
-        !button.classList.contains("submit-form")
-      ) {
-        e.preventDefault();
-      }
-
-      // Efecto de hover mejorado
-      this.classList.add("button-clicked");
-      setTimeout(() => {
-        this.classList.remove("button-clicked");
-      }, 300);
-    });
-  });
-}
 
 /**
  * Configurar un observador de mutaciones para aplicar el tema a nuevos elementos
