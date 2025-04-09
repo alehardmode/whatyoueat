@@ -6,9 +6,6 @@
 document.addEventListener("DOMContentLoaded", function () {
   console.log("main.js cargado correctamente");
 
-  // Inicializar el sistema de temas primero para evitar parpadeos
-  initTheme();
-
   // Configurar otros componentes después
   setupButtons();
   setupDateSelector();
@@ -44,450 +41,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 /**
- * Inicializa el tema basado en preferencias almacenadas o del sistema
- */
-function initTheme() {
-  try {
-    console.log("Inicializando tema...");
-
-    // Obtener tema desde localStorage o preferencia del sistema
-    let theme = localStorage.getItem("theme");
-
-    // Si no hay tema almacenado, usar la preferencia del sistema
-    if (!theme) {
-      const prefersDarkMode = window.matchMedia(
-        "(prefers-color-scheme: dark)"
-      ).matches;
-      theme = prefersDarkMode ? "dark" : "light";
-      localStorage.setItem("theme", theme);
-    }
-
-    console.log(`Tema inicial: ${theme}`);
-
-    // Aplicar el tema al documento
-    document.documentElement.setAttribute("data-bs-theme", theme);
-
-    // Aplicar a todos los elementos, excepto campos de contraseña
-    document.querySelectorAll("body *").forEach((element) => {
-      if (!isPasswordField(element)) {
-        applyThemeToElement(element, theme);
-      }
-    });
-
-    // Configurar el observador de temas para nuevos elementos
-    setupThemeObserver();
-
-    // Configurar el botón de cambio de tema
-    const themeToggle = document.getElementById("theme-toggle");
-    if (themeToggle) {
-      themeToggle.addEventListener("click", toggleTheme);
-
-      // Actualizar el icono según el tema actual
-      themeToggle.innerHTML =
-        theme === "light"
-          ? '<i class="fas fa-sun"></i>'
-          : '<i class="fas fa-moon"></i>';
-
-      // Actualizar aria-label para accesibilidad
-      themeToggle.setAttribute(
-        "aria-label",
-        theme === "light" ? "Cambiar a modo oscuro" : "Cambiar a modo claro"
-      );
-    } else {
-      console.warn("No se encontró el botón de cambio de tema");
-    }
-
-    console.log("Tema inicializado correctamente");
-  } catch (error) {
-    console.error("Error al inicializar el tema:", error);
-    // Fallback a tema claro en caso de error
-    document.documentElement.setAttribute("data-bs-theme", "light");
-  }
-}
-
-/**
- * Implementación de debounce para evitar llamadas excesivas a funciones costosas
- * @param {Function} func - La función a ejecutar
- * @param {number} wait - Tiempo de espera en ms
- * @param {boolean} immediate - Si debe ejecutarse inmediatamente
- * @returns {Function} - Función con debounce
- */
-function debounce(func, wait, immediate) {
-  let timeout;
-  return function () {
-    const context = this,
-      args = arguments;
-    const later = function () {
-      timeout = null;
-      if (!immediate) func.apply(context, args);
-    };
-    const callNow = immediate && !timeout;
-    clearTimeout(timeout);
-    timeout = setTimeout(later, wait);
-    if (callNow) func.apply(context, args);
-  };
-}
-
-// Versión optimizada de refreshBootstrapComponents con debounce
-const debouncedRefreshComponents = debounce(function () {
-  refreshBootstrapComponents();
-}, 150);
-
-/**
- * Cambia entre temas claro y oscuro
- */
-function toggleTheme() {
-  const currentTheme = localStorage.getItem("theme") || "light";
-  const newTheme = currentTheme === "light" ? "dark" : "light";
-
-  // Aplicar animación de transición suave
-  document.body.classList.add("theme-transitioning");
-
-  // Actualizar tema en el documento
-  document.documentElement.setAttribute("data-bs-theme", newTheme);
-  document.documentElement.setAttribute("data-theme", newTheme);
-  localStorage.setItem("theme", newTheme);
-
-  // Actualizar el icono del botón
-  const themeToggle = document.getElementById("theme-toggle");
-  if (themeToggle) {
-    themeToggle.innerHTML =
-      newTheme === "light"
-        ? '<i class="fas fa-sun"></i>'
-        : '<i class="fas fa-moon"></i>';
-
-    // Actualizar aria-label para accesibilidad
-    themeToggle.setAttribute(
-      "aria-label",
-      newTheme === "light" ? "Cambiar a modo oscuro" : "Cambiar a modo claro"
-    );
-
-    // Añadir efecto de animación al icono
-    const icon = themeToggle.querySelector("i");
-    if (icon) {
-      icon.classList.add("theme-icon-animate");
-      setTimeout(() => {
-        if (icon && document.body.contains(icon)) {
-          icon.classList.remove("theme-icon-animate");
-        }
-      }, 500);
-    }
-  }
-
-  // No aplicar cambios a los campos de contraseña
-  document.querySelectorAll("body *").forEach((element) => {
-    if (!isPasswordField(element)) {
-      applyThemeToElement(element, newTheme);
-    }
-  });
-
-  // Quitar clase de transición después de completarse
-  setTimeout(() => {
-    document.body.classList.remove("theme-transitioning");
-  }, 500);
-
-  // Refrescar componentes Bootstrap
-  debouncedRefreshComponents();
-
-  console.log(`Tema cambiado a: ${newTheme}`);
-}
-
-/**
- * Actualiza componentes específicos de Bootstrap que pueden necesitar
- * un refresco explícito después de cambiar el tema
- */
-function refreshBootstrapComponents() {
-  // Tooltips
-  if (typeof bootstrap !== "undefined" && bootstrap.Tooltip) {
-    const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-    tooltips.forEach((element) => {
-      try {
-        const tooltip = bootstrap.Tooltip.getInstance(element);
-        if (tooltip) {
-          tooltip.hide();
-        }
-      } catch (e) {
-        console.warn("Error al actualizar tooltip:", e);
-      }
-    });
-  }
-
-  // Popovers
-  if (typeof bootstrap !== "undefined" && bootstrap.Popover) {
-    const popovers = document.querySelectorAll('[data-bs-toggle="popover"]');
-    popovers.forEach((element) => {
-      try {
-        const popover = bootstrap.Popover.getInstance(element);
-        if (popover) {
-          popover.hide();
-        }
-      } catch (e) {
-        console.warn("Error al actualizar popover:", e);
-      }
-    });
-  }
-
-  // Dropdowns
-  if (typeof bootstrap !== "undefined" && bootstrap.Dropdown) {
-    const dropdowns = document.querySelectorAll(".dropdown-toggle");
-    dropdowns.forEach((element) => {
-      try {
-        const dropdown = bootstrap.Dropdown.getInstance(element);
-        if (dropdown) {
-          dropdown.hide();
-        }
-      } catch (e) {
-        /* Ignorar si no hay instancia */
-      }
-    });
-  }
-}
-
-/**
- * Aplica un tema específico (claro u oscuro)
- * @param {string} theme - 'light' o 'dark'
- */
-function applyTheme(theme) {
-  // Actualizar el atributo de tema del documento
-  document.documentElement.setAttribute("data-theme", theme);
-
-  // Actualizar clase en el elemento body para compatibilidad adicional
-  if (theme === "dark") {
-    document.body.classList.add("dark-theme");
-    document.body.classList.remove("light-theme");
-  } else {
-    document.body.classList.add("light-theme");
-    document.body.classList.remove("dark-theme");
-  }
-
-  // Actualizar el atributo data-bs-theme en el elemento HTML (para Bootstrap 5.3+)
-  document.documentElement.setAttribute("data-bs-theme", theme);
-
-  // Actualizar selectivamente elementos importantes de la interfaz
-  updateUIForTheme(theme);
-
-  // Actualizar meta theme-color para navegadores móviles
-  updateMetaThemeColor(theme);
-}
-
-/**
- * Actualiza elementos específicos de la interfaz para el tema seleccionado
- * @param {string} theme - 'light' o 'dark'
- */
-function updateUIForTheme(theme) {
-  // Actualizar el ícono del botón
-  const themeToggle = document.getElementById("theme-toggle");
-  if (themeToggle) {
-    themeToggle.innerHTML =
-      theme === "light"
-        ? '<i class="fas fa-sun"></i>'
-        : '<i class="fas fa-moon"></i>';
-
-    // Actualizar el título para accesibilidad
-    themeToggle.setAttribute(
-      "aria-label",
-      theme === "light" ? "Cambiar a modo oscuro" : "Cambiar a modo claro"
-    );
-
-    // Añadir efecto de animación al ícono
-    const icon = themeToggle.querySelector("i");
-    if (icon) {
-      icon.classList.add("theme-icon-animate");
-      setTimeout(() => {
-        if (icon && document.body.contains(icon)) {
-          icon.classList.remove("theme-icon-animate");
-        }
-      }, 500);
-    }
-  }
-
-  // Compatibilidad con Bootstrap - actualizar atributos de data-bs-theme
-  document.querySelectorAll("[data-bs-theme]").forEach((el) => {
-    el.setAttribute("data-bs-theme", theme);
-  });
-
-  // Corregir elementos problemáticos específicos
-  fixThemeSpecificElements(theme);
-
-  // Aplicar clases específicas para tarjetas y otros componentes
-  document
-    .querySelectorAll(
-      ".card, .navbar, .dropdown-menu, .tooltip, .modal-content"
-    )
-    .forEach((el) => {
-      // Asegurar que estos elementos tengan el atributo data-bs-theme
-      el.setAttribute("data-bs-theme", theme);
-    });
-
-  // Actualizar los estados de los botones de navegación
-  if (document.querySelector(".navbar")) {
-    const activeLinks = document.querySelectorAll(".nav-link.active");
-    activeLinks.forEach((link) => {
-      // Forzar el recálculo de estilos para la clase active
-      link.classList.remove("active");
-      // Usar setTimeout para asegurar que el DOM se actualice
-      setTimeout(() => {
-        link.classList.add("active");
-      }, 10);
-    });
-  }
-}
-
-/**
- * Actualiza el meta tag theme-color para navegadores móviles
- * @param {string} theme - 'light' o 'dark'
- */
-function updateMetaThemeColor(theme) {
-  const themeColorMeta = document.querySelector('meta[name="theme-color"]');
-  const themeColor = theme === "light" ? "#ffffff" : "#242424";
-
-  if (themeColorMeta) {
-    themeColorMeta.setAttribute("content", themeColor);
-  } else {
-    const meta = document.createElement("meta");
-    meta.name = "theme-color";
-    meta.content = themeColor;
-    document.head.appendChild(meta);
-  }
-}
-
-/**
- * Corrige elementos específicos que pueden tener problemas con el cambio de tema
- * @param {string} theme - 'light' o 'dark'
- */
-function fixThemeSpecificElements(theme) {
-  // Crear un único fragment para aplicar todos los cambios de una vez
-  requestAnimationFrame(() => {
-    // Corregir textos "text-muted" para mejor contraste
-    document.querySelectorAll(".text-muted").forEach((el) => {
-      el.style.opacity = theme === "dark" ? "0.8" : "";
-    });
-
-    // Corregir imágenes para mejor visualización en modo oscuro
-    document.querySelectorAll('img:not([src*=".svg"])').forEach((img) => {
-      img.style.filter = theme === "dark" ? "brightness(0.9)" : "";
-    });
-
-    // Corregir iconos específicos que pueden tener colores fijos
-    document.querySelectorAll(".fa-heart.text-danger").forEach((el) => {
-      el.style.color = theme === "dark" ? "#ef4444" : "";
-    });
-
-    // Corregir los botones de navegación y enlaces
-    document.querySelectorAll(".navbar-brand, .nav-link").forEach((el) => {
-      if (theme === "dark") {
-        if (!el.classList.contains("active")) {
-          el.style.opacity = "0.9";
-        }
-      } else {
-        el.style.opacity = "";
-      }
-    });
-  });
-}
-
-/**
- * Determina si un elemento es un campo de contraseña o contiene uno
- * @param {HTMLElement} element - El elemento a verificar
- * @returns {boolean} - True si es o contiene un campo de contraseña
- */
-function isPasswordField(element) {
-  if (!element || !element.nodeType || element.nodeType !== 1) return false;
-
-  // Verificar si es un campo de contraseña directamente
-  if (element.tagName === "INPUT" && element.type === "password") {
-    return true;
-  }
-
-  // Verificar si contiene un campo de contraseña
-  if (element.querySelector) {
-    return element.querySelector('input[type="password"]') !== null;
-  }
-
-  return false;
-}
-
-/**
- * Configura un observador de mutaciones para aplicar el tema a nuevos elementos
- */
-function setupThemeObserver() {
-  // Crear un nuevo observador que ignore campos de contraseña
-  const observer = new MutationObserver((mutationsList) => {
-    const currentTheme = localStorage.getItem("theme") || "light";
-
-    for (const mutation of mutationsList) {
-      if (mutation.type === "childList") {
-        mutation.addedNodes.forEach((node) => {
-          // Solo procesar nodos que sean elementos DOM y no sean campos de contraseña
-          if (node.nodeType === 1 && !isPasswordField(node)) {
-            // Aplicar el tema al elemento
-            applyThemeToElement(node, currentTheme);
-
-            // Procesar los hijos del elemento nuevo (excepto campos de contraseña)
-            if (node.querySelectorAll) {
-              node.querySelectorAll("*").forEach((child) => {
-                if (!isPasswordField(child)) {
-                  applyThemeToElement(child, currentTheme);
-                }
-              });
-            }
-          }
-        });
-      }
-    }
-  });
-
-  // Iniciar la observación del documento
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true,
-  });
-
-  // Guardar referencia al observador para limpiar si es necesario
-  window.themeObserver = observer;
-}
-
-/**
- * Aplica el tema a un elemento
- * @param {HTMLElement} element - El elemento al que aplicar el tema
- * @param {string} theme - El tema a aplicar ('light' o 'dark')
- */
-function applyThemeToElement(element, theme) {
-  // IMPORTANTE: No procesar campos de contraseña o sus contenedores
-  if (isPasswordField(element)) {
-    return;
-  }
-
-  // Para componentes Bootstrap específicos
-  if (element.classList) {
-    if (
-      element.classList.contains("card") ||
-      element.classList.contains("navbar") ||
-      element.classList.contains("dropdown-menu") ||
-      element.classList.contains("modal-content")
-    ) {
-      element.setAttribute("data-bs-theme", theme);
-    }
-
-    // Aplicar correctamente el color a los textos muted
-    if (element.classList.contains("text-muted") && theme === "dark") {
-      element.style.opacity = "0.8";
-    }
-  }
-
-  // Recursivamente aplicar a los hijos, excepto a los elementos de contraseña
-  if (element.children && element.children.length > 0) {
-    Array.from(element.children).forEach((child) => {
-      // No procesar hijos si el elemento padre es un contenedor de contraseña
-      if (!isPasswordField(child)) {
-        applyThemeToElement(child, theme);
-      }
-    });
-  }
-}
-
-/**
- * Configura animaciones y efectos visuales
+ * Configurar animaciones y efectos visuales
  */
 function setupAnimations() {
   // Añadir clase fade-in a elementos principales para animación
@@ -732,33 +286,101 @@ function setupResendConfirmationButton() {
 }
 
 /**
- * Asegura que las sugerencias de contraseñas funcionen correctamente
- * eliminando cualquier manipulación de estos campos
+ * Configurar un observador de mutaciones para aplicar el tema a nuevos elementos
  */
-function ensurePasswordSuggestionsWork() {
-  try {
-    // Encontrar todos los campos de contraseña
-    const passwordFields = document.querySelectorAll('input[type="password"]');
+function setupThemeObserver() {
+  // Crear un nuevo observador que ignore campos de contraseña
+  const observer = new MutationObserver((mutationsList) => {
+    const currentTheme = localStorage.getItem("theme") || "light";
 
-    passwordFields.forEach((field) => {
-      // Eliminar completamente cualquier atributo de estilo
-      field.removeAttribute("style");
+    for (const mutation of mutationsList) {
+      if (mutation.type === "childList") {
+        mutation.addedNodes.forEach((node) => {
+          // Solo procesar nodos que sean elementos DOM y no sean campos de contraseña
+          if (node.nodeType === 1 && !isPasswordField(node)) {
+            // Aplicar el tema al elemento
+            applyThemeToElement(node, currentTheme);
 
-      // Asegurar que el campo tiene los atributos necesarios para las sugerencias
-      field.setAttribute("autocomplete", "on");
+            // Procesar los hijos del elemento nuevo (excepto campos de contraseña)
+            if (node.querySelectorAll) {
+              node.querySelectorAll("*").forEach((child) => {
+                if (!isPasswordField(child)) {
+                  applyThemeToElement(child, currentTheme);
+                }
+              });
+            }
+          }
+        });
+      }
+    }
+  });
 
-      // Eliminar cualquier listener que pueda estar interfiriendo
-      const newField = field.cloneNode(true);
-      if (field.parentNode) {
-        field.parentNode.replaceChild(newField, field);
+  // Iniciar la observación del documento
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true,
+  });
+
+  // Guardar referencia al observador para limpiar si es necesario
+  window.themeObserver = observer;
+}
+
+/**
+ * Aplica el tema a un elemento
+ * @param {HTMLElement} element - El elemento al que aplicar el tema
+ * @param {string} theme - El tema a aplicar ('light' o 'dark')
+ */
+function applyThemeToElement(element, theme) {
+  // IMPORTANTE: No procesar campos de contraseña o sus contenedores
+  if (isPasswordField(element)) {
+    return;
+  }
+
+  // Para componentes Bootstrap específicos
+  if (element.classList) {
+    if (
+      element.classList.contains("card") ||
+      element.classList.contains("navbar") ||
+      element.classList.contains("dropdown-menu") ||
+      element.classList.contains("modal-content")
+    ) {
+      element.setAttribute("data-bs-theme", theme);
+    }
+
+    // Aplicar correctamente el color a los textos muted
+    if (element.classList.contains("text-muted") && theme === "dark") {
+      element.style.opacity = "0.8";
+    }
+  }
+
+  // Recursivamente aplicar a los hijos, excepto a los elementos de contraseña
+  if (element.children && element.children.length > 0) {
+    Array.from(element.children).forEach((child) => {
+      // No procesar hijos si el elemento padre es un contenedor de contraseña
+      if (!isPasswordField(child)) {
+        applyThemeToElement(child, theme);
       }
     });
-
-    console.log(
-      "Restauradas funcionalidades nativas en campos de contraseña:",
-      passwordFields.length
-    );
-  } catch (error) {
-    console.error("Error al restaurar campos de contraseña:", error);
   }
+}
+
+/**
+ * Determina si un elemento es un campo de contraseña o contiene uno
+ * @param {HTMLElement} element - El elemento a verificar
+ * @returns {boolean} - True si es o contiene un campo de contraseña
+ */
+function isPasswordField(element) {
+  if (!element || !element.nodeType || element.nodeType !== 1) return false;
+
+  // Verificar si es un campo de contraseña directamente
+  if (element.tagName === "INPUT" && element.type === "password") {
+    return true;
+  }
+
+  // Verificar si contiene un campo de contraseña
+  if (element.querySelector) {
+    return element.querySelector('input[type="password"]') !== null;
+  }
+
+  return false;
 }
