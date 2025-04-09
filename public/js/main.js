@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Configurar otros componentes después
   setupButtons();
-  setupDateSelector();
+  // setupDateSelector(); // Movido a dateSelector.js
   setupAnimations();
 
   // Inicializar tooltips de Bootstrap
@@ -52,24 +52,6 @@ function setupAnimations() {
         el.classList.add("fade-in");
       }
     });
-}
-
-/**
- * Configuración del selector de fechas en el historial
- */
-function setupDateSelector() {
-  const dateInput = document.getElementById("date-selector");
-
-  if (dateInput) {
-    dateInput.addEventListener("change", function () {
-      const form = this.closest("form");
-      if (form) {
-        // Añadir efecto de carga
-        dateInput.classList.add("loading");
-        form.submit();
-      }
-    });
-  }
 }
 
 /**
