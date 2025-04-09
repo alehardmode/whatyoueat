@@ -3,11 +3,26 @@
  * Archivo para manejar la funcionalidad específica de los formularios de autenticación
  */
 
+// No usar DOMContentLoaded aquí, inicializar desde main.js
+/*
 document.addEventListener("DOMContentLoaded", function () {
   console.log("auth.js cargado correctamente");
   setupPasswordToggles();
   setupFormDebug();
+  // Llamar a la función para asegurar sugerencias
+  ensurePasswordSuggestionsWork(); 
 });
+*/
+
+/**
+ * Inicializa las funcionalidades específicas de autenticación.
+ */
+export function initAuthFeatures() {
+  console.log("Inicializando funcionalidades de autenticación...");
+  setupPasswordToggles();
+  setupFormDebug(); // Mantener el debug por ahora
+  ensurePasswordSuggestionsWork();
+}
 
 /**
  * Configura los botones de mostrar/ocultar contraseña
@@ -100,5 +115,65 @@ function setupFormDebug() {
         Boolean(formValues.email && formValues.password)
       );
     });
+  }
+}
+
+/**
+ * Intenta restaurar las sugerencias de autocompletado de contraseñas
+ * eliminando estilos y listeners que puedan interferir.
+ * También observa el DOM para aplicar la corrección a campos añadidos dinámicamente.
+ */
+function ensurePasswordSuggestionsWork() {
+  try {
+    // Función auxiliar para aplicar la corrección a un campo
+    const fixField = (field) => {
+      field.removeAttribute("style");
+      field.setAttribute("autocomplete", "on");
+      // Considerar si clonar y reemplazar es realmente necesario,
+      // puede romper otros listeners. Por ahora, solo atributos.
+      /*
+      const newField = field.cloneNode(true);
+      if (field.parentNode) {
+        field.parentNode.replaceChild(newField, field);
+      }
+      */
+    };
+
+    // Aplicar a campos existentes
+    const passwordFields = document.querySelectorAll('input[type="password"]');
+    if (passwordFields.length > 0) {
+      console.log(
+        "Intentando restaurar sugerencias en campos de contraseña:",
+        passwordFields.length
+      );
+      passwordFields.forEach(fixField);
+    }
+
+    // Observar nuevos campos de contraseña añadidos al DOM
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === 1) {
+            // Es un Element node
+            if (node.matches('input[type="password"]')) {
+              fixField(node);
+            } else if (node.querySelector) {
+              node.querySelectorAll('input[type="password"]').forEach(fixField);
+            }
+          }
+        });
+      });
+    });
+
+    // Iniciar observación del body
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    // Guardar referencia para posible desconexión futura
+    window.passwordSuggestionObserver = observer;
+  } catch (error) {
+    console.error(
+      "Error al intentar restaurar sugerencias de contraseña:",
+      error
+    );
   }
 }

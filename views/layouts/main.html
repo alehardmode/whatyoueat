@@ -81,81 +81,12 @@
   <link rel="stylesheet" href="/css/password-fix.css?v=<%= process.env.VERSION || Date.now() %>">
   
   <!-- Script para restaurar sugerencias de contraseñas -->
+  <!-- ELIMINADO: Movido a auth.js e inicializado desde main.js -->
+  <!-- 
   <script>
-    // Función que se ejecuta inmediatamente para restaurar las sugerencias de contraseñas
-    (function fixPasswordSuggestions() {
-      // Asegurar que esta función se ejecute antes que cualquier otra
-      document.addEventListener('DOMContentLoaded', function() {
-        try {
-          // Detectar todos los campos de contraseña existentes
-          const passwordFields = document.querySelectorAll('input[type="password"]');
-          
-          if (passwordFields.length > 0) {
-            console.log("Restaurando campos de contraseña:", passwordFields.length);
-            
-            passwordFields.forEach(function(field) {
-              // Eliminar cualquier estilo que pueda interferir
-              field.removeAttribute('style');
-              
-              // Asegurar que el autocompletado esté activo
-              field.setAttribute('autocomplete', 'on');
-              
-              // Clonar y reemplazar para eliminar eventos
-              const newField = field.cloneNode(true);
-              if (field.parentNode) {
-                // Preservar eventos originales de submit, etc.
-                const form = field.closest('form');
-                field.parentNode.replaceChild(newField, field);
-                
-                // Si es parte de un formulario, asegurar que el submit funcione
-                if (form) {
-                  newField.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                      form.submit();
-                    }
-                  });
-                }
-              }
-            });
-          }
-          
-          // Observar nuevos campos de contraseña
-          const observer = new MutationObserver(function(mutations) {
-            mutations.forEach(function(mutation) {
-              if (mutation.addedNodes.length > 0) {
-                mutation.addedNodes.forEach(function(node) {
-                  if (node.nodeType === 1 && node.tagName === 'INPUT' && node.type === 'password') {
-                    // Eliminar cualquier estilo que pueda interferir
-                    node.removeAttribute('style');
-                    
-                    // Asegurar que el autocompletado esté activo
-                    node.setAttribute('autocomplete', 'on');
-                  } else if (node.nodeType === 1 && node.querySelector) {
-                    // Buscar campos de contraseña dentro del nodo
-                    node.querySelectorAll('input[type="password"]').forEach(function(field) {
-                      // Eliminar cualquier estilo que pueda interferir
-                      field.removeAttribute('style');
-                      
-                      // Asegurar que el autocompletado esté activo
-                      field.setAttribute('autocomplete', 'on');
-                    });
-                  }
-                });
-              }
-            });
-          });
-          
-          // Iniciar observación
-          observer.observe(document.body, {
-            childList: true,
-            subtree: true
-          });
-        } catch (error) {
-          console.error("Error al restaurar campos de contraseña:", error);
-        }
-      });
-    })();
+    (function fixPasswordSuggestions() { ... })();
   </script>
+  -->
 </head>
 <body>
   <!-- Navbar -->
@@ -328,84 +259,34 @@
     </div>
   </footer>
 
-  <!-- Custom JS -->
-  <script src="/js/main.js?v=<%= process.env.VERSION || Date.now() %>"></script>
-  <!-- Auth JS -->
-  <script src="/js/auth.js?v=<%= process.env.VERSION || Date.now() %>"></script>
-  
-  <!-- Script condicional para la página de historial -->
-  <% if (title === 'Historial de Comidas') { %>
-  <script src="/js/history.js?v=<%= process.env.VERSION || Date.now() %>"></script>
-  <% } %>
-  
-  <!-- Script para la página de subir foto -->
-  <% if (title === 'Subir Foto de Comida') { %>
-  <script src="/js/upload.js?v=<%= process.env.VERSION || Date.now() %>"></script>
-  <% } %>
-  
-  <!-- Bootstrap JS -->
+  <!-- Bootstrap JS (Cargar ANTES de nuestros scripts si dependen de él) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
+  <!-- Scripts personalizados (Cargados como módulos) -->
+  
+  <!-- Punto de entrada principal -->
+  <script type="module" src="/js/main.js?v=<%= process.env.VERSION || Date.now() %>"></script>
+  
+  <!-- Módulos cargados condicionalmente (si usan import/export o son llamados por main.js indirectamente) -->
+  <!-- Nota: auth.js ahora se inicializa desde main.js, por lo que no necesita cargarse aquí explícitamente -->
+  <!-- <script type="module" src="/js/auth.js?v=<%= process.env.VERSION || Date.now() %>"></script> -->
+  
+  <% if (title === 'Historial de Comidas') { %>
+    <%# history.js podría necesitar ser módulo si usa import/export o si se llama desde main.js %>
+    <script type="module" src="/js/history.js?v=<%= process.env.VERSION || Date.now() %>"></script> 
+  <% } %>
+  
+  <% if (title === 'Subir Foto de Comida') { %>
+    <%# upload.js no necesita ser módulo si se auto-ejecuta y no usa import/export %>
+    <script src="/js/upload.js?v=<%= process.env.VERSION || Date.now() %>"></script> 
+  <% } %>
+  
   <!-- Script inmediato para mensajes flash -->
+  <!-- ELIMINADO: Funcionalidad ahora cubierta por alerts.js (llamado desde main.js) -->
+  <!--
   <script>
-    (function() {
-      console.log("Script flash inmediato ejecutado");
-      
-      // Verificar si hay mensajes flash (excluir los persistentes)
-      const flashMessages = document.querySelectorAll('.flash-messages .alert:not(.persistent-alert)');
-      if (flashMessages.length > 0) {
-        console.log("Mensajes flash encontrados:", flashMessages.length);
-        
-        // Asegurar visibilidad inicial
-        flashMessages.forEach(alert => {
-          alert.style.display = 'block';
-          alert.style.opacity = '1';
-        });
-        
-        // Auto-cerrar después de 7 segundos
-        setTimeout(() => {
-          flashMessages.forEach(alert => {
-            if (alert && document.body.contains(alert)) {
-              alert.style.opacity = '0';
-              setTimeout(() => {
-                if (document.body.contains(alert)) {
-                  alert.remove();
-                }
-              }, 300);
-            }
-          });
-        }, 7000);
-      } else {
-        console.log("No se encontraron mensajes flash automáticos");
-      }
-      
-      // Configurar botones de cierre manual para todos los mensajes (incluyendo persistent-alert)
-      document.querySelectorAll('.alert .btn-close, .alert .close-alert').forEach(btn => {
-        btn.addEventListener('click', function() {
-          const alert = this.closest('.alert');
-          if (alert) {
-            alert.style.opacity = '0';
-            setTimeout(() => {
-              if (document.body.contains(alert)) {
-                alert.remove();
-              }
-            }, 300);
-          }
-        });
-      });
-      
-      // Configuración específica para alertas de correo no confirmado
-      document.querySelectorAll('#emailConfirmationAlert .btn-close').forEach(btn => {
-        console.log('Configurando botón de cierre para alerta de correo');
-        btn.addEventListener('click', function() {
-          const alert = this.closest('.alert');
-          if (alert) {
-            alert.style.opacity = '0';
-            setTimeout(() => alert.remove(), 300);
-          }
-        });
-      });
-    })();
+    (function() { ... })();
   </script>
+  -->
 </body>
 </html>
