@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Configurar otros componentes después
   setupButtons();
   // setupDateSelector(); // Movido a dateSelector.js
-  setupAnimations();
+  // setupAnimations(); // Movido a animations.js
 
   // Inicializar tooltips de Bootstrap
   initTooltips();
@@ -43,6 +43,7 @@ document.addEventListener("DOMContentLoaded", function () {
 /**
  * Configurar animaciones y efectos visuales
  */
+/*
 function setupAnimations() {
   // Añadir clase fade-in a elementos principales para animación
   document
@@ -53,6 +54,7 @@ function setupAnimations() {
       }
     });
 }
+*/
 
 /**
  * Configuración de botones
