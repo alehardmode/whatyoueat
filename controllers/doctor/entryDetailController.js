@@ -2,6 +2,7 @@ const Profile = require("../../models/Profile");
 const FoodEntry = require("../../models/FoodEntry");
 const DoctorPatient = require("../../models/DoctorPatient");
 const { checkSupabaseConnection } = require("../../config/supabase");
+const { createClient } = require("@supabase/supabase-js");
 const dayjs = require("dayjs");
 
 // Required for plugins used in the template (e.g., fromNow)
@@ -36,11 +37,41 @@ exports.getEntryDetail = async (req, res) => {
       );
     }
 
+    // ---> Start: Added admin client creation logic
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error("[ERROR] SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY missing. Cannot create admin client for email lookup.");
+      req.flash("error_msg", "Error de configuración del servidor. No se pueden verificar todos los datos.");
+      // Consider redirecting if admin client is crucial for permission check
+      // return res.redirect("/doctor/dashboard"); 
+    }
+
+    let supabaseAdmin = null;
+    if (supabaseUrl && supabaseServiceKey) {
+      supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      });
+    } else {
+         console.warn("[WARN] Admin client could not be created for entry detail view. Proceeding without it, permission checks might be incomplete.")
+         // If permission check absolutely requires admin client, throw error here.
+         // throw new Error("Configuration error: Missing Supabase admin credentials for permission check.");
+    }
+    // ---> End: Added admin client creation logic
+
     // Verificar que el paciente está asignado a este médico
-    const assignedResult = await DoctorPatient.getPatientsByDoctor(doctorId);
+    // Pass adminClient to the model function
+    const assignedResult = await DoctorPatient.getPatientsByDoctor(doctorId, { adminClient: supabaseAdmin }); 
 
     if (!assignedResult.success) {
-      throw new Error(`Error al verificar permisos: ${assignedResult.error}`);
+      // Update error handling to reflect potential adminClient issue
+      const baseError = assignedResult.error || 'Unknown error during permission check.';
+      const errorDetails = supabaseAdmin ? baseError : `${baseError} (Admin client unavailable)`;
+      throw new Error(`Error al verificar permisos: ${errorDetails}`);
     }
 
     // Convertir IDs a string para comparación

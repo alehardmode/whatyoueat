@@ -1,4 +1,5 @@
 const DoctorPatient = require("../../models/DoctorPatient");
+const { supabaseAdmin } = require("../../config/supabase");
 const dayjs = require("dayjs");
 
 // Required plugins for template usage
@@ -10,13 +11,22 @@ dayjs.extend(localizedFormat);
 // Mostrar dashboard del médico
 exports.getDashboard = async (req, res) => {
   try {
-    const doctorId = req.session.user.id;
+    const doctorId = req.session.userId;
 
-    // Obtener lista de pacientes asignados - Asegurar que la consulta no use caché
-    const result = await DoctorPatient.getPatientsByDoctor(doctorId);
+    if (!doctorId) {
+      console.error("Error: Doctor ID no encontrado en la sesión");
+      return res.status(403).render("error", {
+        message: "Acceso denegado. No estás autenticado.",
+        user: req.session.user,
+      });
+    }
+
+    // Pasar supabaseAdmin como opción
+    const result = await DoctorPatient.getPatientsByDoctor(doctorId, { adminClient: supabaseAdmin });
 
     if (!result.success) {
-      throw new Error(result.error);
+      console.error("Error al obtener pacientes para el dashboard:", result.error);
+      throw new Error(result.error || "Error al obtener pacientes."); 
     }
 
     // Añadir información de timestamp para debugging
@@ -34,17 +44,13 @@ exports.getDashboard = async (req, res) => {
       emailConfirmed: req.session.emailConfirmed,
       // Añadir timestamp para evitar caché del navegador
       timestamp: Date.now(),
+      doctorName: req.session.user?.name || "Médico",
     });
   } catch (error) {
     console.error("Error al cargar dashboard:", error);
-    res.render("doctor/dashboard", {
-      title: "Dashboard del Médico",
+    res.status(500).render("error", {
+      message: error.message || "Error al cargar el dashboard del médico.",
       user: req.session.user,
-      patients: [],
-      error: "Error al cargar la información del dashboard",
-      emailConfirmed: req.session.emailConfirmed,
-      // Añadir timestamp para evitar caché del navegador
-      timestamp: Date.now(),
     });
   }
 };

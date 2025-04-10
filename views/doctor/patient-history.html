@@ -104,12 +104,10 @@
           "
         >
           <img
-            src="/img/empty-plate.svg"
-            data-src="<%= entry.image_url %>"
-            class="card-img-top lazy-image"
+            src="<%= entry.image_url || '/img/empty-plate.svg' %>"
+            class="card-img-top"
             alt="Imagen de comida"
-            fetchpriority="high"
-            decoding="async"
+            style="width: 100%; height: 100%; object-fit: cover;"
             onerror="this.onerror=null; this.src='/img/empty-plate.svg'; this.alt='Imagen no disponible'; this.style.padding = '20px';"
           />
         </div>
@@ -142,7 +140,7 @@
           class="card-footer bg-dark text-light d-flex justify-content-between"
         >
           <a
-            href="/doctor/entry/<%= entry.id %>"
+            href="/doctor/patient/<%= patient.id %>/entry/<%= entry.id %>"
             class="btn btn-sm btn-outline-info"
           >
             <i class="fas fa-eye me-1"></i>Ver Detalles

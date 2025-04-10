@@ -2,6 +2,7 @@ const Profile = require("../../models/Profile");
 const FoodEntry = require("../../models/FoodEntry");
 const DoctorPatient = require("../../models/DoctorPatient");
 const { checkSupabaseConnection } = require("../../config/supabase");
+const { createClient } = require("@supabase/supabase-js");
 const dayjs = require("dayjs");
 
 // Required plugins for template usage
@@ -37,6 +38,39 @@ exports.getPatientHistory = async (req, res) => {
       // Continuamos la ejecución para mostrar al menos los datos básicos
     }
 
+    // Create admin client inside the function
+    const supabaseUrl = process.env.SUPABASE_URL;
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseServiceKey) {
+      // Log the error clearly, but might still allow fallback behavior depending on needs
+      console.error("[ERROR] SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY missing. Cannot create admin client for email lookup.");
+      // Depending on strictness, you might throw or just flash a more specific error
+      req.flash("error_msg", "Error de configuración del servidor. No se pueden verificar todos los datos del paciente.");
+      // Potentially redirect earlier if admin client is absolutely essential
+      // return res.redirect("/doctor/dashboard"); 
+      // For now, let it continue, but the check might fail if it relies on emails
+    }
+
+    // Initialize admin client only if keys are present
+    let supabaseAdmin = null;
+    if (supabaseUrl && supabaseServiceKey) {
+      supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      });
+    } else {
+        // Handle the case where the admin client couldn't be created.
+        // The model function MUST handle the case where adminClient is null or undefined.
+        // Throwing an error here might be better if the functionality is critical.
+         console.warn("[WARN] Admin client could not be created. Proceeding without it, email lookups might fail or be skipped.")
+         // For now, we proceed, assuming the model function has fallbacks or the check doesn't strictly need emails.
+         // If the check *requires* emails, throw here:
+         // throw new Error("Configuration error: Missing Supabase admin credentials.");
+    }
+
     // Crear objeto de filtros para pasar a la vista
     const filters = {
       date_from: date_from || "",
@@ -44,11 +78,14 @@ exports.getPatientHistory = async (req, res) => {
     };
 
     // Verificar que el paciente está asignado a este médico
-    const assignedResult = await DoctorPatient.getPatientsByDoctor(doctorId);
+    const assignedResult = await DoctorPatient.getPatientsByDoctor(doctorId, { adminClient: supabaseAdmin });
 
     if (!assignedResult.success) {
+      // Ensure the error message reflects the potential adminClient issue if applicable
+      const baseError = assignedResult.error || 'Unknown error during assignment check.';
+      const errorDetails = supabaseAdmin ? baseError : `${baseError} (Admin client unavailable for email lookup)`;
       throw new Error(
-        `Error al verificar asignación del paciente: ${assignedResult.error}`
+        `Error al verificar asignación del paciente: ${errorDetails}`
       );
     }
 
