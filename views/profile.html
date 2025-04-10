@@ -1,5 +1,6 @@
-<!-- Vista de Perfil de Usuario -->
+<!-- Vista del Perfil de Usuario -->
 <div class="container py-5">
+  <!-- Encabezado de la página -->
   <div class="row mb-4">
     <div class="col-md-12">
       <h1 class="mb-4 border-bottom pb-2">
@@ -14,46 +15,116 @@
     </div>
   </div>
 
-  <div class="card shadow-sm">
-    <div class="card-header bg-primary text-white">
-      <h5 class="mb-0">Información del Usuario</h5>
-    </div>
-    <div class="card-body">
-      <% if (profile) { %>
-        <div class="row">
-          <div class="col-md-4 text-center mb-3 mb-md-0">
-            <!-- Placeholder for profile picture -->
-            <img src="/img/logo.webp" alt="Foto de perfil" class="img-thumbnail rounded-circle mb-3" style="width: 150px; height: 150px; object-fit: cover;">
-            <h4><%= profile.name || user.name || 'Usuario' %></h4>
-            <p class="text-muted"><%= profile.role || user.role || 'Rol Desconocido' %></p>
-          </div>
-          <div class="col-md-8">
-            <dl class="row">
-              <dt class="col-sm-3">Nombre:</dt>
-              <dd class="col-sm-9"><%= profile.name || user.name || 'No especificado' %></dd>
-
-              <dt class="col-sm-3">Correo Electrónico:</dt>
-              <dd class="col-sm-9"><%= profile.email || user.email %></dd>
-
-              <dt class="col-sm-3">Miembro desde:</dt>
-              <dd class="col-sm-9"><%= profile.created_at ? new Date(profile.created_at).toLocaleDateString('es-ES') : 'No especificado' %></dd>
-
-              <!-- Add more profile fields as needed -->
-              <dt class="col-sm-3">Biografía:</dt>
-              <dd class="col-sm-9"><%= profile.bio || 'No especificada' %></dd>
-
-            </dl>
-            <!-- Placeholder for Edit Profile button -->
-            <a href="#" class="btn btn-outline-primary disabled" aria-disabled="true">
-              <i class="fas fa-edit me-1"></i> Editar Perfil (Próximamente)
-            </a>
-          </div>
+  <!-- Tarjeta principal de perfil -->
+  <div class="row">
+    <div class="col-lg-8 mx-auto">
+      <div class="card shadow mb-4">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">
+            <i class="fas fa-id-card me-2"></i>Información Personal
+          </h5>
         </div>
-      <% } else { %>
-        <div class="alert alert-warning">
-          No se pudo cargar la información del perfil.
+        <div class="card-body">
+          <% if (profile) { %>
+          <div class="row">
+            <!-- Foto de perfil -->
+            <div class="col-md-4 text-center mb-4 mb-md-0">
+              <div class="profile-image mb-3">
+                <img
+                  src="/img/logo.webp"
+                  alt="Foto de perfil"
+                  class="img-thumbnail rounded-circle"
+                  style="width: 150px; height: 150px; object-fit: cover"
+                />
+              </div>
+              <div class="role-badge">
+                <span
+                  class="badge <%= profile.role === 'medico' ? 'bg-success' : 'bg-info' %> py-2 px-3"
+                >
+                  <i
+                    class="fas <%= profile.role === 'medico' ? 'fa-user-md' : 'fa-user' %> me-1"
+                  ></i>
+                  <%= profile.role === 'medico' ? 'Médico' : 'Paciente' %>
+                </span>
+              </div>
+            </div>
+
+            <!-- Detalles del perfil -->
+            <div class="col-md-8">
+              <table class="table table-hover">
+                <tbody>
+                  <tr>
+                    <th scope="row" style="width: 40%">
+                      <i class="fas fa-user me-2"></i>Nombre:
+                    </th>
+                    <td><%= profile.name %></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">
+                      <i class="fas fa-envelope me-2"></i>Email:
+                    </th>
+                    <td><%= profile.email %></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">
+                      <i class="fas fa-calendar-alt me-2"></i>Miembro desde:
+                    </th>
+                    <td>
+                      <%= new
+                      Date(profile.created_at).toLocaleDateString('es-ES', {
+                      year: 'numeric', month: 'long', day: 'numeric' }) %>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <!-- Botón de editar -->
+              <div class="mt-4">
+                <a href="/profile/edit" class="btn btn-primary">
+                  <i class="fas fa-edit me-1"></i> Editar Perfil
+                </a>
+              </div>
+            </div>
+          </div>
+          <% } else { %>
+          <!-- Mensaje de error si no se puede cargar el perfil -->
+          <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            No se pudo cargar la información del perfil. Por favor, inicia
+            sesión nuevamente o contacta con soporte.
+          </div>
+          <% } %>
         </div>
-      <% } %>
+      </div>
+
+      <!-- Removed "Resumen de Actividad" card section -->
     </div>
   </div>
 </div>
+
+<!-- Estilos específicos para la página de perfil -->
+<style>
+  .stat-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f9fa;
+    border: 2px solid #dee2e6;
+  }
+
+  .stat-box {
+    background-color: #f8f9fa;
+    transition: transform 0.3s ease;
+  }
+
+  .stat-box:hover {
+    transform: translateY(-5px);
+  }
+
+  .role-badge {
+    margin-top: 10px;
+  }
+</style>

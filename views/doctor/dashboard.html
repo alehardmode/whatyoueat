@@ -2,15 +2,15 @@
  
 <div class="container py-5">
 <div class="card border-0 shadow">
-<div class="text-center mb-4">
+<div class="card-body p-4">
 <div class="row mb-4">
   <div class="col-md-12">
     <h1 class="mb-4 border-bottom pb-2">
       <i class="fas fa-user-md me-2"></i>Dashboard del Médico
     </h1>
-    <div class="alert alert-info">
-      <h4 class="alert-heading">¡Bienvenido, Dr. <%= user.name %>!</h4>
-      <p>Esta es tu área personal para gestionar y ver los registros de tus pacientes.</p>
+    <div class="welcome-box bg-light p-3 rounded border-start border-info border-4 mb-4">
+      <h4 class="text-info">¡Bienvenido, Dr. <%= user.name %>!</h4>
+      <p class="mb-0">Esta es tu área personal para gestionar y ver los registros de tus pacientes.</p>
     </div>
     
     <% if (typeof emailConfirmed !== 'undefined' && !emailConfirmed) { %>
@@ -38,21 +38,16 @@
         <h5 class="mb-0"><i class="fas fa-search me-2"></i>Buscar Pacientes</h5>
       </div>
       <div class="card-body">
-        <form action="/doctor/search" method="GET" class="row g-3 align-items-center">
-          <div class="col-md-6">
+        <form action="/doctor/search-patients" method="GET" class="row g-3 align-items-center">
+          <div class="col-md-8">
             <label for="name" class="form-label visually-hidden">Nombre del Paciente</label>
-            <input type="text" class="form-control" id="name" name="name" placeholder="Buscar paciente existente por nombre..." value="<%= typeof searchTerm != 'undefined' ? searchTerm : '' %>">
+            <input type="text" class="form-control" id="name" name="search" placeholder="Buscar paciente existente por nombre..." value="<%= typeof searchTerm != 'undefined' ? searchTerm : '' %>">
           </div>
-          <div class="col-md-3">
+          <div class="col-md-4">
             <button type="submit" class="btn btn-primary w-100">
               <i class="fas fa-search me-1"></i>Buscar
             </button>
           </div>
-           <div class="col-md-3">
-             <a href="/doctor/search" class="btn btn-success w-100">
-               <i class="fas fa-user-plus me-1"></i>Añadir Paciente
-             </a>
-           </div>
         </form>
       </div>
     </div>
@@ -63,7 +58,7 @@
 <div class="row">
   <div class="col-md-12">
     <div class="card shadow-sm">
-      <div class="card-header bg-success text-white">
+      <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
         <h5 class="mb-0"><i class="fas fa-users me-2"></i>Lista de Pacientes</h5>
       </div>
       <div class="card-body">
@@ -74,7 +69,6 @@
                 <tr>
                   <th scope="col">#</th>
                   <th scope="col">Nombre</th>
-                  <th scope="col">Correo Electrónico</th>
                   <th scope="col">Fecha de Registro</th>
                   <th scope="col">Acciones</th>
                 </tr>
@@ -84,14 +78,13 @@
                   <tr>
                     <th scope="row"><%= index + 1 %></th>
                     <td><%= patient.name %></td>
-                    <td><%= patient.email %></td>
                     <td><%= new Date(patient.created_at).toLocaleDateString('es-ES') %></td>
                     <td class="d-flex gap-2">
                       <a href="/doctor/patient/<%= patient.id %>/history" class="btn btn-sm btn-primary" title="Ver Diario">
                         <i class="fas fa-book"></i> <span class="d-none d-md-inline">Ver Diario</span>
                       </a>
                       <!-- Formulario para eliminar paciente -->
-                      <form action="/doctor/patient/<%= patient.relationId %>/remove" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres desvincular a este paciente?');" style="display: inline;">
+                      <form action="/doctor/patient/<%= patient.relationId %>/remove" method="POST" style="display: inline;">
                         <input type="hidden" name="_method" value="DELETE"> <!-- Si se usa method-override -->
                         <button type="submit" class="btn btn-sm btn-danger" title="Desvincular Paciente">
                           <i class="fas fa-user-minus"></i> <span class="d-none d-md-inline">Desvincular</span>
@@ -104,8 +97,8 @@
             </table>
           </div>
         <% } else { %>
-          <div class="alert alert-warning">
-            <i class="fas fa-exclamation-triangle me-2"></i>No se encontraron pacientes.
+          <div class="alert alert-info mt-3" id="no-patients-message">
+            <i class="fas fa-info-circle me-2"></i>No se encontraron pacientes. Usa el buscador para añadir pacientes.
           </div>
         <% } %>
       </div>
@@ -114,4 +107,44 @@
 </div> 
 </div>
 </div>
+</div>
+
+<!-- Script para manejar la visibilidad del mensaje -->
+<!-- ELIMINADO: Funcionalidad cubierta por alerts.js y debug innecesario -->
+<!--
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Ya no necesitamos garantizar que el mensaje esté siempre visible
+    // Solo aseguramos que los mensajes automáticos se muestren correctamente
+    const setupAlerts = () => {
+      const alerts = document.querySelectorAll('.alert:not(#no-patients-message)');
+      alerts.forEach(alert => {
+        if (!alert.classList.contains('alert-permanent') && !alert.classList.contains('persistent-alert')) {
+          setTimeout(() => {
+            alert.style.opacity = '0';
+            setTimeout(() => {
+              if (alert.parentNode) {
+                alert.parentNode.removeChild(alert);
+              }
+            }, 500);
+          }, 5000);
+        }
+      });
+    };
+
+    // Inicializar manejo de alertas
+    setupAlerts();
+    
+    // Exponer la función para posible uso global
+    window.setupAlerts = setupAlerts;
+
+    // Añadir registro de depuración de click para botones de Ver Diario
+    document.querySelectorAll('a[title="Ver Diario"]').forEach(link => {
+      link.addEventListener('click', function(e) {
+        console.log('Redirigiendo a: ' + this.href);
+      });
+    });
+  });
+</script>
+-->
 </div>

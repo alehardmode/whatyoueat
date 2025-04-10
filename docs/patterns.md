@@ -12,9 +12,11 @@ Los modelos representan la capa de datos y lógica de negocio de la aplicación:
 
 - **Ubicación**: Directorio `/models`
 - **Archivos principales**:
-  - `UserAuth.js`: Gestiona la autenticación de usuarios con Supabase Auth
-  - `Profile.js`: Maneja la información de perfil de los usuarios
-  - `FoodEntry.js`: Gestiona las entradas de comida de los pacientes
+  - `UserAuth.js`: Gestiona la autenticación de usuarios con Supabase Auth.
+  - `Profile.js`: Maneja la información de perfil de los usuarios.
+  - `FoodEntry.js`: Gestiona las entradas de comida de los pacientes.
+  - `DoctorPatient.js`: Maneja las relaciones entre médicos y pacientes.
+  - `BaseModel.js`: (Potencialmente una clase base con lógica común, verificar uso).
 
 Los modelos encapsulan la lógica para:
 - Interactuar con la base de datos (Supabase)
@@ -38,8 +40,8 @@ class FoodEntry {
       
       // Si se proporciona una fecha, filtrar por esa fecha
       if (date) {
-        const startOfDay = moment(date).startOf('day').toISOString();
-        const endOfDay = moment(date).endOf('day').toISOString();
+        const startOfDay = dayjs(date).startOf('day').toISOString();
+        const endOfDay = dayjs(date).endOf('day').toISOString();
         
         query = query
           .gte('created_at', startOfDay)
@@ -82,12 +84,12 @@ Las vistas:
 
 Los controladores manejan el flujo de la aplicación:
 
-- **Ubicación**: Directorio `/controllers`
-- **Archivos principales**:
-  - `authController.js`: Maneja la autenticación
-  - `patientController.js`: Controla las funcionalidades para pacientes
-  - `doctorController.js`: Controla las funcionalidades para médicos
-  - `contactController.js`: Gestiona el formulario de contacto
+- **Ubicación**: Directorio `/controllers`. Organizados en subdirectorios por módulo/rol:
+  - `/auth`: Controladores para autenticación (login, registro, contraseña, email). Ver `controllers/auth/index.js`.
+  - `/patient`: Controladores para funcionalidades de pacientes (dashboard, subida, historial, detalles). Ver `controllers/patient/index.js`.
+  - `/doctor`: Controladores para funcionalidades de médicos (dashboard, gestión de pacientes, historial de paciente, detalles). Ver `controllers/doctor/index.js`.
+  - `profileController.js`: Controlador para la gestión general del perfil de usuario.
+  - `contactController.js`: Gestiona el formulario de contacto.
 
 Los controladores:
 - Reciben solicitudes del usuario (rutas)
@@ -114,8 +116,8 @@ exports.getHistory = async (req, res) => {
       title: 'Historial de Comidas',
       user: req.session.user,
       entries: result.entries,
-      date: moment(date).format('YYYY-MM-DD'),
-      moment
+      date: dayjs(date).format('YYYY-MM-DD'),
+      dayjs
     });
   } catch (error) {
     console.error('Error al obtener historial:', error);
@@ -189,7 +191,9 @@ exports.isDoctor = (req, res, next) => {
   req.flash('error_msg', 'No tienes permisos para acceder a esta página');
   res.redirect('/');
 };
-```
+
+// Otros middleware relevantes:
+// - middleware/patient/entryOwnershipMiddleware.js: Verifica la propiedad de las entradas de comida.
 
 Los middleware son funciones que tienen acceso al objeto de solicitud, al objeto de respuesta y a la siguiente función middleware en el ciclo de solicitud/respuesta de la aplicación.
 

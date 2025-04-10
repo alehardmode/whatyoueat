@@ -1,7 +1,6 @@
 // controllers/patient/dashboardController.js
 const FoodEntry = require('../../models/FoodEntry');
 const { supabase } = require('../../config/supabase');
-const moment = require('moment');
 
 /**
  * Muestra el dashboard del paciente con entradas recientes

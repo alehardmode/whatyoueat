@@ -1,0 +1,165 @@
+<!-- Detalle de Entrada de Comida -->
+<div class="container mb-5">
+  <div class="card border-0 shadow">
+    <div class="row mb-4">
+      <div class="col-md-12 animate-on-scroll">
+        <h1 class="mb-4 border-bottom pb-2">
+          <i class="fas fa-utensils me-2"></i>Detalle de Comida
+        </h1>
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+              <a href="/doctor/dashboard">Dashboard</a>
+            </li>
+            <li class="breadcrumb-item">
+              <a href="/doctor/patient/<%= patient.id %>/history"
+                >Historial de <%= patient.name %></a
+              >
+            </li>
+            <li class="breadcrumb-item active">Detalle</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-md-10 mx-auto">
+        <div class="card shadow-lg">
+          <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">
+              <i class="fas fa-calendar-alt me-2"></i>
+              <%= entry.name || 'Comida sin nombre' %> - <%=
+              dayjs(entry.meal_date || entry.created_at).format('DD/MM/YYYY HH:mm') %>
+            </h4>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <!-- Imagen -->
+              <div class="col-md-6 mb-4">
+                <div class="card">
+                  <div class="card-body text-center">
+                    <div
+                      class="food-image-container p-0 rounded overflow-hidden shadow"
+                    >
+                      <img
+                        src="<%= entry.image_url || entry.image_data || '/img/empty-plate.svg' %>"
+                        class="img-fluid w-100"
+                        alt="Imagen de comida"
+                        style="max-height: 400px; object-fit: cover"
+                        onerror="this.onerror=null; this.src='/img/empty-plate.svg'; this.style.padding='20px';"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Detalles -->
+              <div class="col-md-6">
+                <!-- Paciente -->
+                <div class="mb-4">
+                  <h5>
+                    <i class="fas fa-user me-2"></i>Información del Paciente
+                  </h5>
+                  <ul class="list-group list-group-flush">
+                    <li
+                      class="list-group-item d-flex justify-content-between align-items-center"
+                    >
+                      <span><i class="fas fa-user me-2"></i>Paciente:</span>
+                      <span class="badge bg-info rounded-pill">
+                        <%= patient.name %>
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- Fecha y hora -->
+                <div class="mb-4">
+                  <h5><i class="fas fa-clock me-2"></i>Información Temporal</h5>
+                  <ul class="list-group list-group-flush">
+                    <li
+                      class="list-group-item d-flex justify-content-between align-items-center"
+                    >
+                      <span><i class="fas fa-calendar me-2"></i>Fecha:</span>
+                      <span class="badge bg-primary rounded-pill">
+                        <%= dayjs(entry.meal_date ||
+                        entry.created_at).format('DD/MM/YYYY') %>
+                      </span>
+                    </li>
+                    <li
+                      class="list-group-item d-flex justify-content-between align-items-center"
+                    >
+                      <span><i class="fas fa-clock me-2"></i>Hora:</span>
+                      <span class="badge bg-primary rounded-pill">
+                        <%= dayjs(entry.meal_date ||
+                        entry.created_at).format('HH:mm') %>
+                      </span>
+                    </li>
+                    <li
+                      class="list-group-item d-flex justify-content-between align-items-center"
+                    >
+                      <span
+                        ><i class="fas fa-utensils me-2"></i>Tipo de
+                        comida:</span
+                      >
+                      <span class="badge bg-info rounded-pill">
+                        <%= entry.meal_type || 'No especificado' %>
+                      </span>
+                    </li>
+                    <li
+                      class="list-group-item d-flex justify-content-between align-items-center"
+                    >
+                      <span><i class="fas fa-history me-2"></i>Creado:</span>
+                      <span class="badge bg-secondary rounded-pill">
+                        <%= dayjs(entry.created_at).fromNow() %>
+                      </span>
+                    </li>
+                  </ul>
+                </div>
+
+                <!-- Descripción -->
+                <div class="mb-4">
+                  <h5><i class="fas fa-comment me-2"></i>Descripción</h5>
+                  <div class="card">
+                    <div class="card-body">
+                      <% if (entry.description) { %>
+                      <p class="card-text"><%= entry.description %></p>
+                      <% } else { %>
+                      <p class="text-muted">
+                        No hay descripción para esta entrada.
+                      </p>
+                      <% } %>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Comentarios -->
+                <div class="mb-4">
+                  <h5><i class="fas fa-comment-dots me-2"></i>Comentarios</h5>
+                  <div class="card">
+                    <div class="card-body">
+                      <% if (entry.comments) { %>
+                      <p class="card-text"><%= entry.comments %></p>
+                      <% } else { %>
+                      <p class="text-muted">
+                        El paciente no ha añadido comentarios para esta comida.
+                      </p>
+                      <% } %>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer bg-body-tertiary">
+            <a
+              href="/doctor/patient/<%= patient.id %>/history"
+              class="btn btn-secondary"
+            >
+              <i class="fas fa-arrow-left me-1"></i>Volver al Historial
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -104,15 +104,19 @@
 </div>
 
 <!-- JavaScript para validación del formulario y vista previa de imagen -->
+<!-- ELIMINADO PARCIALMENTE: Lógica movida a public/js/edit-entry.js -->
+<!-- La validación estándar de Bootstrap se mantiene aquí por ahora -->
 <script>
-  // Ejemplo de validación de formulario con Bootstrap
+  // Validación estándar de Bootstrap
   (function() {
     'use strict';
     window.addEventListener('load', function() {
       var forms = document.getElementsByClassName('needs-validation');
       var validation = Array.prototype.filter.call(forms, function(form) {
         form.addEventListener('submit', function(event) {
+          // La lógica de checkValidity() se ejecuta después de nuestro listener de 'no cambios'
           if (form.checkValidity() === false) {
+            // Prevenir solo si la validación de Bootstrap falla
             event.preventDefault();
             event.stopPropagation();
           }
@@ -122,83 +126,8 @@
     }, false);
   })();
   
-  // Para la vista previa de la imagen
-  document.addEventListener('DOMContentLoaded', function() {
-    // Función para la vista previa
-    const fileInput = document.getElementById('food_photo');
-    const previewContainer = document.getElementById('previewContainer');
-    const preview = document.getElementById('preview');
-    
-    if (fileInput && previewContainer && preview) {
-      fileInput.addEventListener('change', function() {
-        if (this.files && this.files[0]) {
-          const reader = new FileReader();
-          
-          reader.onload = function(e) {
-            preview.src = e.target.result;
-            previewContainer.classList.remove('d-none');
-          }
-          
-          reader.readAsDataURL(this.files[0]);
-        } else {
-          previewContainer.classList.add('d-none');
-        }
-      });
-    }
-    
-    // Verificar que se hayan realizado cambios antes de enviar el formulario
-    const form = document.querySelector('form.needs-validation');
-    if (form) {
-      // Guardar los valores originales al cargar la página
-      const originalValues = {
-        name: document.getElementById('name').value,
-        description: document.getElementById('description').value,
-        mealType: document.getElementById('mealType').value,
-        mealDate: document.getElementById('mealDate').value
-      };
-      
-      // Agregar mensaje de error al formulario (inicialmente oculto)
-      const alertDiv = document.createElement('div');
-      alertDiv.className = 'alert alert-warning mt-3 d-none';
-      alertDiv.id = 'noChangesAlert';
-      alertDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>No se han realizado cambios. Por favor modifica al menos un campo.';
-      form.insertBefore(alertDiv, form.firstChild);
-      
-      // Interceptar envío de formulario
-      form.addEventListener('submit', function(event) {
-        // Verificar si hay una imagen nueva
-        const hasNewImage = fileInput && fileInput.files && fileInput.files.length > 0;
-        
-        // Verificar si algún campo ha cambiado
-        const currentValues = {
-          name: document.getElementById('name').value,
-          description: document.getElementById('description').value,
-          mealType: document.getElementById('mealType').value,
-          mealDate: document.getElementById('mealDate').value
-        };
-        
-        // Comparar valores
-        const hasChanges = hasNewImage || 
-          currentValues.name !== originalValues.name ||
-          currentValues.description !== originalValues.description ||
-          currentValues.mealType !== originalValues.mealType ||
-          currentValues.mealDate !== originalValues.mealDate;
-        
-        // Si no hay cambios, prevenir envío y mostrar alerta
-        if (!hasChanges) {
-          event.preventDefault();
-          const alertElement = document.getElementById('noChangesAlert');
-          alertElement.classList.remove('d-none');
-          
-          // Desplazar a la alerta para que sea visible
-          alertElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          
-          // Ocultar la alerta después de 5 segundos
-          setTimeout(function() {
-            alertElement.classList.add('d-none');
-          }, 5000);
-        }
-      });
-    }
-  });
+  // // Lógica de vista previa y detección de cambios movida a edit-entry.js
+  // document.addEventListener('DOMContentLoaded', function() {
+  //   // ... (código eliminado) ...
+  // });
 </script>

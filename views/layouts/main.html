@@ -1,8 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-bs-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
   <title><%= title %> | WhatYouEat</title>
   
   <% if (process.env.NODE_ENV !== 'production') { %>
@@ -19,6 +20,54 @@
   <!-- Para iOS -->
   <link rel="apple-touch-icon" href="/img/logo.webp">
   
+  <!-- Preflight para el tema (evita parpadeos durante la carga) -->
+  <script>
+    (function() {
+      try {
+        // Obtener tema guardado o detectar preferencia del sistema
+        var savedTheme = localStorage.getItem('theme');
+        var prefersDarkScheme = false;
+        
+        // Comprobar soporte para matchMedia (navegadores antiguos pueden no soportarlo)
+        if (window.matchMedia) {
+          try {
+            prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          } catch (e) {
+            console.warn('Error al detectar preferencia de color:', e);
+          }
+        }
+        
+        var initialTheme = savedTheme || (prefersDarkScheme ? 'dark' : 'light');
+        
+        // Aplicar tema inmediatamente para evitar parpadeo
+        document.documentElement.setAttribute('data-theme', initialTheme);
+        document.documentElement.setAttribute('data-bs-theme', initialTheme);
+        
+        // También añadir la clase al body para máxima compatibilidad
+        if (document.body) {
+          // Si el body ya está disponible
+          if (initialTheme === 'dark') {
+            document.body.classList.add('dark-theme');
+          } else {
+            document.body.classList.add('light-theme');
+          }
+        } else {
+          // Si el body aún no está disponible, usar DOMContentLoaded
+          document.addEventListener('DOMContentLoaded', function() {
+            if (initialTheme === 'dark') {
+              document.body.classList.add('dark-theme');
+            } else {
+              document.body.classList.add('light-theme');
+            }
+          });
+        }
+      } catch (err) {
+        // Fallback a tema claro en caso de error
+        console.error('Error al inicializar tema:', err);
+      }
+    })();
+  </script>
+  
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   
@@ -27,6 +76,17 @@
   
   <!-- Estilos CSS -->
   <link rel="stylesheet" href="/css/styles.css?v=<%= process.env.VERSION || Date.now() %>">
+  
+  <!-- Fix especial para sugerencias de contraseñas -->
+  <link rel="stylesheet" href="/css/password-fix.css?v=<%= process.env.VERSION || Date.now() %>">
+  
+  <!-- Script para restaurar sugerencias de contraseñas -->
+  <!-- ELIMINADO: Movido a auth.js e inicializado desde main.js -->
+  <!-- 
+  <script>
+    (function fixPasswordSuggestions() { ... })();
+  </script>
+  -->
 </head>
 <body>
   <!-- Navbar -->
@@ -81,6 +141,10 @@
             </li>
           <% } %>
         </ul>
+        <!-- Botón para cambiar tema (siempre a la derecha) -->
+        <button id="theme-toggle" class="theme-toggle ms-3" aria-label="Cambiar tema">
+          <i class="fas fa-sun"></i>
+        </button>
     </div>
   </nav>
 
@@ -195,84 +259,50 @@
     </div>
   </footer>
 
-  <!-- Custom JS -->
-  <script src="/js/main.js?v=<%= process.env.VERSION || Date.now() %>"></script>
-  <!-- Auth JS -->
-  <script src="/js/auth.js?v=<%= process.env.VERSION || Date.now() %>"></script>
-  
-  <!-- Script condicional para la página de historial -->
-  <% if (title === 'Historial de Comidas') { %>
-  <script src="/js/history.js?v=<%= process.env.VERSION || Date.now() %>"></script>
-  <% } %>
-  
-  <!-- Script para la página de subir foto -->
-  <% if (title === 'Subir Foto de Comida') { %>
-  <script src="/js/upload.js?v=<%= process.env.VERSION || Date.now() %>"></script>
-  <% } %>
-  
-  <!-- Bootstrap JS -->
+  <!-- Bootstrap JS (Cargar ANTES de nuestros scripts si dependen de él) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 
+  <!-- Scripts personalizados (Cargados como módulos) -->
+  
+  <!-- Punto de entrada principal -->
+  <script type="module" src="/js/main.js?v=<%= process.env.VERSION || Date.now() %>"></script>
+  
+  <!-- Módulos cargados condicionalmente (si usan import/export o son llamados por main.js indirectamente) -->
+  <!-- Nota: auth.js ahora se inicializa desde main.js, por lo que no necesita cargarse aquí explícitamente -->
+  <!-- <script type="module" src="/js/auth.js?v=<%= process.env.VERSION || Date.now() %>"></script> -->
+  
+  <% if (title === 'Historial de Comidas') { %>
+    <script type="module" src="/js/history.js?v=<%= process.env.VERSION || Date.now() %>"></script> 
+  <% } else if (title === 'Historial del Paciente') { %>
+    <script type="module" src="/js/history.js?v=<%= process.env.VERSION || Date.now() %>"></script> 
+  <% } %>
+  
+  <%# Cargar script específico para detalle de entrada %>
+  <% if (title === 'Detalle de Comida' || title === 'Detalle de Entrada') { %> <%# Cargar para paciente y doctor %>
+    <script src="/js/entry-detail.js?v=<%= process.env.VERSION || Date.now() %>"></script> 
+  <% } %>
+  
+  <%# Cargar script específico para edición de entrada %>
+  <% if (title === 'Editar Entrada') { %> <%# Ajustar título si es necesario %>
+    <script src="/js/edit-entry.js?v=<%= process.env.VERSION || Date.now() %>"></script> 
+  <% } %>
+  
+  <%# Cargar script específico para edición de perfil %>
+  <% if (title === 'Editar Perfil') { %> <%# Ajustar título si es necesario %>
+    <script src="/js/edit-profile.js?v=<%= process.env.VERSION || Date.now() %>"></script> 
+  <% } %>
+  
+  <% if (title === 'Subir Foto de Comida') { %>
+    <%# upload.js no necesita ser módulo si se auto-ejecuta y no usa import/export %>
+    <script src="/js/upload.js?v=<%= process.env.VERSION || Date.now() %>"></script> 
+  <% } %>
+  
   <!-- Script inmediato para mensajes flash -->
+  <!-- ELIMINADO: Funcionalidad ahora cubierta por alerts.js (llamado desde main.js) -->
+  <!--
   <script>
-    (function() {
-      console.log("Script flash inmediato ejecutado");
-      
-      // Verificar si hay mensajes flash (excluir los persistentes)
-      const flashMessages = document.querySelectorAll('.flash-messages .alert:not(.persistent-alert)');
-      if (flashMessages.length > 0) {
-        console.log("Mensajes flash encontrados:", flashMessages.length);
-        
-        // Asegurar visibilidad inicial
-        flashMessages.forEach(alert => {
-          alert.style.display = 'block';
-          alert.style.opacity = '1';
-        });
-        
-        // Auto-cerrar después de 7 segundos
-        setTimeout(() => {
-          flashMessages.forEach(alert => {
-            if (alert && document.body.contains(alert)) {
-              alert.style.opacity = '0';
-              setTimeout(() => {
-                if (document.body.contains(alert)) {
-                  alert.remove();
-                }
-              }, 300);
-            }
-          });
-        }, 7000);
-      } else {
-        console.log("No se encontraron mensajes flash automáticos");
-      }
-      
-      // Configurar botones de cierre manual para todos los mensajes (incluyendo persistent-alert)
-      document.querySelectorAll('.alert .btn-close, .alert .close-alert').forEach(btn => {
-        btn.addEventListener('click', function() {
-          const alert = this.closest('.alert');
-          if (alert) {
-            alert.style.opacity = '0';
-            setTimeout(() => {
-              if (document.body.contains(alert)) {
-                alert.remove();
-              }
-            }, 300);
-          }
-        });
-      });
-      
-      // Configuración específica para alertas de correo no confirmado
-      document.querySelectorAll('#emailConfirmationAlert .btn-close').forEach(btn => {
-        console.log('Configurando botón de cierre para alerta de correo');
-        btn.addEventListener('click', function() {
-          const alert = this.closest('.alert');
-          if (alert) {
-            alert.style.opacity = '0';
-            setTimeout(() => alert.remove(), 300);
-          }
-        });
-      });
-    })();
+    (function() { ... })();
   </script>
+  -->
 </body>
 </html>

@@ -1,6 +1,12 @@
 // controllers/patient/foodHistoryController.js
 const FoodEntry = require('../../models/FoodEntry');
-const moment = require('moment');
+const dayjs = require('dayjs');
+
+// Required plugins for template usage (e.g., localized format)
+require('dayjs/locale/es');
+dayjs.locale('es');
+const localizedFormat = require('dayjs/plugin/localizedFormat');
+dayjs.extend(localizedFormat);
 
 /**
  * Muestra el historial de comidas con paginación y carga optimizada 
@@ -64,7 +70,7 @@ exports.getFoodHistory = async (req, res) => {
         limit: pagination.limit,
         offset: (pagination.page - 1) * pagination.limit
       },
-      moment, // Para formateo de fechas
+      dayjs, // Pass dayjs for date formatting in the template
       filters: {
         date_from: dateFrom || '',
         date_to: dateTo || ''

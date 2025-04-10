@@ -1,38 +1,47 @@
 <!-- Script para procesar tokens (debe estar antes de cualquier otro contenido) -->
 <script>
   // Ejecutar inmediatamente para capturar el token antes de cualquier renderizado
-  (function() {
+  (function () {
     if (window.location.hash) {
-      console.log('Hash detectado en URL:', window.location.hash);
-      
+      console.log("Hash detectado en URL:", window.location.hash);
+
       // Extraer parámetros del hash
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      
+
       // Caso 1: Token de confirmación exitoso
-      if (hashParams.get('access_token') && hashParams.get('type') === 'signup') {
-        console.log('Confirmación de correo detectada, redirigiendo...');
+      if (
+        hashParams.get("access_token") &&
+        hashParams.get("type") === "signup"
+      ) {
+        console.log("Confirmación de correo detectada, redirigiendo...");
         // Mostrar mensaje temporal
-        document.write('<div style="text-align:center;padding:50px;font-family:Arial;"><h2>Confirmación exitosa</h2><p>Redirigiendo...</p></div>');
+        document.write(
+          '<div style="text-align:center;padding:50px;font-family:Arial;"><h2>Confirmación exitosa</h2><p>Redirigiendo...</p></div>'
+        );
         // Redireccionar
-        window.location.href = '/auth/email-confirmed';
+        window.location.href = "/auth/email-confirmed";
         return;
       }
-      
+
       // Caso 2: Error por enlace expirado o inválido
-      if (hashParams.get('error') === 'access_denied' && 
-          (hashParams.get('error_code') === 'otp_expired' || hashParams.get('error_description')?.includes('expired'))) {
-        console.log('Enlace de verificación expirado detectado');
-        
+      if (
+        hashParams.get("error") === "access_denied" &&
+        (hashParams.get("error_code") === "otp_expired" ||
+          hashParams.get("error_description")?.includes("expired"))
+      ) {
+        console.log("Enlace de verificación expirado detectado");
+
         // Permitir que la página se cargue, pero prepararemos un mensaje de error
-        window.addEventListener('DOMContentLoaded', function() {
+        window.addEventListener("DOMContentLoaded", function () {
           // Crear mensaje de error
-          const errorContainer = document.createElement('div');
-          errorContainer.className = 'alert alert-danger mb-4';
-          errorContainer.innerHTML = '<strong>El enlace de verificación ha expirado o es inválido.</strong> ' +
-                                    'Por favor, inicia sesión con tus credenciales o solicita un nuevo enlace de verificación.';
-          
+          const errorContainer = document.createElement("div");
+          errorContainer.className = "alert alert-danger mb-4";
+          errorContainer.innerHTML =
+            "<strong>El enlace de verificación ha expirado o es inválido.</strong> " +
+            "Por favor, inicia sesión con tus credenciales o solicita un nuevo enlace de verificación.";
+
           // Insertar al principio del formulario
-          const form = document.querySelector('form');
+          const form = document.querySelector("form");
           if (form) {
             form.parentNode.insertBefore(errorContainer, form);
           }
@@ -46,55 +55,94 @@
 <div class="row justify-content-center animate-fade-in py-5">
   <div class="col-lg-5 col-md-7 col-sm-10">
     <!-- Eliminamos el mensaje de registro exitoso ya que se muestra a través de flash_messages -->
-    
+
     <div class="text-center mb-4">
-      <img src="/img/logo.webp" alt="WhatYouEat Logo" width="80" class="mb-3">
+      <img src="/img/logo.webp" alt="WhatYouEat Logo" width="80" class="mb-3" />
       <h1 class="h3 mb-3">Bienvenido de nuevo</h1>
       <p class="text-muted mb-4">Accede a tu cuenta para continuar</p>
     </div>
-    
+
     <div class="card border-0 shadow">
       <div class="card-body p-4 p-lg-5">
-        <form action="/auth/login" method="POST" class="needs-validation" novalidate>
+        <form
+          action="/auth/login"
+          method="POST"
+          class="needs-validation"
+          novalidate
+        >
           <div class="mb-4">
             <label for="email" class="form-label">Correo Electrónico</label>
             <div class="input-group">
-              <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-              <input type="email" class="form-control" id="email" name="email" autocomplete="email" required autofocus placeholder="tu@email.com">
+              <span class="input-group-text"
+                ><i class="fas fa-envelope"></i
+              ></span>
+              <input
+                type="email"
+                class="form-control"
+                id="email"
+                name="email"
+                autocomplete="email"
+                required
+                autofocus
+                placeholder="tu@email.com"
+              />
             </div>
           </div>
-          
+
           <div class="mb-4">
             <div class="d-flex justify-content-between align-items-center mb-1">
               <label for="password" class="form-label">Contraseña</label>
-              <a href="/auth/forgot-password" class="text-primary small">¿Olvidaste tu contraseña?</a>
+              <a href="/auth/forgot-password" class="text-primary small"
+                >¿Olvidaste tu contraseña?</a
+              >
             </div>
             <div class="input-group">
               <span class="input-group-text"><i class="fas fa-lock"></i></span>
-              <input type="password" class="form-control" id="password" name="password" autocomplete="current-password" required placeholder="Tu contraseña">
+              <input
+                type="password"
+                class="form-control"
+                id="password"
+                name="password"
+                autocomplete="current-password"
+                required
+                placeholder="Tu contraseña"
+              />
               <!-- boton para mostrar contraseña -->
-              <button class="btn btn-outline-secondary" type="button" id="togglePassword1" tabindex="-1" aria-label="Mostrar u ocultar contraseña">
+              <button
+                class="btn btn-outline-secondary"
+                type="button"
+                id="togglePassword1"
+                tabindex="-1"
+                aria-label="Mostrar u ocultar contraseña"
+              >
                 <i class="fas fa-eye" id="toggleIcon1"></i>
               </button>
             </div>
           </div>
-          
+
           <div class="d-grid gap-2 mb-4">
             <button type="submit" class="btn btn-primary btn-lg">
               Iniciar Sesión
             </button>
           </div>
-          
+
           <div class="text-center mt-4">
-            <p class="mb-0 text-muted">¿No tienes cuenta? <a href="/auth/register" class="text-primary fw-bold">Regístrate</a></p>
+            <p class="mb-0 text-muted">
+              ¿No tienes cuenta?
+              <a href="/auth/register" class="text-primary fw-bold"
+                >Regístrate</a
+              >
+            </p>
           </div>
         </form>
       </div>
     </div>
-    
+
     <div class="text-center mt-4">
-      <p class="small text-muted">Al iniciar sesión, aceptas los <a href="#">Términos de servicio</a> y la <a href="#">Política de privacidad</a>.</p>
+      <p class="small text-muted">
+        Al iniciar sesión, aceptas los <a href="#">Términos de servicio</a> y la
+        <a href="#">Política de privacidad</a>.
+      </p>
     </div>
   </div>
 </div>
-

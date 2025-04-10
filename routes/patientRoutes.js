@@ -22,6 +22,10 @@ router.get('/entry/:id', entryOwnershipMiddleware, patientController.getEntryDet
 router.get('/entry/:id/image', entryOwnershipMiddleware, patientController.getEntryImage);
 router.get('/entry/:id/edit', entryOwnershipMiddleware, patientController.getEditForm);
 router.post('/entry/:id/update', entryOwnershipMiddleware, patientController.updateEntry);
-router.get('/entry/:id/delete', entryOwnershipMiddleware, patientController.deleteEntry);
+
+// Rutas para eliminación de entradas
+router.delete('/entry/:id', entryOwnershipMiddleware, patientController.deleteEntry);
+// Ruta POST para manejar el formulario directamente (por si method-override falla)
+router.post('/entry/:id', entryOwnershipMiddleware, patientController.deleteEntry);
 
 module.exports = router;

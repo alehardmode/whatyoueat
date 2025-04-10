@@ -104,6 +104,7 @@
             <div class="input-group">
               <span class="input-group-text"><i class="fas fa-user"></i></span>
               <input type="text" class="form-control" id="name" name="name" required placeholder="Nombre completo">
+              <div class="invalid-feedback d-none" id="name-feedback">Por favor introduce tu nombre completo</div>
             </div>
           </div>
           <!-- elemento email formulario -->
@@ -112,6 +113,7 @@
             <div class="input-group">
               <span class="input-group-text"><i class="fas fa-envelope"></i></span>
               <input type="email" class="form-control" id="email" name="email" required placeholder="tu@email.com">
+              <div class="invalid-feedback d-none" id="email-feedback">Por favor introduce un correo electrónico válido</div>
             </div>
           </div>
           <!-- elemento asunto formulario -->
@@ -120,6 +122,7 @@
             <div class="input-group">
               <span class="input-group-text"><i class="fas fa-tag"></i></span>
               <input type="text" class="form-control" id="subject" name="subject" required placeholder="Escribe el motivo de tu mensaje">
+              <div class="invalid-feedback d-none" id="subject-feedback">Por favor introduce un asunto válido</div>
             </div>
           </div>
           <!-- elemento mensaje formulario -->
@@ -128,6 +131,7 @@
             <div class="input-group">
               <span class="input-group-text"><i class="fas fa-comment"></i></span>
               <textarea class="form-control" id="message" name="message" maxlength="280" rows="4" required placeholder="Escribe lo que desees comunicarnos (máx. 280 caracteres)"></textarea>
+              <div class="invalid-feedback d-none" id="message-feedback">Por favor introduce un mensaje válido</div>
             </div>
           </div>
           <!-- elemento tipo de consulta formulario -->
@@ -142,6 +146,7 @@
                 <option value="feedback">Sugerencias</option>
                 <option value="business">Oportunidades de negocio</option>
               </select>
+              <div class="invalid-feedback d-none" id="type-feedback">Por favor selecciona un tipo de consulta</div>
             </div>
           </div>
           <!-- Ajustamos el checkbox para que coincida con el estilo del registro -->
@@ -150,13 +155,12 @@
             <label class="form-check-label" for="privacy">
               Acepto la <a href="/privacy">política de privacidad</a>
             </label>
+            <div class="invalid-feedback d-none" id="privacy-feedback">Debes aceptar la política de privacidad</div>
           </div>
           <!-- Boton enviar mensaje de contacto -->
           <div class="d-grid gap-2 mb-4">
             <button type="submit" class="btn btn-primary btn-lg">Enviar mensaje</button>
           </div>
-          <!-- Toast para notificaciones -->
-          <div id="toast" class="hidden" tabindex="-1" role="alert" aria-live="assertive"></div>
         </form>
       </div>
     </div>
@@ -226,7 +230,8 @@
       </div>
     </div>
     
-    <!-- Script de validación del formulario de contacto -->
-    <script src="/js/validators/contactFormValidator.js" defer></script>
+   <!-- Incluir scripts necesarios -->
+    <script src="/js/auth.js"></script>
+    <script src="/js/validators/contactFormValidator.js"></script>
   </div>
 </div>
