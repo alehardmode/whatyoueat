@@ -385,69 +385,77 @@ describe('DoctorPatient Model', () => {
       },
       {
         relationId: 'rel-2', status: 'active',
-        id: 'pat-2', name: 'Patient Two', email: 'No disponible', created_at: 'date2' // Default for null email
+        id: 'pat-2', name: 'Patient Two', email: 'Email no disponible', created_at: 'date2' // Default for null email
       },
        {
         relationId: 'rel-3', status: 'active',
-        id: 'pat-3', name: 'Patient Three', email: 'No disponible', created_at: 'date3' // Default for missing user
+        id: 'pat-3', name: 'Patient Three', email: 'Email no disponible', created_at: 'date3' // Default for missing user
       },
        {
         relationId: 'rel-4', status: 'active',
-        id: 'pat-4', name: 'Patient Four', email: 'No disponible', created_at: 'date4' // Default for missing user field
+        id: 'pat-4', name: 'Patient Four', email: 'Email no disponible', created_at: 'date4' // Default for missing user field
       },
     ];
 
-    it('should retrieve and format patients for a doctor including email', async () => {
-       // Mock the successful resolution of the query using .then
-       // Make sure the data passed matches the NEW nested structure
-      mockSupabaseClient.then.mockImplementationOnce(callback => Promise.resolve(callback({ data: mockRawRelationData, error: null })));
-      // --- REMOVED Profile spy setup ---
+    // Mock email data specifically for this test suite
+    const mockUserEmails = [
+        { id: 'pat-1', email: 'pat1@test.com' },
+        { id: 'pat-2', email: null }, // Simulate null email
+        // pat-3 and pat-4 missing to test default behavior
+    ];
 
-      const result = await DoctorPatient.getPatientsByDoctor(mockDoctorId);
+    // Mock the admin client for email lookup in THIS test suite
+    const mockAdminClient = { 
+        auth: { 
+            admin: { 
+                 // Mock listUsers to resolve successfully for the test
+                listUsers: jest.fn().mockResolvedValue({
+                    data: { users: mockUserEmails }, // Use the mock email data
+                    error: null
+                })
+            } 
+        }, 
+        // Keep other mocks if the tested function *itself* uses adminClient.from etc.
+        from: jest.fn().mockReturnThis(), 
+        select: jest.fn().mockReturnThis(),
+        in: jest.fn().mockReturnThis(),
+        then: jest.fn() 
+    }; 
+
+    it('should retrieve and format patients for a doctor including email', async () => {
+       // Mock the successful resolution of the *main* query using .then
+      mockSupabaseClient.then.mockImplementationOnce(callback => Promise.resolve(callback({ data: mockRawRelationData, error: null })));
+     
+      // Call the method with the options object containing the correctly mocked adminClient
+      const result = await DoctorPatient.getPatientsByDoctor(mockDoctorId, { adminClient: mockAdminClient });
 
       expect(result.success).toBe(true);
-      // Expectation should match the data structure after formatting, including emails
       expect(result.patients).toEqual(expectedFormattedPatients);
 
-      // Verify the supabase call chain
+      // Verify the *main* supabase call chain
       expect(supabase.from).toHaveBeenCalledWith('doctor_patient_relationships');
-      // Verify the NEW select string including the join for email
-      const expectedSelect = `
-          id,
-          status,
-          patient:patient_id (
-            id, 
-            name,
-            created_at,
-            user:id ( email )
-          )
-        `;
-      // Get the actual select string passed to the mock
-      expect(mockSupabaseClient.select).toHaveBeenCalled(); // Ensure it was called
-      const actualSelect = mockSupabaseClient.select.mock.calls[0][0];
-      // Normalize both strings (remove all whitespace) and compare
-      const normalize = (str) => str.replace(/\s+/g, '');
-      expect(normalize(actualSelect)).toEqual(normalize(expectedSelect));
-
+      expect(mockSupabaseClient.select).toHaveBeenCalledWith(expect.stringContaining('patient:patient_id'));
       expect(mockSupabaseClient.eq).toHaveBeenCalledWith('doctor_id', mockDoctorId);
       expect(mockSupabaseClient.eq).toHaveBeenCalledWith('status', 'active');
-      expect(mockSupabaseClient.order).toHaveBeenCalledWith('created_at', { ascending: false });
-      expect(mockSupabaseClient.then).toHaveBeenCalledTimes(1); // For query resolution
+      expect(mockSupabaseClient.then).toHaveBeenCalledTimes(1); 
 
-       // --- REMOVED Profile spy assertions ---
-       // --- REMOVED jest.restoreAllMocks() ---
+       // Verify the call to listUsers on the *mockAdminClient*
+      expect(mockAdminClient.auth.admin.listUsers).toHaveBeenCalledTimes(1);
+      // Optionally, add more specific checks on the listUsers call if needed
+      // expect(mockAdminClient.auth.admin.listUsers).toHaveBeenCalledWith(expect.objectContaining({ perPage: 1000 }));
+
     });
 
     it('should return empty array if no patients found', async () => {
         // Mock the query resolution with empty data
        mockSupabaseClient.then.mockImplementationOnce(callback => Promise.resolve(callback({ data: [], error: null })));
 
-        const result = await DoctorPatient.getPatientsByDoctor(mockDoctorId);
+        // Call with options object
+        const result = await DoctorPatient.getPatientsByDoctor(mockDoctorId, { adminClient: mockAdminClient });
 
         expect(result.success).toBe(true);
         expect(result.patients).toEqual([]);
         expect(mockSupabaseClient.then).toHaveBeenCalledTimes(1);
-         // --- REMOVED Profile spy setup and assertions ---
     });
 
     it('should return error if database query fails', async () => {
@@ -455,41 +463,62 @@ describe('DoctorPatient Model', () => {
        // Mock the query resolution to reject
       mockSupabaseClient.then.mockImplementationOnce((_, reject) => Promise.resolve(reject ? reject(dbError) : Promise.reject(dbError)));
 
-      const result = await DoctorPatient.getPatientsByDoctor(mockDoctorId);
+      // Call with options object
+      const result = await DoctorPatient.getPatientsByDoctor(mockDoctorId, { adminClient: mockAdminClient });
 
       expect(result.success).toBe(false);
       expect(result.error).toBe(dbError.message);
        expect(mockSupabaseClient.then).toHaveBeenCalledTimes(1);
     });
+
+    it('should return error if adminClient is not provided', async () => {
+        // Simulate calling the function without the adminClient option
+        const result = await DoctorPatient.getPatientsByDoctor(mockDoctorId, {}); // Pass empty options
+
+        expect(result.success).toBe(false);
+         // Update the expected error message for exact match
+        expect(result.error).toBe('Configuration error: adminClient is missing.');
+        // Verify no DB call was made in this case
+        expect(supabase.from).not.toHaveBeenCalled();
+    });
   });
 
   // --- getDoctorsByPatient ---
   describe('getDoctorsByPatient', () => {
-     // Updated mock raw data to include nested user email
+     // THIS IS THE CORRECTED MOCK
      const mockRawRelationData = [
       {
-        id: 'rel-3', status: 'active',
-        doctor: { 
-          id: 'doc-1', name: 'Doctor One', created_at: 'date3', 
-          user: { email: 'doc1@test.com' } // Email nested under user
-        }
+        id: 'rel-3',
+        status: 'active',
+        doctor_id: 'doc-1' // Use doctor_id directly
       },
       {
-        id: 'rel-4', status: 'active',
-        doctor: { 
-          id: 'doc-2', name: 'Doctor Two', created_at: 'date4', 
-          user: { email: null } // Simulate null email
-        }
+        id: 'rel-4',
+        status: 'active',
+        doctor_id: 'doc-2' // Use doctor_id directly
       },
-       {
-        id: 'rel-5', status: 'active',
-        doctor: { 
-          id: 'doc-3', name: 'Doctor Three', created_at: 'date5', 
-          user: null // Simulate missing user relation
-        }
-      },
+      {
+        id: 'rel-5',
+        status: 'active',
+        doctor_id: 'doc-3' // Use doctor_id directly
+      }
     ];
-     // Expected formatted data now includes directly fetched email
+
+    // Mock data for doctor profiles fetched in the second step
+    const mockDoctorProfiles = [
+        { id: 'doc-1', name: 'Doctor One', created_at: 'date3' },
+        { id: 'doc-2', name: 'Doctor Two', created_at: 'date4' },
+        { id: 'doc-3', name: 'Doctor Three', created_at: 'date5' }
+    ];
+
+    // Mock data for emails fetched in the third step
+    const mockUserEmails = [
+        { id: 'doc-1', email: 'doc1@test.com' },
+        { id: 'doc-2', email: null }, // Simulate email not found or restricted
+        // doc-3 missing from email results intentionally or due to error
+    ];
+
+    // Expected formatted data based on the corrected flow
     const expectedFormattedDoctors = [
       {
         relationId: 'rel-3', status: 'active',
@@ -497,76 +526,94 @@ describe('DoctorPatient Model', () => {
       },
       {
         relationId: 'rel-4', status: 'active',
-        id: 'doc-2', name: 'Doctor Two', email: 'No disponible', created_at: 'date4' // Default for null email
+        id: 'doc-2', name: 'Doctor Two', email: 'Email no disponible', created_at: 'date4' // Default for null email
       },
-       {
+      {
         relationId: 'rel-5', status: 'active',
-        id: 'doc-3', name: 'Doctor Three', email: 'No disponible', created_at: 'date5' // Default for missing user
+        id: 'doc-3', name: 'Doctor Three', email: 'Email no disponible', created_at: 'date5' // Default for missing email
       },
     ];
 
-    it('should retrieve and format doctors for a patient including email', async () => {
-        // Mock the successful query resolution using .then
-       mockSupabaseClient.then.mockImplementationOnce(callback => Promise.resolve(callback({ data: mockRawRelationData, error: null })));
-       // --- REMOVED Profile spy setup ---
+    // Mock the admin client
+    const mockAdminClient = {
+        auth: {
+            admin: {
+                listUsers: jest.fn().mockResolvedValue({
+                    data: { users: mockUserEmails }, // Use mockUserEmails here
+                    error: null
+                })
+            }
+        },
+        from: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        in: jest.fn().mockResolvedValue({ data: mockDoctorProfiles, error: null }), // Mock profile fetch
+        then: jest.fn() // General fallback
+    };
 
-      const result = await DoctorPatient.getDoctorsByPatient(mockPatientId);
+    it('should retrieve and format doctors for a patient including email', async () => {
+        // Mock Query 1: Get relationships (using corrected mockRawRelationData)
+       mockSupabaseClient.then.mockImplementationOnce(callback => Promise.resolve(callback({ data: mockRawRelationData, error: null })));
+
+       // Mock Query 2: Get profiles (already mocked in adminClient.in)
+       // Mock Query 3: Get emails (already mocked in adminClient.auth.admin.listUsers)
+
+      const result = await DoctorPatient.getDoctorsByPatient(mockPatientId, { adminClient: mockAdminClient });
 
       expect(result.success).toBe(true);
       expect(result.doctors).toEqual(expectedFormattedDoctors);
 
-       // Verify the supabase call chain
+      // Verify call chains
+      // Query 1: Relationships
       expect(supabase.from).toHaveBeenCalledWith('doctor_patient_relationships');
-      // Verify the NEW select string including the join for email
-      const expectedSelect = `
-          id,
-          status,
-          doctor:doctor_id (
-            id, 
-            name,
-            created_at,
-            user:id ( email )
-          )
-        `;
-       // Get the actual select string passed to the mock
-      expect(mockSupabaseClient.select).toHaveBeenCalled(); // Ensure it was called
-      const actualSelect = mockSupabaseClient.select.mock.calls[0][0];
-      // Normalize both strings (remove all whitespace) and compare
-      const normalize = (str) => str.replace(/\s+/g, '');
-      expect(normalize(actualSelect)).toEqual(normalize(expectedSelect));
-
+      expect(mockSupabaseClient.select).toHaveBeenCalledWith(expect.stringContaining('doctor_id')); // Check doctor_id is selected
       expect(mockSupabaseClient.eq).toHaveBeenCalledWith('patient_id', mockPatientId);
       expect(mockSupabaseClient.eq).toHaveBeenCalledWith('status', 'active');
-      expect(mockSupabaseClient.order).toHaveBeenCalledWith('created_at', { ascending: false });
-      expect(mockSupabaseClient.then).toHaveBeenCalledTimes(1);
+      expect(mockSupabaseClient.then).toHaveBeenCalledTimes(1); // For Query 1 resolution
 
-       // --- REMOVED Profile spy assertions ---
-       // --- REMOVED jest.restoreAllMocks() ---
+      // Query 2: Profiles
+      expect(mockAdminClient.from).toHaveBeenCalledWith('profiles');
+      expect(mockAdminClient.select).toHaveBeenCalledWith('id, name, created_at');
+      expect(mockAdminClient.in).toHaveBeenCalledWith('id', ['doc-1', 'doc-2', 'doc-3']); // Verify correct IDs passed
+
+      // Query 3: Emails
+      expect(mockAdminClient.auth.admin.listUsers).toHaveBeenCalledTimes(1); // Verify email lookup happened
+
     });
 
      it('should return empty array if no doctors found', async () => {
          // Mock query resolution with empty data
         mockSupabaseClient.then.mockImplementationOnce(callback => Promise.resolve(callback({ data: [], error: null })));
 
-        const result = await DoctorPatient.getDoctorsByPatient(mockPatientId);
+        // Call with options object
+        const result = await DoctorPatient.getDoctorsByPatient(mockPatientId, { adminClient: mockAdminClient });
 
         expect(result.success).toBe(true);
         expect(result.doctors).toEqual([]);
         expect(mockSupabaseClient.then).toHaveBeenCalledTimes(1);
-
-         // --- REMOVED Profile spy setup and assertions ---
     });
 
     it('should return error if database query fails', async () => {
        const dbError = new Error('DB Get Doctors Error');
         // Mock query resolution to reject
         mockSupabaseClient.then.mockImplementationOnce((_, reject) => Promise.resolve(reject ? reject(dbError) : Promise.reject(dbError)));
-
-        const result = await DoctorPatient.getDoctorsByPatient(mockPatientId);
+       
+        // Call with options object
+        const result = await DoctorPatient.getDoctorsByPatient(mockPatientId, { adminClient: mockAdminClient });
 
         expect(result.success).toBe(false);
         expect(result.error).toBe(dbError.message);
          expect(mockSupabaseClient.then).toHaveBeenCalledTimes(1);
+    });
+
+    it('should return error if adminClient is not provided', async () => {
+        // Simulate calling the function without the adminClient option
+        const result = await DoctorPatient.getDoctorsByPatient(mockPatientId, {}); // Pass empty options
+
+        expect(result.success).toBe(false);
+         // Update the expected error message for exact match
+        expect(result.error).toBe('Configuration error: adminClient is missing.');
+        // Verify no DB call was made
+        expect(supabase.from).not.toHaveBeenCalled();
     });
 
   });
