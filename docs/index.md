@@ -9,6 +9,7 @@ Bienvenido a la documentación de WhatYouEat, una aplicación de seguimiento nut
 - [Patrones de Diseño](./patterns.md) - Patrones implementados en el proyecto
 - [Validación](./validation.md) - Reglas y patrones de validación de datos
 - [Diagramas](./diagrams.md) - Diagramas y esquemas de la aplicación
+- [Plan de Pruebas](./test_plan.md) - Registro y seguimiento de casos de prueba
 
 ## Ejecutando el Proyecto
 
