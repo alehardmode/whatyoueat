@@ -97,3 +97,36 @@ npm run test:all
 ```
 
 Consulta la [documentación de testing](docs/testing.md) para información detallada sobre la estructura, configuración y comandos.
+
+## Configuración de Entorno
+
+La aplicación utiliza archivos `.env` para gestionar las variables de entorno en diferentes despliegues. La configuración se carga automáticamente según el valor de la variable de entorno `NODE_ENV`:
+
+- **Desarrollo:** Si `NODE_ENV` es `development` o no está definida, se carga `.env.development` (con fallback a `.env`).
+- **Pruebas:** Si `NODE_ENV` es `test`, se carga `.env.test`.
+- **Producción:** Si `NODE_ENV` es `production`, se carga `.env.production`.
+
+**Archivos Necesarios:**
+
+- `.env.development`: Variables para el entorno de desarrollo local.
+- `.env.test`: Variables específicas para ejecutar las pruebas automatizadas.
+- `.env.production`: Variables para el entorno de producción (¡No incluir en Git!).
+- `.env.example`: Un archivo de ejemplo que muestra las variables necesarias. Útil como plantilla para los otros archivos `.env`.
+
+**Importante:** Los archivos `.env.*` (excepto `.env.example`) están incluidos en `.gitignore` y **nunca deben ser añadidos al control de versiones** para evitar exponer información sensible.
+
+Para iniciar la aplicación en un entorno específico, establece la variable `NODE_ENV` antes de ejecutar el comando:
+
+```bash
+# Iniciar en modo desarrollo (por defecto si NODE_ENV no está definido)
+npm run dev
+
+# Iniciar explícitamente en desarrollo
+NODE_ENV=development npm run dev
+
+# Ejecutar pruebas (NODE_ENV=test se configura automáticamente)
+npm test
+
+# Iniciar en modo producción
+NODE_ENV=production npm start
+```

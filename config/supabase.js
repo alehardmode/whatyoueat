@@ -1,8 +1,4 @@
 const { createClient } = require("@supabase/supabase-js");
-const dotenv = require("dotenv");
-
-// Asegurarnos de cargar las variables de entorno
-dotenv.config();
 
 // Imprimir información sobre la configuración (sin exponer la clave completa)
 const supabaseUrl = process.env.SUPABASE_URL;
