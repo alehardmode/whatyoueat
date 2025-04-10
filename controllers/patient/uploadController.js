@@ -5,7 +5,6 @@ const {
   validateFoodEntry,
 } = require("../../utils/validators/foodEntryValidator");
 const imageProcessor = require("../../utils/imageProcessor");
-const StorageService = require("../../models/StorageService");
 
 /**
  * Muestra el formulario para subir una nueva foto de comida
@@ -107,28 +106,6 @@ exports.postUpload = async (req, res) => {
         "KB (WebP) - Compresión:",
         optimizationResult.compressionRatio + "%"
       );
-
-      // Subir a Supabase Storage
-      const storageResult = await StorageService.uploadFoodImageOptimized(
-        userId,
-        file.data,
-        file.name,
-        { format: "webp", maxSizeKB: 500 }
-      );
-
-      if (!storageResult.success) {
-        console.error(
-          "Error al subir a Supabase Storage:",
-          storageResult.error
-        );
-        // Continuamos con el flujo para guardar en base64
-      } else {
-        console.log(
-          "Imagen subida a Supabase Storage con éxito. Path:",
-          storageResult.path
-        );
-        // Podríamos guardar la referencia en vez de la imagen completa
-      }
 
       // Convertir imagen optimizada a base64
       const imageData = `data:image/webp;base64,${optimizationResult.buffer.toString(
