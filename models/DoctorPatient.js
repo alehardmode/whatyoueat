@@ -99,7 +99,8 @@ class DoctorPatient {
           patient:patient_id (
             id, 
             name,
-            created_at
+            created_at,
+            user:id ( email )
           )
         `
         )
@@ -110,14 +111,18 @@ class DoctorPatient {
       if (error) throw error;
 
       // Formatear datos para facilitar su uso y asegurar que los IDs sean strings
-      const patients = data.map((relation) => ({
-        relationId: relation.id,
-        status: relation.status,
-        id: String(relation.patient.id),
-        name: relation.patient.name,
-        email: "No disponible", // Valor por defecto ya que el campo no existe en la BD
-        created_at: relation.patient.created_at,
-      }));
+      const patients = data.map((relation) => {
+        // Extract email, handle cases where user or email might be null/undefined
+        const email = relation.patient?.user?.email || "No disponible";
+        return {
+          relationId: relation.id,
+          status: relation.status,
+          id: String(relation.patient.id),
+          name: relation.patient.name,
+          email: email, // Use the fetched email
+          created_at: relation.patient.created_at,
+        };
+      });
 
       console.log(
         `[DEBUG] Se encontraron ${patients.length} pacientes para el médico ${doctorId}`
@@ -142,7 +147,8 @@ class DoctorPatient {
           doctor:doctor_id (
             id, 
             name,
-            created_at
+            created_at,
+            user:id ( email )
           )
         `
         )
@@ -153,13 +159,18 @@ class DoctorPatient {
       if (error) throw error;
 
       // Formatear datos para facilitar su uso
-      const doctors = data.map((relation) => ({
-        relationId: relation.id,
-        status: relation.status,
-        id: String(relation.doctor.id),
-        name: relation.doctor.name,
-        created_at: relation.doctor.created_at,
-      }));
+      const doctors = data.map((relation) => {
+        // Extract email, handle cases where user or email might be null/undefined
+        const email = relation.doctor?.user?.email || "No disponible";
+        return {
+          relationId: relation.id,
+          status: relation.status,
+          id: String(relation.doctor.id),
+          name: relation.doctor.name,
+          email: email, // Add the fetched email
+          created_at: relation.doctor.created_at,
+        };
+      });
 
       return { success: true, doctors };
     } catch (error) {
