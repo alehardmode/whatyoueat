@@ -49,12 +49,15 @@ Se ha validado el código JavaScript utilizando ESLint con la configuración rec
 ### Resultados:
 
 #### Archivos JavaScript:
-- **Estado**: Válido
-- **Fecha de validación**: 23/03/2025
-- **Archivos validados**:
+- **Estado**: Válido (según configuración de ESLint)
+- **Fecha de validación**: 23/03/2025 (Fecha referencia original, revisar si se ejecuta ESLint automáticamente)
+- **Archivos validados (ejemplos principales)**:
   - `public/js/main.js`
   - `public/js/auth.js`
-  - `public/js/validators/contactFormValidator.js`
+  - `public/js/upload.js`
+  - `public/js/history.js`
+  - `public/js/edit-entry.js`
+  - `public/js/validators/`: Contiene validadores específicos para formularios.
 - **Observaciones**: 
   - Código correctamente estructurado y documentado
   - Se han seguido las mejores prácticas para JavaScript moderno
