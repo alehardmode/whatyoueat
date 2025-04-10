@@ -82,8 +82,6 @@ class UserAuth {
   // Iniciar sesión
   static async login(email, password) {
     try {
-      console.log("Iniciando proceso de login para email:", email);
-
       // Intentar iniciar sesión directamente
       const { data: authData, error: authError } =
         await supabase.auth.signInWithPassword({
@@ -107,13 +105,6 @@ class UserAuth {
           // En lugar de usar auth.admin que no está disponible, usamos una alternativa
           // Creamos un objeto de usuario basado en la información de error
 
-          // Modificación para dar el rol correcto (médico) para este usuario específico
-          let defaultRole = "paciente";
-          if (email === "abstractempty@gmail.com") {
-            defaultRole = "medico";
-            console.log(`Asignando rol de médico a ${email}`);
-          }
-
           // Extraemos el ID de usuario si está disponible en el error
           let userId = null;
           if (authError.message && authError.message.includes("user_id")) {
@@ -124,24 +115,66 @@ class UserAuth {
               );
               if (userIdMatch && userIdMatch[1]) {
                 userId = userIdMatch[1];
-              }              } catch (e) {
-                console.error("Error al extraer ID de usuario del mensaje:", e);
               }
+            } catch (e) {
+              console.error("Error al extraer ID de usuario del mensaje:", e);
+            }
           }
 
-          // Si tenemos el email, podemos construir un objeto de usuario básico
-          return {
-            success: true,
-            user: {
-              id: userId || uuidv4(), // Usar UUID si no podemos obtener el ID real
-              email: email,
-              name: email.split("@")[0], // Usar parte del email como nombre provisional
-              role: defaultRole, // Asignar el rol correcto
-              email_confirmed_at: null,
-            },
-            emailNotConfirmed: true,
-            errorCode: "email_not_confirmed",
-          };
+          // Si no tenemos userId, no podemos buscar el perfil
+          if (!userId) {
+            console.error("No se pudo extraer userId para email no confirmado:", email);
+            return {
+              success: false,
+              error: "No se pudo verificar el perfil del usuario. Intenta confirmar tu correo electrónico.",
+              errorCode: "profile_verification_failed",
+            };
+          }
+
+          // Buscar el perfil para obtener el rol
+          try {
+            const profileResult = await Profile.getById(userId);
+
+            if (!profileResult.success || !profileResult.data || !profileResult.data.role) {
+              console.error(
+                `Perfil no encontrado o sin rol para userId ${userId} (email no confirmado)`
+              );
+              return {
+                success: false,
+                error:
+                  "No se pudo encontrar el perfil o rol del usuario. Intenta confirmar tu correo electrónico.",
+                errorCode: "profile_not_found",
+              };
+            }
+
+            const userRole = profileResult.data.role;
+            const userName = profileResult.data.name || email.split("@")[0];
+
+            // Devolver éxito, pero indicando que el email no está confirmado
+            return {
+              success: true,
+              user: {
+                id: userId, // Usar el userId real
+                email: email,
+                name: userName, // Usar nombre del perfil o parte del email
+                role: userRole, // Usar el rol del perfil
+                email_confirmed_at: null,
+              },
+              emailNotConfirmed: true,
+              errorCode: "email_not_confirmed",
+            };
+          } catch (profileError) {
+            console.error(
+              `Error al buscar perfil para userId ${userId} (email no confirmado):`,
+              profileError
+            );
+            return {
+              success: false,
+              error:
+                "Error al verificar el perfil del usuario. Intenta confirmar tu correo electrónico.",
+              errorCode: "profile_fetch_error",
+            };
+          }
         } else if (authError.message.includes("User not found")) {
           return {
             success: false,
