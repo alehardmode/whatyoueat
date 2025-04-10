@@ -1,45 +1,41 @@
 const { createClient } = require("@supabase/supabase-js");
+require("dotenv").config(); // Asegúrate que carga el .env principal
 
 // Imprimir información sobre la configuración (sin exponer la clave completa)
 const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_KEY;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY; // Añade esta variable a tu .env
 
 // Verificar si las variables existen y tienen el formato correcto
-if (!supabaseUrl || !supabaseKey) {
-  console.error("Error: Faltan variables de entorno para Supabase");
-  console.error(
-    "Por favor, crea un archivo .env con SUPABASE_URL y SUPABASE_KEY"
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error("Error: SUPABASE_URL y SUPABASE_ANON_KEY deben estar definidos en las variables de entorno.");
+  // Considera lanzar un error o salir si la configuración es esencial
+  // process.exit(1);
+}
+
+if (!supabaseServiceRoleKey) {
+    console.warn(
+      "Advertencia: SUPABASE_SERVICE_ROLE_KEY no está definida. Funciones que requieran acceso de admin (ej: buscar emails de usuarios) fallarán."
+    );
+}
+
+console.log("Configuración de Supabase:", {
+  url: supabaseUrl,
+  tieneKey: !!supabaseAnonKey,
+  keyPreview: supabaseAnonKey ? `${supabaseAnonKey.substring(0, 5)}...${supabaseAnonKey.substring(supabaseAnonKey.length - 5)}` : "No disponible",
+  tieneAdminKey: !!supabaseServiceRoleKey // Log si tenemos la admin key
+});
+
+// Verificar si la URL tiene el formato correcto
+if (!supabaseUrl.startsWith("https://")) {
+  console.warn("⚠️ Advertencia: La URL de Supabase no comienza con https://");
+}
+
+// Verificar si la clave tiene un formato que parece un JWT
+if (!supabaseAnonKey.includes(".")) {
+  console.warn(
+    "⚠️ Advertencia: La clave de Supabase no parece tener formato JWT (debe contener puntos)"
   );
-
-  // En producción, se podría querer terminar la aplicación
-  if (process.env.NODE_ENV === "production") {
-    console.error(
-      "Terminando aplicación debido a la falta de configuración crítica"
-    );
-    process.exit(1);
-  } else {
-    console.warn(
-      "Continuando en modo desarrollo con valores de prueba. Las funciones de Supabase funcionarán en modo simulado."
-    );
-  }
-} else {
-  console.log("Configuración de Supabase:", {
-    url: supabaseUrl,
-    tieneKey: true,
-    keyPreview: `${supabaseKey.substring(0, 5)}...${supabaseKey.slice(-5)}`,
-  });
-
-  // Verificar si la URL tiene el formato correcto
-  if (!supabaseUrl.startsWith("https://")) {
-    console.warn("⚠️ Advertencia: La URL de Supabase no comienza con https://");
-  }
-
-  // Verificar si la clave tiene un formato que parece un JWT
-  if (!supabaseKey.includes(".")) {
-    console.warn(
-      "⚠️ Advertencia: La clave de Supabase no parece tener formato JWT (debe contener puntos)"
-    );
-  }
 }
 
 // Función para verificar la conexión básica
@@ -141,7 +137,7 @@ const supabaseOptions = {
 // Cliente estándar (para operaciones normales)
 const supabase = createClient(
   supabaseUrl || "https://placeholder-url.supabase.co",
-  supabaseKey || "placeholder-key",
+  supabaseAnonKey || "placeholder-key",
   supabaseOptions
 );
 
@@ -149,7 +145,7 @@ const supabase = createClient(
 // Usa el mismo key, pero con configuración para operaciones anónimas
 const supabasePublic = createClient(
   supabaseUrl || "https://placeholder-url.supabase.co",
-  supabaseKey || "placeholder-key",
+  supabaseAnonKey || "placeholder-key",
   {
     ...supabaseOptions,
     auth: {
@@ -158,6 +154,17 @@ const supabasePublic = createClient(
     },
   }
 );
+
+// Cliente de Administración (Service Role Key)
+// Solo se crea si la clave de servicio está disponible
+const supabaseAdmin = supabaseServiceRoleKey 
+  ? createClient(supabaseUrl, supabaseServiceRoleKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
+  : null; 
 
 // Verificar conexión al iniciar la aplicación (sin bloquear)
 testSupabaseConnection().then((isConnected) => {
@@ -171,6 +178,7 @@ testSupabaseConnection().then((isConnected) => {
 module.exports = {
   supabase,
   supabasePublic,
+  supabaseAdmin,
   testSupabaseConnection,
   checkSupabaseConnection,
 };
