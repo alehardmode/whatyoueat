@@ -39,6 +39,14 @@ function setupMiddleware(app) {
           connectSrc: ["'self'", "https://cdn.jsdelivr.net"],
         },
       },
+      // Política de Referrer explícita (nuevo default de Helmet v8)
+      referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+      // Configuración explícita de HSTS
+      strictTransportSecurity: {
+        maxAge: 63072000, // 2 años (nuevo default de Helmet v8)
+        includeSubDomains: false, // Mantener el comportamiento anterior (false) por seguridad
+        preload: false
+      },
       crossOriginEmbedderPolicy: false,
       crossOriginResourcePolicy: { policy: "cross-origin" },
     })
