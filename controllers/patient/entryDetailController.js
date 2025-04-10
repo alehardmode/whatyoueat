@@ -1,8 +1,16 @@
 // controllers/patient/entryDetailController.js
 const FoodEntry = require('../../models/FoodEntry');
 const { validateFoodEntryUpdate } = require('../../utils/validators/foodEntryValidator');
-const moment = require('moment');
+const dayjs = require('dayjs');
 const sharp = require('sharp');
+
+// Required for localized formatting like 'LLL'
+require('dayjs/locale/es');
+dayjs.locale('es');
+
+// Required for plugins
+const localizedFormat = require('dayjs/plugin/localizedFormat');
+dayjs.extend(localizedFormat);
 
 /**
  * Muestra el detalle de una entrada de comida
@@ -25,13 +33,13 @@ exports.getEntryDetail = async (req, res) => {
       entry.image_url = entry.image_data;
     }
     
-    moment.locale('es'); // Asegurar locale para moment
+    // dayjs locale is set globally above
     
     res.render('patient/entry-detail', {
       title: 'Detalle de Comida',
       entry,
       user: req.session.user,
-      moment
+      dayjs // Pass dayjs for use in templates if needed
     });
   } catch (error) {
     console.error('Error en getEntryDetail:', error);
@@ -75,7 +83,8 @@ exports.getEditForm = async (req, res) => {
     let formattedCreatedAt = 'No disponible';
     if (entry.created_at) {
       try {
-        formattedCreatedAt = moment(entry.created_at).locale('es').format('LLL'); // Formato localized
+        // Use dayjs for formatting
+        formattedCreatedAt = dayjs(entry.created_at).locale('es').format('LLL');
         console.log('Fecha creación formateada:', formattedCreatedAt);
       } catch (e) {
         console.error('Error formateando created_at:', entry.created_at, e);
@@ -89,10 +98,11 @@ exports.getEditForm = async (req, res) => {
     const dateToFormat = entry.meal_date || entry.created_at; // Priorizar meal_date
     if (dateToFormat) {
       try {
-        const mDate = moment(dateToFormat);
-        if (mDate.isValid()) {
+        // Use dayjs for parsing and formatting
+        const dDate = dayjs(dateToFormat);
+        if (dDate.isValid()) {
           // Formato requerido por datetime-local: YYYY-MM-DDTHH:mm
-          formattedMealDate = mDate.format('YYYY-MM-DDTHH:mm');
+          formattedMealDate = dDate.format('YYYY-MM-DDTHH:mm');
           console.log('Fecha comida formateada para input:', formattedMealDate);
         } else {
           console.log('Fecha a formatear inválida:', dateToFormat);
@@ -106,7 +116,8 @@ exports.getEditForm = async (req, res) => {
      // Si aún está vacío después de intentar formatear, usar la hora actual
     if (!formattedMealDate) {
         console.log('Usando fecha/hora actual como fallback para input mealDate');
-        formattedMealDate = moment().format('YYYY-MM-DDTHH:mm');
+        // Use dayjs to get current time in the required format
+        formattedMealDate = dayjs().format('YYYY-MM-DDTHH:mm');
     }
 
 
@@ -126,7 +137,7 @@ exports.getEditForm = async (req, res) => {
       user: req.session.user,
       formattedCreatedAt, // Nueva variable con la fecha de creación formateada
       formattedMealDate,  // Nueva variable con la fecha para el input
-      moment, // Pasar moment si es necesario en otras partes (aunque ya no para fechas)
+      dayjs, // Pass dayjs for use in templates if needed
       error_msg: req.flash('error_msg'),
       success_msg: req.flash('success_msg')
     });

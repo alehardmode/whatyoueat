@@ -38,8 +38,8 @@ class FoodEntry {
       
       // Si se proporciona una fecha, filtrar por esa fecha
       if (date) {
-        const startOfDay = moment(date).startOf('day').toISOString();
-        const endOfDay = moment(date).endOf('day').toISOString();
+        const startOfDay = dayjs(date).startOf('day').toISOString();
+        const endOfDay = dayjs(date).endOf('day').toISOString();
         
         query = query
           .gte('created_at', startOfDay)
@@ -114,8 +114,8 @@ exports.getHistory = async (req, res) => {
       title: 'Historial de Comidas',
       user: req.session.user,
       entries: result.entries,
-      date: moment(date).format('YYYY-MM-DD'),
-      moment
+      date: dayjs(date).format('YYYY-MM-DD'),
+      dayjs
     });
   } catch (error) {
     console.error('Error al obtener historial:', error);

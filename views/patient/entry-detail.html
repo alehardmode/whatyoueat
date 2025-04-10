@@ -27,7 +27,7 @@
             <h4 class="mb-0">
               <i class="fas fa-calendar-alt me-2"></i>
               <%= entry.name || 'Comida sin nombre' %> - <%=
-              moment(entry.meal_date || entry.created_at).format('DD/MM/YYYY HH:mm') %>
+              dayjs(entry.meal_date || entry.created_at).format('DD/MM/YYYY HH:mm') %>
             </h4>
           </div>
           <div class="card-body">
@@ -71,7 +71,7 @@
                     >
                       <span><i class="fas fa-calendar me-2"></i>Fecha:</span>
                       <span class="badge bg-primary rounded-pill">
-                        <%= moment(entry.meal_date ||
+                        <%= dayjs(entry.meal_date ||
                         entry.created_at).format('DD/MM/YYYY') %>
                       </span>
                     </li>
@@ -80,7 +80,7 @@
                     >
                       <span><i class="fas fa-clock me-2"></i>Hora:</span>
                       <span class="badge bg-primary rounded-pill">
-                        <%= moment(entry.meal_date ||
+                        <%= dayjs(entry.meal_date ||
                         entry.created_at).format('HH:mm') %>
                       </span>
                     </li>
@@ -100,7 +100,7 @@
                     >
                       <span><i class="fas fa-history me-2"></i>Creado:</span>
                       <span class="badge bg-secondary rounded-pill">
-                        <%= moment(entry.created_at).fromNow() %>
+                        <%= dayjs(entry.created_at).fromNow() %>
                       </span>
                     </li>
                   </ul>

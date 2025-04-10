@@ -91,7 +91,7 @@
                   <th scope="row"><%= index + 1 %></th>
                   <td><%= patient.name %></td>
                   <td>
-                    <%= moment(patient.created_at).format('DD/MM/YYYY') %>
+                    <%= dayjs(patient.created_at).format('DD/MM/YYYY') %>
                   </td>
                   <td>
                     <% if (patient.isAssigned) { %>

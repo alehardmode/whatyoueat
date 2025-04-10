@@ -2,7 +2,13 @@ const Profile = require("../../models/Profile");
 const FoodEntry = require("../../models/FoodEntry");
 const DoctorPatient = require("../../models/DoctorPatient");
 const { checkSupabaseConnection } = require("../../config/supabase");
-const moment = require("moment");
+const dayjs = require("dayjs");
+
+// Required plugins for template usage
+require('dayjs/locale/es');
+dayjs.locale('es');
+const localizedFormat = require('dayjs/plugin/localizedFormat');
+dayjs.extend(localizedFormat);
 
 // Ver historial de un paciente
 exports.getPatientHistory = async (req, res) => {
@@ -111,7 +117,7 @@ exports.getPatientHistory = async (req, res) => {
         filters,
         currentPage: page,
         totalPages: 0,
-        moment,
+        dayjs,
         currentUrl: req.originalUrl.split("?")[0],
       });
     }
@@ -141,7 +147,7 @@ exports.getPatientHistory = async (req, res) => {
       filters,
       currentPage: page,
       totalPages: entriesResult.pagination?.totalPages || 0,
-      moment,
+      dayjs,
       currentUrl: req.originalUrl.split("?")[0],
     });
   } catch (error) {

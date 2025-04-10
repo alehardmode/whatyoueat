@@ -1,5 +1,11 @@
 const DoctorPatient = require("../../models/DoctorPatient");
-const moment = require("moment");
+const dayjs = require("dayjs");
+
+// Required plugins for template usage
+require('dayjs/locale/es');
+dayjs.locale('es');
+const localizedFormat = require('dayjs/plugin/localizedFormat');
+dayjs.extend(localizedFormat);
 
 // Mostrar dashboard del médico
 exports.getDashboard = async (req, res) => {
@@ -24,7 +30,7 @@ exports.getDashboard = async (req, res) => {
       title: "Dashboard del Médico",
       user: req.session.user,
       patients: result.patients,
-      moment,
+      dayjs,
       emailConfirmed: req.session.emailConfirmed,
       // Añadir timestamp para evitar caché del navegador
       timestamp: Date.now(),

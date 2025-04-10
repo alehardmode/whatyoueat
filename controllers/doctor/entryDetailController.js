@@ -2,7 +2,15 @@ const Profile = require("../../models/Profile");
 const FoodEntry = require("../../models/FoodEntry");
 const DoctorPatient = require("../../models/DoctorPatient");
 const { checkSupabaseConnection } = require("../../config/supabase");
-const moment = require("moment");
+const dayjs = require("dayjs");
+
+// Required for plugins used in the template (e.g., fromNow)
+require('dayjs/locale/es');
+dayjs.locale('es');
+const relativeTime = require('dayjs/plugin/relativeTime');
+dayjs.extend(relativeTime);
+const localizedFormat = require('dayjs/plugin/localizedFormat');
+dayjs.extend(localizedFormat);
 
 // Ver detalle de una entrada de un paciente
 exports.getEntryDetail = async (req, res) => {
@@ -91,7 +99,7 @@ exports.getEntryDetail = async (req, res) => {
       user: req.session.user,
       patient: profileResult.profile,
       entry: entry,
-      moment,
+      dayjs,
     });
   } catch (error) {
     console.error("Error al obtener detalle de entrada:", error);

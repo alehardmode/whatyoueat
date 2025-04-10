@@ -1,6 +1,12 @@
 const Profile = require("../../models/Profile");
 const DoctorPatient = require("../../models/DoctorPatient");
-const moment = require("moment");
+const dayjs = require("dayjs");
+
+// Required plugins for template usage
+require('dayjs/locale/es');
+dayjs.locale('es');
+const localizedFormat = require('dayjs/plugin/localizedFormat');
+dayjs.extend(localizedFormat);
 
 // Filtrar pacientes por nombre
 exports.searchPatients = async (req, res) => {
@@ -39,7 +45,7 @@ exports.searchPatients = async (req, res) => {
       user: req.session.user,
       patients,
       searchTerm: search || "",
-      moment,
+      dayjs,
     });
   } catch (error) {
     console.error("Error al buscar pacientes:", error);

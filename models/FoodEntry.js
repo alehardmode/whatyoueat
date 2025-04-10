@@ -1,5 +1,5 @@
 const { supabase } = require("../config/supabase");
-const moment = require("moment");
+const dayjs = require("dayjs");
 const { v4: uuidv4 } = require("uuid");
 const { getDatabaseErrorMessage } = require("../utils/errorHandler");
 
@@ -137,14 +137,14 @@ class FoodEntry {
       // Si se proporciona un filtro de fecha, aplicarlo
       if (dateFilter) {
         if (dateFilter.from) {
-          const startDate = moment(dateFilter.from)
+          const startDate = dayjs(dateFilter.from)
             .startOf("day")
             .toISOString();
           query = query.gte("created_at", startDate);
         }
 
         if (dateFilter.to) {
-          const endDate = moment(dateFilter.to).endOf("day").toISOString();
+          const endDate = dayjs(dateFilter.to).endOf("day").toISOString();
           query = query.lte("created_at", endDate);
         }
       }
@@ -175,14 +175,14 @@ class FoodEntry {
         // Aplicar los mismos filtros de fecha
         if (dateFilter) {
           if (dateFilter.from) {
-            const startDate = moment(dateFilter.from)
+            const startDate = dayjs(dateFilter.from)
               .startOf("day")
               .toISOString();
             countQuery.gte("created_at", startDate);
           }
 
           if (dateFilter.to) {
-            const endDate = moment(dateFilter.to).endOf("day").toISOString();
+            const endDate = dayjs(dateFilter.to).endOf("day").toISOString();
             countQuery.lte("created_at", endDate);
           }
         }
