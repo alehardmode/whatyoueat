@@ -86,17 +86,18 @@ whatyoueat.project@gmail.com
 
 ## Testing
 
-El proyecto utiliza Jest y Puppeteer para pruebas automatizadas. Para ejecutar las pruebas:
+El proyecto utiliza [Jest](https://jestjs.io/) para las pruebas unitarias y [Supertest](https://github.com/visionmedia/supertest) para las pruebas de integración/API.
+
+Para ejecutar las pruebas, utiliza el siguiente comando:
 
 ```bash
-# Pruebas unitarias
+# Ejecuta todas las pruebas definidas
 npm test
-
-# Todas las pruebas
-npm run test:all
 ```
 
-Consulta la [documentación de testing](docs/testing.md) para información detallada sobre la estructura, configuración y comandos.
+La configuración de Jest se encuentra en `config/testing/jest.config.js`.
+
+Las pruebas se ejecutan utilizando las variables de entorno definidas en el archivo `.env.test`.
 
 ## Configuración de Entorno
 

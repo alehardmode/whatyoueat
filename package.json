@@ -7,17 +7,7 @@
   "scripts": {
     "start": "node --no-deprecation server.js",
     "dev": "nodemon --no-deprecation server.js",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:unit": "jest --config ./config/jest/jest.config.js",
-    "test:unit:mock": "USE_MOCKS=true jest --config ./config/jest/jest.config.js",
-    "test:integration": "jest --config ./config/jest/jest.integration.config.js",
-    "test:api": "jest --config ./config/jest/jest.api.config.js",
-    "test:e2e": "jest --config ./config/jest/jest.e2e.config.js",
-    "test:all": "npm run test:unit && npm run test:integration && npm run test:api && npm run test:e2e",
-    "test:all:mock": "npm run test:unit:mock && npm run test:integration && npm run test:api && npm run test:e2e",
-    "test:coverage": "jest --coverage",
-    "test:cleanup": "node ./tests/cleanup-database.js"
+    "test": "jest --config ./config/testing/jest.config.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.49.4",
@@ -41,7 +31,6 @@
   "devDependencies": {
     "jest": "^29.7.0",
     "nodemon": "^3.1.9",
-    "puppeteer": "24.6.1",
     "supertest": "^7.1.0"
   }
 }
