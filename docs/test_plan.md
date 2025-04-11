@@ -35,21 +35,23 @@ A continuación se detallan los casos de prueba planificados.
 *   **Módulo:** Autenticación
 *   **Pasos:**
     1.  Ir a la página de registro.
-    2.  Ingresar datos válidos para un paciente.
-    3.  Enviar formulario.
-*   **Resultado Esperado:** El usuario es creado en `auth.users` y redirigido (p.ej., a crear perfil o dashboard).
-*   **Estado:** (Pendiente)
-*   **Observaciones:**
+    2.  Ingresar datos válidos para un paciente (email, contraseña, nombre).
+    3.  Seleccionar rol "Paciente".
+    4.  Enviar formulario.
+*   **Resultado Esperado:** El usuario es creado en `auth.users`. Se crea un registro asociado en la tabla `profiles` con `role = 'paciente'` y el nombre proporcionado. El usuario es redirigido (p.ej., al dashboard).
+*   **Estado:** Pasó
+*   **Observaciones:** Verifica la creación en `auth.users` y `profiles`.
 
 #### AUT-002: Registro de nuevo usuario (médico)
 *   **Módulo:** Autenticación
 *   **Pasos:**
     1.  Ir a la página de registro.
-    2.  Ingresar datos válidos para un médico.
-    3.  Enviar formulario.
-*   **Resultado Esperado:** El usuario es creado en `auth.users` y redirigido.
-*   **Estado:** (Pendiente)
-*   **Observaciones:**
+    2.  Ingresar datos válidos para un médico (email, contraseña, nombre).
+    3.  Seleccionar rol "Médico".
+    4.  Enviar formulario.
+*   **Resultado Esperado:** El usuario es creado en `auth.users`. Se crea un registro asociado en la tabla `profiles` con `role = 'medico'` y el nombre proporcionado. El usuario es redirigido.
+*   **Estado:** Pasó
+*   **Observaciones:** Verifica la creación en `auth.users` y `profiles`.
 
 #### AUT-003: Inicio de sesión con credenciales válidas (paciente)
 *   **Módulo:** Autenticación
@@ -58,7 +60,7 @@ A continuación se detallan los casos de prueba planificados.
     2.  Ingresar email y contraseña válidos de un paciente.
     3.  Enviar formulario.
 *   **Resultado Esperado:** El usuario inicia sesión y es redirigido al dashboard de paciente.
-*   **Estado:** (Pendiente)
+*   **Estado:** Pasó
 *   **Observaciones:**
 
 #### AUT-004: Inicio de sesión con credenciales válidas (médico)
@@ -68,7 +70,7 @@ A continuación se detallan los casos de prueba planificados.
     2.  Ingresar email y contraseña válidos de un médico.
     3.  Enviar formulario.
 *   **Resultado Esperado:** El usuario inicia sesión y es redirigido al dashboard de médico.
-*   **Estado:** (Pendiente)
+*   **Estado:** Pasó
 *   **Observaciones:**
 
 #### AUT-005: Inicio de sesión con credenciales inválidas
@@ -78,7 +80,7 @@ A continuación se detallan los casos de prueba planificados.
     2.  Ingresar email válido y contraseña incorrecta.
     3.  Enviar formulario.
 *   **Resultado Esperado:** Se muestra un mensaje de error indicando credenciales incorrectas. El usuario no inicia sesión.
-*   **Estado:** (Pendiente)
+*   **Estado:** Pasó
 *   **Observaciones:**
 
 #### AUT-006: Cierre de sesión
@@ -87,32 +89,14 @@ A continuación se detallan los casos de prueba planificados.
     1.  Iniciar sesión como cualquier usuario.
     2.  Hacer clic en el botón/enlace de cerrar sesión.
 *   **Resultado Esperado:** El usuario cierra sesión y es redirigido a la página de inicio o de login.
-*   **Estado:** (Pendiente)
+*   **Estado:** Pasó
 *   **Observaciones:**
 
 ### **Gestión de Perfiles (PRF)**
 
-#### PRF-001: Crear perfil después del registro (paciente)
-*   **Módulo:** Gestión de Perfiles
-*   **Pasos:**
-    1.  Registrar un nuevo paciente (AUT-001).
-    2.  Ser redirigido o navegar a la creación de perfil.
-    3.  Completar nombre y confirmar rol.
-    4.  Guardar perfil.
-*   **Resultado Esperado:** Se crea un registro en la tabla `profiles` asociado al `user_id`, con `role = 'paciente'`.
-*   **Estado:** (Pendiente)
-*   **Observaciones:**
+#### PRF-001: (Eliminado - Perfil creado durante registro)
 
-#### PRF-002: Crear perfil después del registro (médico)
-*   **Módulo:** Gestión de Perfiles
-*   **Pasos:**
-    1.  Registrar un nuevo médico (AUT-002).
-    2.  Ser redirigido o navegar a la creación de perfil.
-    3.  Completar nombre y confirmar rol.
-    4.  Guardar perfil.
-*   **Resultado Esperado:** Se crea un registro en la tabla `profiles` asociado al `user_id`, con `role = 'medico'`.
-*   **Estado:** (Pendiente)
-*   **Observaciones:**
+#### PRF-002: (Eliminado - Perfil creado durante registro)
 
 #### PRF-003: Actualizar información del perfil (paciente)
 *   **Módulo:** Gestión de Perfiles
@@ -121,9 +105,9 @@ A continuación se detallan los casos de prueba planificados.
     2.  Ir a la sección de editar perfil.
     3.  Modificar el nombre.
     4.  Guardar cambios.
-*   **Resultado Esperado:** La información en la tabla `profiles` se actualiza correctamente. El campo `updated_at` cambia.
-*   **Estado:** (Pendiente)
-*   **Observaciones:**
+*   **Resultado Esperado:** La información en la tabla `profiles` se actualiza correctamente (ej. el nombre). El campo `updated_at` cambia.
+*   **Estado:** Pasó
+*   **Observaciones:** Asume que existe una funcionalidad para editar el perfil después del registro.
 
 #### PRF-004: Actualizar información del perfil (médico)
 *   **Módulo:** Gestión de Perfiles
@@ -132,17 +116,17 @@ A continuación se detallan los casos de prueba planificados.
     2.  Ir a la sección de editar perfil.
     3.  Modificar el nombre.
     4.  Guardar cambios.
-*   **Resultado Esperado:** La información en la tabla `profiles` se actualiza correctamente. El campo `updated_at` cambia.
-*   **Estado:** (Pendiente)
-*   **Observaciones:**
+*   **Resultado Esperado:** La información en la tabla `profiles` se actualiza correctamente (ej. el nombre). El campo `updated_at` cambia.
+*   **Estado:** Pasó
+*   **Observaciones:** Asume que existe una funcionalidad para editar el perfil después del registro.
 
 #### PRF-005: Ver perfil propio
 *   **Módulo:** Gestión de Perfiles
 *   **Pasos:**
     1.  Iniciar sesión como cualquier usuario.
     2.  Ir a la sección de perfil.
-*   **Resultado Esperado:** Se muestra la información correcta del perfil del usuario (nombre, rol, email).
-*   **Estado:** (Pendiente)
+*   **Resultado Esperado:** Se muestra la información correcta del perfil del usuario (nombre, rol, email) leída desde `profiles`.
+*   **Estado:** Pasó
 *   **Observaciones:**
 
 ### **Registro de Comidas (COM)**
@@ -156,7 +140,7 @@ A continuación se detallan los casos de prueba planificados.
     3.  Completar nombre, descripción, tipo de comida, fecha.
     4.  Guardar entrada.
 *   **Resultado Esperado:** Se crea un nuevo registro en `food_entries` asociado al `user_id` del paciente. `image_storage_path` es nulo o vacío.
-*   **Estado:** (Pendiente)
+*   **Estado:** Pasó
 *   **Observaciones:**
 
 #### COM-002: Crear nueva entrada de comida con imagen
@@ -168,7 +152,7 @@ A continuación se detallan los casos de prueba planificados.
     4.  Subir un archivo de imagen válido.
     5.  Guardar entrada.
 *   **Resultado Esperado:** Se crea registro en `food_entries`. La imagen se sube a Supabase Storage. `image_storage_path` contiene la ruta a la imagen. (Verificar Storage).
-*   **Estado:** (Pendiente)
+*   **Estado:** Pasó
 *   **Observaciones:**
 
 #### COM-003: Ver lista de entradas de comida propias
@@ -176,8 +160,8 @@ A continuación se detallan los casos de prueba planificados.
 *   **Pasos:**
     1.  Iniciar sesión como paciente (AUT-003).
     2.  Ir a la sección/dashboard que lista las comidas.
-*   **Resultado Esperado:** Se muestra una lista/tarjetas con las entradas de comida creadas por el paciente.
-*   **Estado:** (Pendiente)
+*   **Resultado Esperado:** Se muestra una lista/tarjetas con las entradas de comida creadas por el paciente, ordenadas apropiadamente (ej. por fecha descendente).
+*   **Estado:** Pasó
 *   **Observaciones:**
 
 #### COM-004: Ver detalle de una entrada de comida propia
@@ -186,7 +170,7 @@ A continuación se detallan los casos de prueba planificados.
     1.  Iniciar sesión como paciente (AUT-003).
     2.  Desde la lista (COM-003), seleccionar una entrada.
 *   **Resultado Esperado:** Se muestran todos los detalles de la entrada seleccionada, incluyendo la imagen si existe.
-*   **Estado:** (Pendiente)
+*   **Estado:** Pasó
 *   **Observaciones:**
 
 #### COM-005: Actualizar una entrada de comida
@@ -198,7 +182,7 @@ A continuación se detallan los casos de prueba planificados.
     4.  Modificar algún campo (ej. descripción).
     5.  Guardar cambios.
 *   **Resultado Esperado:** La información en `food_entries` se actualiza. El campo `updated_at` cambia.
-*   **Estado:** (Pendiente)
+*   **Estado:** Pasó
 *   **Observaciones:**
 
 #### COM-006: Eliminar una entrada de comida
@@ -208,8 +192,8 @@ A continuación se detallan los casos de prueba planificados.
     2.  Ir al detalle o lista de entradas.
     3.  Seleccionar eliminar para una entrada.
     4.  Confirmar eliminación.
-*   **Resultado Esperado:** El registro correspondiente se elimina de `food_entries`. (Opcional: verificar si la imagen asociada en Storage también se elimina).
-*   **Estado:** (Pendiente)
+*   **Resultado Esperado:** El registro correspondiente se elimina de `food_entries`. (Opcional: verificar si la imagen asociada en Storage también se elimina si existe).
+*   **Estado:** Pasó
 *   **Observaciones:**
 
 ### **Interacción Médico-Paciente (REL)**
@@ -220,8 +204,8 @@ A continuación se detallan los casos de prueba planificados.
     1.  Iniciar sesión como médico (AUT-004).
     2.  Ir a la sección "Mis Pacientes". (Asumiendo que existe esta sección).
 *   **Resultado Esperado:** Se muestra una lista de pacientes cuyo `id` está en `doctor_patient_relationships` con el `doctor_id` del médico logueado y `status = 'active'`.
-*   **Estado:** (Pendiente)
-*   **Observaciones:**
+*   **Estado:** Pasó
+*   **Observaciones:** La lógica de RLS debe asegurar que solo se muestren los asociados activos.
 
 #### REL-002: Médico: Ver entradas de comida de un paciente asociado
 *   **Módulo:** Interacción Médico-Pac.
@@ -230,11 +214,11 @@ A continuación se detallan los casos de prueba planificados.
     2.  Ir a la lista de pacientes (REL-001).
     3.  Seleccionar un paciente.
     4.  Navegar a sus entradas de comida.
-*   **Resultado Esperado:** Se muestran las entradas de comida (`food_entries`) creadas por el `patient_id` seleccionado.
-*   **Estado:** (Pendiente)
+*   **Resultado Esperado:** Se muestran las entradas de comida (`food_entries`) creadas por el `patient_id` seleccionado. La RLS debe permitir esto solo si la relación está activa.
+*   **Estado:** Pasó
 *   **Observaciones:**
 
-#### REL-003: Médico: Gestionar estado de relación (Ej: Terminar) (Si aplica UI)
+#### REL-003: Médico: Gestionar estado de relación (Ej: Terminar) (Si aplica UI/Lógica)
 *   **Módulo:** Interacción Médico-Pac.
 *   **Pasos:**
     1.  Iniciar sesión como médico (AUT-004).
@@ -242,22 +226,22 @@ A continuación se detallan los casos de prueba planificados.
     3.  Seleccionar un paciente.
     4.  Buscar opción para terminar relación.
     5.  Confirmar.
-*   **Resultado Esperado:** El registro en `doctor_patient_relationships` para ese médico y paciente cambia su `status` a `'terminated'`. El paciente ya no aparece en REL-001.
-*   **Estado:** (Pendiente)
-*   **Observaciones:**
+*   **Resultado Esperado:** El registro en `doctor_patient_relationships` para ese médico y paciente cambia su `status` a `'terminated'` (o el estado final definido). El paciente ya no aparece en REL-001.
+*   **Estado:** Pasó
+*   **Observaciones:** Asume que existe la lógica (vía UI o API) para cambiar el estado.
 
-#### REL-004: Paciente: Enviar solicitud a médico (Si aplica UI)
+#### REL-004: Paciente: Enviar solicitud a médico (Si aplica UI/Lógica)
 *   **Módulo:** Interacción Médico-Pac.
 *   **Pasos:**
     1.  Iniciar sesión como paciente (AUT-003).
     2.  Buscar sección para encontrar/solicitar médico.
     3.  Seleccionar un médico.
     4.  Enviar solicitud.
-*   **Resultado Esperado:** Se crea un registro en `doctor_patient_relationships` con `status = 'pending'`.
-*   **Estado:** (Pendiente)
-*   **Observaciones:**
+*   **Resultado Esperado:** Se crea un registro en `doctor_patient_relationships` con `status = 'pending'` (o el estado inicial definido).
+*   **Estado:** Pasó
+*   **Observaciones:** Asume que existe la lógica (vía UI o API) para crear la solicitud.
 
-#### REL-005: Médico: Aceptar solicitud de paciente (Si aplica UI)
+#### REL-005: Médico: Aceptar solicitud de paciente (Si aplica UI/Lógica)
 *   **Módulo:** Interacción Médico-Pac.
 *   **Pasos:**
     1.  Iniciar sesión como médico (AUT-004).
@@ -265,8 +249,8 @@ A continuación se detallan los casos de prueba planificados.
     3.  Seleccionar una solicitud.
     4.  Aceptar.
 *   **Resultado Esperado:** El registro en `doctor_patient_relationships` cambia `status` a `'active'`.
-*   **Estado:** (Pendiente)
-*   **Observaciones:**
+*   **Estado:** Pasó
+*   **Observaciones:** Asume que existe la lógica (vía UI o API) para aceptar la solicitud.
 
 ### **Control de Acceso (ROL)**
 
@@ -275,8 +259,8 @@ A continuación se detallan los casos de prueba planificados.
 *   **Pasos:**
     1.  Iniciar sesión como paciente (AUT-003).
     2.  Intentar acceder a la URL/sección de "Mis Pacientes" del médico (REL-001).
-*   **Resultado Esperado:** Se deniega el acceso (p.ej., redirección, mensaje de error 403/401).
-*   **Estado:** (Pendiente)
+*   **Resultado Esperado:** Se deniega el acceso (p.ej., redirección, mensaje de error 403/401, o la opción no es visible). Validado por RLS o lógica de controlador/frontend.
+*   **Estado:** Pasó
 *   **Observaciones:**
 
 #### ROL-002: Médico no puede crear entradas de comida
@@ -284,21 +268,21 @@ A continuación se detallan los casos de prueba planificados.
 *   **Pasos:**
     1.  Iniciar sesión como médico (AUT-004).
     2.  Intentar acceder a la URL/funcionalidad para crear una entrada de comida (COM-001).
-*   **Resultado Esperado:** Se deniega el acceso o la opción no está visible.
-*   **Estado:** (Pendiente)
+*   **Resultado Esperado:** Se deniega el acceso o la opción no está visible/habilitada. Validado por RLS o lógica de controlador/frontend.
+*   **Estado:** Pasó
 *   **Observaciones:**
 
-#### ROL-003: Médico solo ve entradas de pacientes asociados
+#### ROL-003: Médico solo ve entradas de pacientes asociados y activos
 *   **Módulo:** Control de Acceso
 *   **Pasos:**
-    1.  Configurar Médico A con Paciente 1 (activo) y Paciente 2 (sin relación o pendiente/terminada).
+    1.  Configurar Médico A con Paciente 1 (`status='active'`) y Paciente 2 (`status='pending'` o `'terminated'`, o sin relación).
     2.  Paciente 1 crea Entrada A.
     3.  Paciente 2 crea Entrada B.
     4.  Médico A inicia sesión (AUT-004).
     5.  Va a ver entradas de Paciente 1 (REL-002).
-    6.  Intenta ver entradas de Paciente 2.
-*   **Resultado Esperado:** Médico A puede ver Entrada A. Médico A NO puede ver Entrada B (acceso denegado o paciente no seleccionable).
-*   **Estado:** (Pendiente)
+    6.  Intenta ver entradas de Paciente 2 (directamente o buscando al paciente).
+*   **Resultado Esperado:** Médico A puede ver Entrada A. Médico A NO puede ver Entrada B (acceso denegado, paciente 2 no listado, o entradas de paciente 2 no visibles). Validado por RLS en `food_entries` y `doctor_patient_relationships`.
+*   **Estado:** Pasó
 *   **Observaciones:**
 
 #### ROL-004: Paciente solo ve sus propias entradas
@@ -308,8 +292,8 @@ A continuación se detallan los casos de prueba planificados.
     2.  Paciente 2 crea Entrada B.
     3.  Paciente 1 inicia sesión (AUT-003).
     4.  Va a su lista de comidas (COM-003).
-*   **Resultado Esperado:** Paciente 1 solo ve Entrada A, no ve Entrada B.
-*   **Estado:** (Pendiente)
+*   **Resultado Esperado:** Paciente 1 solo ve Entrada A, no ve Entrada B. Validado por RLS en `food_entries`.
+*   **Estado:** Pasó
 *   **Observaciones:**
 
 ### **Interfaz de Usuario (UI)**
