@@ -50,14 +50,14 @@
             <label for="password" class="form-label">Contraseña</label>
             <div class="input-group">
               <span class="input-group-text"><i class="fas fa-lock"></i></span>
-              <input type="password" class="form-control" id="password" name="password" autocomplete="new-password" required placeholder="Crea una contraseña segura" minlength="6">
+              <input type="password" class="form-control" id="password" name="password" autocomplete="new-password" required placeholder="Crea una contraseña segura" minlength="8" pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&-])[A-Za-z\d@$!%*?&-]{8,}" title="La contraseña debe tener al menos 8 caracteres, incluyendo una mayúscula, una minúscula, un número y un símbolo (@$!%*?&-).">
               <!-- boton para mostrar contraseña -->
               <button class="btn btn-outline-secondary" type="button" id="togglePassword1" tabindex="-1" aria-label="Mostrar u ocultar contraseña">
                 <i class="fas fa-eye" id="toggleIcon1"></i>
               </button>
-              <div class="invalid-feedback d-none">La contraseña debe tener al menos 6 caracteres</div>
+              <div class="invalid-feedback d-none">La contraseña debe tener al menos 8 caracteres, incluyendo mayúscula, minúscula, número y símbolo (@$!%*?&-).</div>
             </div>
-            <div class="form-text">La contraseña debe tener al menos 6 caracteres</div>
+            <div class="form-text">Mínimo 8 caracteres, con mayúsculas, minúsculas, números y símbolos (@$!%*?&-).</div>
           </div>
           <!-- elemento confirmacion password formulario -->
           <div class="mb-4">
