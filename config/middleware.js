@@ -118,6 +118,12 @@ function setupMiddleware(app) {
     );
   }
 
+  // Indicar a Express que confíe en el primer proxy (Render)
+  // Esto es crucial para que `cookie.secure` funcione correctamente en producción
+  if (process.env.NODE_ENV === "production") {
+    app.set('trust proxy', 1); // Confía en el primer proxy
+  }
+
   // Configuración de sesiones
   app.use(
     session({
