@@ -34,7 +34,7 @@ cd whatyoueat
 
 2. Instalar dependencias
 ```bash
-npm install
+pnpm install
 ```
 
 3. Generar SESSION_SECRET
@@ -50,7 +50,7 @@ node utils/generateSecret.js
 
 6. Iniciar la aplicación
 ```bash
-npm start
+pnpm start
 ```
 
 ## Uso
@@ -92,7 +92,7 @@ Para ejecutar las pruebas, utiliza el siguiente comando:
 
 ```bash
 # Ejecuta todas las pruebas definidas
-npm test
+pnpm test
 ```
 
 La configuración de Jest se encuentra en `config/testing/jest.config.js`.
@@ -120,14 +120,14 @@ Para iniciar la aplicación en un entorno específico, establece la variable `NO
 
 ```bash
 # Iniciar en modo desarrollo (por defecto si NODE_ENV no está definido)
-npm run dev
+pnpm run dev
 
 # Iniciar explícitamente en desarrollo
-NODE_ENV=development npm run dev
+NODE_ENV=development pnpm run dev
 
 # Ejecutar pruebas (NODE_ENV=test se configura automáticamente)
-npm test
+pnpm test
 
 # Iniciar en modo producción
-NODE_ENV=production npm start
+NODE_ENV=production pnpm start
 ```
