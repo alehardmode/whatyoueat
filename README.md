@@ -2,7 +2,6 @@
 
 Aplicación web que permite a pacientes registrar su alimentación mediante fotos y a médicos hacer un seguimiento de los hábitos alimenticios de sus pacientes.
 
-Documentación autogenerada
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/alehardmode/whatyoueat)
 
 ## Características
