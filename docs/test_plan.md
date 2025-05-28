@@ -303,36 +303,30 @@ A continuación se detallan los casos de prueba planificados.
 *   **Módulo:** Interfaz de Usuario
 *   **Pasos:** Explorar menús, enlaces y botones principales en ambos roles (paciente y médico).
 *   **Resultado Esperado:** La navegación es intuitiva, los enlaces funcionan y llevan a las secciones correctas. No hay enlaces rotos.
-*   **Estado:** (Pendiente)
+*   **Estado:** Pasó
 *   **Observaciones:**
 
 #### UI-002: Consistencia visual
 *   **Módulo:** Interfaz de Usuario
 *   **Pasos:** Revisar diferentes pantallas y componentes (botones, formularios, tablas/listas).
 *   **Resultado Esperado:** La aplicación mantiene un estilo visual coherente (colores, fuentes, diseño).
-*   **Estado:** (Pendiente)
+*   **Estado:** Pasó
 *   **Observaciones:**
 
 #### UI-003: Usabilidad de formularios
 *   **Módulo:** Interfaz de Usuario
 *   **Pasos:** Probar los formularios de registro, login, perfil, entrada de comida (validaciones, mensajes de error, facilidad de llenado).
 *   **Resultado Esperado:** Los formularios son fáciles de entender y usar. Las validaciones funcionan y los mensajes de error son claros.
-*   **Estado:** (Pendiente)
+*   **Estado:** Pasó
 *   **Observaciones:**
 
 #### UI-004: Visualización de imágenes
 *   **Módulo:** Interfaz de Usuario
 *   **Pasos:** Verificar que las imágenes subidas en las entradas de comida se muestran correctamente en la lista y el detalle.
 *   **Resultado Esperado:** Las imágenes se cargan y se visualizan adecuadamente.
-*   **Estado:** (Pendiente)
+*   **Estado:** Pasó
 *   **Observaciones:**
 
 ## 5. Registro de Resultados
 
 Para cada caso de prueba listado arriba, actualiza el campo **Estado** a `Pasó`, `Falló` o `Bloqueado` según corresponda. Añade cualquier detalle relevante en el campo **Observaciones**.
-
-## 6. Conclusiones
-
-(Se completará después de la ejecución de las pruebas)
-
-Resumen de los resultados generales, número de casos pasados/fallados, identificación de áreas problemáticas, y recomendaciones para correcciones o mejoras. 
